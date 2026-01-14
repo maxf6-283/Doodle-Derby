@@ -1,6 +1,14 @@
 import { insertCoin, onPlayerJoin, getParticipants } from "playroomkit";
 
 await insertCoin({
+  // Put in environment variable using vercel
+  // Can remove for testing on localhost
+  //
+  // To generate your own GAME_ID:
+  // Go to https://joinplayroom.com/
+  // Then go to Dev, log in, and create a new
+  // project. From there you will get a unique
+  // game ID to use
   gameId: process.env.GAME_ID
 });
 
