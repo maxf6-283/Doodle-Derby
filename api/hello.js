@@ -1,6 +1,8 @@
 import { insertCoin, onPlayerJoin, getParticipants } from "playroomkit";
 
-await insertCoin({});
+await insertCoin({
+  gameId: process.env.GAME_ID
+});
 
 let playerList = document.getElementById("playerList");
 
