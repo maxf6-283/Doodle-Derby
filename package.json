@@ -5,6 +5,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "konva": "^10.2.0",
     "playroomkit": "^0.0.95"
   },
   "devDependencies": {
