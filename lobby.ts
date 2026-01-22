@@ -1,4 +1,4 @@
-import { insertCoin, onPlayerJoin, getParticipants } from "playroomkit";
+import { insertCoin, onPlayerJoin, getParticipants, getRoomCode } from "playroomkit";
 
 await insertCoin({
   // Put in environment variable using vercel
@@ -13,7 +13,10 @@ await insertCoin({
   skipLobby: true
 });
 
-let playerList = document.getElementById("playerList") as HTMLUListElement;
+const playerList = document.getElementById("playerList") as HTMLUListElement;
+const code_span = document.getElementById("code-span") as HTMLSpanElement;
+
+code_span.innerText = getRoomCode() ?? "Error";
 
 onPlayerJoin(player => {
   // This relies on the built in lobby
