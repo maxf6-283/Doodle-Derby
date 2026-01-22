@@ -12,7 +12,7 @@ await insertCoin({
   gameId: process.env.GAME_ID
 });
 
-let playerList = document.getElementById("playerList");
+let playerList = document.getElementById("playerList") as HTMLUListElement;
 
 onPlayerJoin(player => {
   // This relies on the built in lobby
