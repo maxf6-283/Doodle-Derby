@@ -11,7 +11,7 @@ export enum PaintActionType {
   Erase
 }
 
-// Array of tuples to construct a line
+// Array of tuples to construct a user's stroke
 type PointsArray = [Konva.Vector2d, Konva.Vector2d][];
 
 export interface PaintAction {
