@@ -9,7 +9,8 @@ await insertCoin({
   // Then go to Dev, log in, and create a new
   // project. From there you will get a unique
   // game ID to use
-  gameId: process.env.GAME_ID
+  gameId: process.env.GAME_ID,
+  skipLobby: true
 });
 
 let playerList = document.getElementById("playerList") as HTMLUListElement;
