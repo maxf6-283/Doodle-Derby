@@ -5,9 +5,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "konva": "^10.2.0",
     "playroomkit": "^0.0.95"
   },
   "devDependencies": {
+    "@types/node": "^25.0.10",
+    "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }
 }
