@@ -24,3 +24,4 @@ onPlayerJoin(player => {
   playerNode.textContent = name;
   playerList.appendChild(playerNode);
 })
+
