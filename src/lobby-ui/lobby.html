@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Doodle Derby</title>
+    <link rel="stylesheet" href="./lobby.css" />
+  </head>
+  <body>
+    <div class="notebook-container">
+      <header class="lobby-header">
+        <button class="icon-btn">
+          <img src="/assets/lobby/escapearrow.png" alt="Back" class="ui-icon" />
+        </button>
+        <h1>Code: <span id="code-span"></span></h1>
+        <button class="icon-btn">
+          <img
+            src="/assets/lobby/settings.png"
+            alt="Settings"
+            class="ui-icon"
+          />
+        </button>
+      </header>
+
+      <main class="lobby-content">
+        <aside class="sticky-note rules-note">
+          <h3>RULES:</h3>
+          <ul>
+            <li>Number of Rounds: 3</li>
+            <li>Time Limit: 60s</li>
+          </ul>
+        </aside>
+
+        <div class="player-grid" id="player-grid"></div>
+      </main>
+
+      <footer class="lobby-footer">
+        <div id="ready-count" class="ready-count">0/0 READY</div>
+        <div class="button-group">
+          <button id="ready-btn" class="ready-btn">READY</button>
+          <button id="start-btn" class="start-btn" style="display: none">
+            START >>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <script type="module" src="./lobby.ts"></script>
+  </body>
+</html>
