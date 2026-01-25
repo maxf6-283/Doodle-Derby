@@ -15,8 +15,15 @@ await insertCoin({
 
 const playerList = document.getElementById("playerList") as HTMLUListElement;
 const code_span = document.getElementById("code-span") as HTMLSpanElement;
+const start_button = document.getElementById("start") as HTMLInputElement;
 
 code_span.innerText = getRoomCode() ?? "Error";
+
+export function enterRoom() {
+    window.location.href = window.location.href.split("/")[0] + "/canvas.html#r=R" + getRoomCode();
+}
+
+start_button.addEventListener("click", enterRoom);
 
 onPlayerJoin(player => {
   // This relies on the built in lobby
