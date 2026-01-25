@@ -1,4 +1,4 @@
-import { insertCoin, onPlayerJoin, myPlayer, getRoomCode, getParticipants } from "playroomkit";
+import { insertCoin, onPlayerJoin, myPlayer, getRoomCode, getParticipants, isHost, RPC, PlayerState } from "playroomkit";
 
 await insertCoin({
   // Put in environment variable using vercel
@@ -40,19 +40,30 @@ onPlayerJoin(player => {
   })
 })
 
-// check for name changes
+function updatePlayerName(player: PlayerState) {
+  player_nodes[player.id].textContent = player.getState("name")
+  if (player.id == my_id) {
+    const bold = document.createElement("strong")
+    bold.textContent = "You: "
+    player_nodes[player.id].prepend(bold)
+  }
+}
+
+// check for name changes every 1000 ms just in case
 setInterval(() => {
   let players = getParticipants()
   for (const [_, player] of Object.entries(players)) {
-    player_nodes[player.id].textContent = player.getState("name")
-    if (player.id == my_id) {
-      const bold = document.createElement("strong")
-      bold.textContent = "You: "
-      player_nodes[player.id].prepend(bold)
-    }
+    updatePlayerName(player)
   }
-}, 500)
+}, 1000)
+
+RPC.register("update_name", async (_data, caller) => {
+  updatePlayerName(caller)
+})
 
 name_update_button.addEventListener("click", () => {
   myPlayer().setState("name", name_field.value)
+  RPC.call("update_name", {}, RPC.Mode.ALL)
 })
+
+RPC.call("update_name", {}, RPC.Mode.ALL)
