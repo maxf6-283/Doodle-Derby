@@ -1,0 +1,258 @@
+:root {
+  --paper-white: #f0f4f7;
+  --line-blue: #b3d1ff;
+  --margin-red: #ffadad;
+  --sticky-pink: #ffb7d5;
+  --sticky-yellow: #fff3a0;
+  --btn-green: #9df9bc;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0; /* Remove padding to go edge-to-edge */
+  overflow: hidden; /* Prevents scrollbars if content fits */
+}
+body {
+  background-color: #333;
+  font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.notebook-container {
+  width: 100vw; /* Full Viewport Width */
+  height: 100vh; /* Full Viewport Height */
+  margin: 0;
+  border-radius: 0; /* Optional: remove rounded corners for full-screen look */
+  box-shadow: none; /* Optional: remove shadow when full-screen */
+
+  background-color: var(--paper-white);
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 79px,
+      var(--margin-red) 79px,
+      var(--margin-red) 81px,
+      transparent 81px
+    ),
+    linear-gradient(var(--line-blue) 0.1em, transparent 0.1em);
+  background-size: 100% 40px;
+  position: relative;
+  padding: 40px; /* Adjust padding for full-screen comfort */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box; /* Ensures padding doesn't add to width/height */
+}
+/* Header */
+.lobby-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+}
+
+.lobby-header h1 {
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+/* Rules Note */
+.rules-note {
+  position: absolute;
+  top: 100px; /* Increased from 40px to move it below the header buttons */
+  right: 20px; /* Slightly adjusted for better alignment */
+  background-color: var(--sticky-pink);
+  padding: 15px;
+  width: 200px;
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
+  transform: rotate(1deg);
+  z-index: 5; /* Ensures it stays above the lines but below any popups */
+}
+
+.rules-note h3 {
+  margin-top: 0;
+  font-size: 16px;
+}
+.rules-note ul {
+  padding-left: 15px;
+  font-size: 14px;
+}
+
+/* Player Layout */
+.player-grid {
+    display: flex;
+    flex-wrap: wrap; /* Allows players to wrap to a second row if there are many */
+    gap: 30px;
+    margin-top: 200px;
+    padding-left: 100px;
+    flex-grow: 1; /* Pushes the footer to the bottom */
+}
+
+.plus-icon {
+  width: 30px;
+  height: 30px;
+  opacity: 0.5;
+}
+
+.player-slot {
+  width: 80px; 
+  position: relative; /* CRITICAL: Required for the absolute crown and ready-tag to align */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.player-slot p {
+  font-size: 14px;
+  margin-top: 8px; /* Consistent gap between box and text */
+  white-space: nowrap;
+  height: 1.2em; /* Keep name tags at a consistent height */
+}
+.crown-img {
+  position: absolute;
+  top: -35px; /* Sits perfectly above the stick-man box */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 45px;
+  z-index: 10;
+}
+
+/* Ready Tag */
+.ready-tag {
+  position: absolute;
+  bottom: 30px;
+  left: -15px;
+  background: var(--sticky-yellow);
+  font-size: 10px;
+  padding: 5px;
+  transform: rotate(-15deg);
+  font-weight: bold;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.crown {
+  position: absolute;
+  top: -25px;
+  left: 10px;
+  font-size: 24px;
+}
+
+/* Context Menu (Yellow Sticky) */
+.context-menu {
+  position: absolute;
+  top: 0;
+  left: 20px;
+  background: var(--sticky-yellow);
+  width: 80px;
+  z-index: 10;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.context-menu button {
+  background: none;
+  border: none;
+  font-size: 10px;
+  padding: 10px 5px;
+  cursor: pointer;
+}
+
+.context-menu .kick {
+  color: red;
+}
+
+/* Empty Slots */
+.empty {
+  border: 1px dashed #ccc;
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: #999;
+}
+
+/* Footer Actions */
+.lobby-footer {
+    margin-top: auto;
+    padding-bottom: 20px;
+    align-self: flex-end;
+    text-align: right;
+}
+
+.ready-count {
+  color: #ff4d4d;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.start-btn {
+  background-color: var(--btn-green);
+  border: none;
+  padding: 10px 30px;
+  font-size: 20px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #76c893;
+}
+
+.start-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px; /* Space between buttons */
+}
+
+.ready-btn {
+  background-color: var(--sticky-yellow);
+  border: none;
+  padding: 10px 30px;
+  font-size: 20px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #e6d88a;
+}
+
+.ready-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.player-slot.empty {
+  opacity: 0.6; /* Makes them look slightly faded/inactive */
+}
+
+.stick-man, 
+.empty-card {
+  width: 80px;
+  height: 80px; /* Forces both boxes to be the exact same size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000;
+  border-radius: 10px;
+  box-sizing: border-box;
+  background: white; /* Default background */
+}
+.empty-card {
+  border: 2px dashed #999;
+  background: rgba(255, 255, 255, 0.2);
+}
