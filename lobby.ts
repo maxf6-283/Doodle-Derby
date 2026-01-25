@@ -51,28 +51,23 @@ function updatePlayerName(player: PlayerState) {
   }
 }
 
-// check for name changes every 1000 ms just in case
+// check for changes every 1000 ms just in case
 setInterval(() => {
   let players = getParticipants()
   for (const [_, player] of Object.entries(players)) {
     updatePlayerName(player)
   }
   updateSettings()
-}, 1000)
+}, 250)
 
-RPC.register("update_name", async (_data, caller) => {
-  updatePlayerName(caller)
-})
 
 name_update_button.addEventListener("click", () => {
   myPlayer().setState("name", name_field.value)
-  RPC.call("update_name", {}, RPC.Mode.ALL)
 })
 
 name_field.addEventListener("keypress", (ev) => {
   if (ev.key == "Enter") {
     myPlayer().setState("name", name_field.value)
-    RPC.call("update_name", {}, RPC.Mode.ALL)
   }
 })
 
@@ -84,10 +79,7 @@ ready_button.addEventListener("click", () => {
     myPlayer().setState("ready", true, true)
     ready_button.textContent = "Unready"
   }
-  RPC.call("update_name", {}, RPC.Mode.ALL)
 })
-
-RPC.call("update_name", {}, RPC.Mode.ALL)
 
 function updateSettings() {
   let settings = getState("settings")
@@ -106,11 +98,7 @@ function updateSettings() {
   }
 }
 
-RPC.register("update_settings", async (_data, _caller) => {
-  updateSettings()
-})
-
 setting_of_some_kind.addEventListener("keydown", (ev) => {
-  if (!isHost() || ev.key != "Enter") return
-  RPC.call("update_settings", settings, RPC.Mode.ALL)
+  if (ev.key != "Enter") return
+  updateSettings()
 })
