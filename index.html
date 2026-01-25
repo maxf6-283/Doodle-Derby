@@ -3,17 +3,90 @@
 <html>
   <head>
     <title>
-      Doodle Derby
     </title>
   </head>
   <body>
-    <h1>Doodle derby</h1>
-    <h2> 
-      List of players in session 
-    </h2>
-    <ul id="playerList">
-    </ul>
-
-    <script type="module" src="./main.js"></script>
+    <div class = "logo"></div>
+    <div class="container">
+      <h1 class="title">Doodle Derby</h1>
+    <div class = "buttons">
+      <button  class = "main-button" id="joinBtn" onclick="joinGame()">Join Game</button>
+     <button class = "main-button" id="createBtn" onclick = "window.location.href = 'lobby.html'">Create Game</button>
+    </div>
+    <script>
+        function joinGame() {
+          const code = prompt("Enter Game Code:");
+          if (!code) return;
+          const baseUrl = window.location.origin + "/lobby.html";
+          window.location.replace(`${baseUrl}#r=${code}`);
+        }
+      </script>
   </body>
 </html>
+
+
+
+<style>
+body{
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+}
+
+.container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding-top: 40px;
+  font-family: "Comic Sans MS"
+}
+
+.title{
+  font-size: 48px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.logo{
+  display: flex;
+  width: 200px;
+  height: 200px;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+
+}
+
+.code-section input{
+  display: flex;
+  padding: 5px 10px;
+  font-size: 18px;
+  width: 250px;
+  height: 40px;
+  font-family: "Comic Sans MS";
+}
+
+.buttons{
+  display: flex;
+  height: 100px;
+  gap: 50px;
+}
+
+.main-button{
+  width: 450px;
+  height: 100px;
+  background: #ff0000;
+  border: none;
+  border-radius: 30px;
+  font-size: 24px;
+  cursor: pointer;
+  font-family: "Comic Sans MS";
+}
+
+.main-button:hover {
+  background: #f3f3f3;
+}
+
+
+</style>
