@@ -1,9 +1,15 @@
 import { insertCoin, onPlayerJoin, myPlayer, getRoomCode, getParticipants, isHost, RPC, PlayerState, getState, setState } from "playroomkit";
 
-await insertCoin({
-  gameId: process.env.GAME_ID,
-  skipLobby: true
-});
+try {
+  await insertCoin({
+    gameId: process.env.GAME_ID,
+    skipLobby: true
+  });
+} catch {
+  // we have been kicked
+  alert("Permission denied - you have been kicked")
+  window.location.href = "/"
+}
 
 const playerList = document.getElementById("playerList") as HTMLUListElement
 const code_span = document.getElementById("code-span") as HTMLSpanElement
@@ -18,7 +24,6 @@ settings_button.addEventListener("click", () => {
   settings.hidden = !settings.hidden
 })
 
-code_span.innerText = getRoomCode() ?? "Error";
 myPlayer().setState("name", "unnamed player", true);
 myPlayer().setState("ready", false, true);
 const my_id = myPlayer().id
@@ -48,16 +53,30 @@ function updatePlayerName(player: PlayerState) {
     const bold = document.createElement("strong")
     bold.textContent = "You: "
     player_nodes[player.id].prepend(bold)
+  } else if (isHost()) {
+    const kick = document.createElement("button")
+    kick.textContent = "Kick"
+    kick.addEventListener("click", () => {
+      player.kick()
+    })
+    player_nodes[player.id].append(kick)
   }
 }
 
-// check for changes every 1000 ms just in case
+// check for changes
 setInterval(() => {
   let players = getParticipants()
   for (const [_, player] of Object.entries(players)) {
     updatePlayerName(player)
   }
   updateSettings()
+
+  code_span.innerText = getRoomCode() ?? "Error";
+  if (!getRoomCode()) {
+    // we have been kicked
+    alert("Kicked from room")
+    window.location.href = "/"
+  }
 }, 250)
 
 
