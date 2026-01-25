@@ -25,6 +25,7 @@ await insertCoin({
 
 const MAX_PLAYERS = 8;
 
+const playerPopup = document.getElementById("player-popup") as HTMLDivElement;
 const playerGrid = document.getElementById("player-grid") as HTMLDivElement;
 const code_span = document.getElementById("code-span") as HTMLSpanElement;
 const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
@@ -74,28 +75,38 @@ function updateUI() {
 
     slot.innerHTML = `
       ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
-      <div class="stick-man" style="background-color: ${profile.color.hex}">ツ</div> 
+      <button class="player-button"><div class="stick-man" style="background-color: ${profile.color.hex}">ツ</div></button>
       ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
       <p>${profile.name}</p>
     `;
 
+    const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
+    playerBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent immediate closing from global listener
+      
+      // Position the popup near the clicked button
+      const rect = playerBtn.getBoundingClientRect();
+      playerPopup.style.top = `${rect.top + window.scrollY}px`;
+      playerPopup.style.left = `${rect.right + 10}px`;
+      
+      playerPopup.classList.remove("hidden");
+
+      
+      const kickBtn = document.getElementById("kick-btn") as HTMLButtonElement;
+      kickBtn.style.display = player.id === hostId ? "block" : "none";
+    });
+
     playerGrid.appendChild(slot);
   });
-  const emptySlots = MAX_PLAYERS - players.length;
-  for (let i = 0; i < emptySlots; i++) {
-    const slot = document.createElement("div");
-    slot.className = "player-slot empty";
-    // Use your plus sign image here
-    slot.innerHTML = `
-      <div class="empty-card">
-        <img src="/assets/lobby/transparent-plus.png" class="plus-icon" alt="Waiting for player...">
-      </div>
-      <p style="visibility: hidden;">Slot</p>
-    `;
-    playerGrid.appendChild(slot);
-  }
+  
   readyCount.innerText = `${readyCountNum}/${players.length} READY`;
 }
+
+window.addEventListener("click", (e) => {
+  if (!playerPopup.contains(e.target as Node)) {
+    playerPopup.classList.add("hidden");
+  }
+});
 
 onPlayerJoin(() => updateUI());
 onDisconnect(() => updateUI());

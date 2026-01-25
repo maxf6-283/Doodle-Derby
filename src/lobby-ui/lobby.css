@@ -3,7 +3,9 @@
   --line-blue: #b3d1ff;
   --margin-red: #ffadad;
   --sticky-pink: #ffb7d5;
+  --sticky-purple: #b11da8;
   --sticky-yellow: #fff3a0;
+  --sticky-black: #53524d;
   --btn-green: #9df9bc;
 }
 
@@ -22,7 +24,6 @@ body {
   justify-content: center;
   align-items: center;
 }
-
 
 .notebook-container {
   width: 100vw; /* Full Viewport Width */
@@ -92,12 +93,12 @@ body {
 
 /* Player Layout */
 .player-grid {
-    display: flex;
-    flex-wrap: wrap; /* Allows players to wrap to a second row if there are many */
-    gap: 30px;
-    margin-top: 200px;
-    padding-left: 100px;
-    flex-grow: 1; /* Pushes the footer to the bottom */
+  display: flex;
+  flex-wrap: wrap; /* Allows players to wrap to a second row if there are many */
+  gap: 30px;
+  margin-top: 200px;
+  padding-left: 100px;
+  flex-grow: 1; /* Pushes the footer to the bottom */
 }
 
 .plus-icon {
@@ -106,8 +107,37 @@ body {
   opacity: 0.5;
 }
 
+.player-button {
+  /* Reset default button styles */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: block;
+  border-radius: 14px; /* Slightly larger than the 10px stick-man radius */
+
+  /* Create an invisible border of the target thickness */
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease-in-out;
+
+  /* Ensure it wraps the inner stick-man perfectly */
+  width: fit-content;
+  height: fit-content;
+}
+
+.player-button:hover {
+  /* Visuals appear on hover by changing the border color */
+  border-color: #1a1a1a;
+}
+
+/* Optional: remove default focus outline if you prefer the custom border */
+.player-button:focus {
+  outline: none;
+}
+
 .player-slot {
-  width: 80px; 
+  width: 80px;
   position: relative; /* CRITICAL: Required for the absolute crown and ready-tag to align */
   display: flex;
   flex-direction: column;
@@ -150,31 +180,6 @@ body {
   font-size: 24px;
 }
 
-/* Context Menu (Yellow Sticky) */
-.context-menu {
-  position: absolute;
-  top: 0;
-  left: 20px;
-  background: var(--sticky-yellow);
-  width: 80px;
-  z-index: 10;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-}
-
-.context-menu button {
-  background: none;
-  border: none;
-  font-size: 10px;
-  padding: 10px 5px;
-  cursor: pointer;
-}
-
-.context-menu .kick {
-  color: red;
-}
-
 /* Empty Slots */
 .empty {
   border: 1px dashed #ccc;
@@ -188,10 +193,10 @@ body {
 
 /* Footer Actions */
 .lobby-footer {
-    margin-top: auto;
-    padding-bottom: 20px;
-    align-self: flex-end;
-    text-align: right;
+  margin-top: auto;
+  padding-bottom: 20px;
+  align-self: flex-end;
+  text-align: right;
 }
 
 .ready-count {
@@ -240,7 +245,7 @@ body {
   opacity: 0.6; /* Makes them look slightly faded/inactive */
 }
 
-.stick-man, 
+.stick-man,
 .empty-card {
   width: 80px;
   height: 80px; /* Forces both boxes to be the exact same size */
@@ -255,4 +260,41 @@ body {
 .empty-card {
   border: 2px dashed #999;
   background: rgba(255, 255, 255, 0.2);
+}
+
+.context-menu {
+  position: absolute;
+  background: var(--sticky-yellow); /* Change this from --sticky-yellow */
+  width: 120px;
+  z-index: 100;
+  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  transform: rotate(-2deg);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.context-menu.hidden {
+  display: none;
+}
+
+.context-menu button {
+  background: none;
+  border: none;
+  color: black; /* Add this so text is visible on black */
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.context-menu button:hover {
+  background: rgba(174, 119, 119, 0.1); /* Lighten hover for dark mode */
+}
+
+.context-menu .kick {
+  color: #d9534f;
+  font-weight: bold;
 }
