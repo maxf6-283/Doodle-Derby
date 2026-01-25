@@ -20,6 +20,7 @@ const name_field = document.getElementById("name-field") as HTMLInputElement;
 
 code_span.innerText = getRoomCode() ?? "Error";
 myPlayer().setState("name", "unnamed player", true);
+const my_id = myPlayer().id
 
 let player_nodes: { [p: string]: HTMLLIElement } = {}
 
@@ -44,6 +45,11 @@ setInterval(() => {
   let players = getParticipants()
   for (const [_, player] of Object.entries(players)) {
     player_nodes[player.id].textContent = player.getState("name")
+    if (player.id == my_id) {
+      const bold = document.createElement("strong")
+      bold.textContent = "You: "
+      player_nodes[player.id].prepend(bold)
+    }
   }
 }, 500)
 
