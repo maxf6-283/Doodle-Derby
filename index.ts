@@ -12,3 +12,6 @@ export function joinLobby() {
 }
 
 join_button.addEventListener("click", joinLobby)
+code_textbox.addEventListener("keydown", (ev) => {
+  if (ev.key == "Enter") joinLobby()
+})

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 
 <html>
-  <head>
-    <title>
-      Doodle Derby
-    </title>
-  </head>
-  <body>
+
+<head>
+  <title>
+    Doodle Derby
+  </title>
+</head>
+
+<body>
+  <div id="lobby">
     <h1>Doodle derby</h1>
     <h2>Code: <span id="code-span"></span></h2>
     <br>
@@ -15,8 +18,8 @@
     <br>
     <button id="ready-button">Ready</button>
     <br>
-    <h2> 
-      List of players in session 
+    <h2>
+      List of players in session
     </h2>
     <ul id="playerList">
     </ul>
@@ -26,8 +29,16 @@
       Hello!
       <br>
       Some setting only the host can change: <input type="number" id="setting-of-some-kind" value="120">
+      <br>
     </div>
+    <button id="start-game" disabled>START GAME!!!</button>
+  </div>
 
-    <script type="module" src="/lobby.ts"></script>
-  </body>
+  <div id="game" hidden>
+    <h1>Pretend the game is here or something idk</h1>
+  </div>
+
+  <script type="module" src="/lobby.ts"></script>
+</body>
+
 </html>
