@@ -1,23 +1,22 @@
-import { insertCoin, onPlayerJoin, myPlayer, getRoomCode, getParticipants, isHost, RPC, PlayerState } from "playroomkit";
+import { insertCoin, onPlayerJoin, myPlayer, getRoomCode, getParticipants, isHost, RPC, PlayerState, getState, setState } from "playroomkit";
 
 await insertCoin({
-  // Put in environment variable using vercel
-  // Can remove for testing on localhost
-  //
-  // To generate your own GAME_ID:
-  // Go to https://joinplayroom.com/
-  // Then go to Dev, log in, and create a new
-  // project. From there you will get a unique
-  // game ID to use
   gameId: process.env.GAME_ID,
   skipLobby: true
 });
 
-const playerList = document.getElementById("playerList") as HTMLUListElement;
-const code_span = document.getElementById("code-span") as HTMLSpanElement;
-const name_update_button = document.getElementById("name-update-button") as HTMLButtonElement;
-const name_field = document.getElementById("name-field") as HTMLInputElement;
-const ready_button = document.getElementById("ready-button") as HTMLButtonElement;
+const playerList = document.getElementById("playerList") as HTMLUListElement
+const code_span = document.getElementById("code-span") as HTMLSpanElement
+const name_update_button = document.getElementById("name-update-button") as HTMLButtonElement
+const name_field = document.getElementById("name-field") as HTMLInputElement
+const ready_button = document.getElementById("ready-button") as HTMLButtonElement
+const settings_button = document.getElementById("settings-button") as HTMLButtonElement
+const settings = document.getElementById("settings") as HTMLDivElement
+const setting_of_some_kind = document.getElementById("setting-of-some-kind") as HTMLInputElement
+
+settings_button.addEventListener("click", () => {
+  settings.hidden = !settings.hidden
+})
 
 code_span.innerText = getRoomCode() ?? "Error";
 myPlayer().setState("name", "unnamed player", true);
@@ -27,10 +26,6 @@ const my_id = myPlayer().id
 let player_nodes: { [p: string]: HTMLLIElement } = {}
 
 onPlayerJoin(player => {
-  // This relies on the built in lobby
-  // system. Will have to change how this 
-  // works if/when we make our own custom
-  // lobby.
   let name = player.getState("name");
   let playerNode = document.createElement("li");
   playerNode.textContent = name;
@@ -40,10 +35,12 @@ onPlayerJoin(player => {
     player_nodes[player.id].remove();
     delete player_nodes[player.id]
   })
+  updatePlayerName(player)
 })
 
 function updatePlayerName(player: PlayerState) {
   player_nodes[player.id].textContent = player.getState("name")
+
   if (player.getState("ready")) {
     player_nodes[player.id].textContent += " (ready)"
   }
@@ -60,6 +57,7 @@ setInterval(() => {
   for (const [_, player] of Object.entries(players)) {
     updatePlayerName(player)
   }
+  updateSettings()
 }, 1000)
 
 RPC.register("update_name", async (_data, caller) => {
@@ -71,15 +69,48 @@ name_update_button.addEventListener("click", () => {
   RPC.call("update_name", {}, RPC.Mode.ALL)
 })
 
+name_field.addEventListener("keypress", (ev) => {
+  if (ev.key == "Enter") {
+    myPlayer().setState("name", name_field.value)
+    RPC.call("update_name", {}, RPC.Mode.ALL)
+  }
+})
+
 ready_button.addEventListener("click", () => {
   if (myPlayer().getState("ready")) {
     myPlayer().setState("ready", false, true)
     ready_button.textContent = "Ready"
   } else {
     myPlayer().setState("ready", true, true)
-    ready_button.textContent = "Uneady"
+    ready_button.textContent = "Unready"
   }
   RPC.call("update_name", {}, RPC.Mode.ALL)
 })
 
 RPC.call("update_name", {}, RPC.Mode.ALL)
+
+function updateSettings() {
+  let settings = getState("settings")
+  if (!settings) {
+    settings = {
+      setting_of_some_kind: 120
+    }
+  }
+  if (!isHost()) {
+    setting_of_some_kind.valueAsNumber = settings.setting_of_some_kind
+    setting_of_some_kind.disabled = true;
+  } else {
+    setting_of_some_kind.disabled = false;
+    settings.setting_of_some_kind = setting_of_some_kind.valueAsNumber
+    setState("settings", settings, true)
+  }
+}
+
+RPC.register("update_settings", async (_data, _caller) => {
+  updateSettings()
+})
+
+setting_of_some_kind.addEventListener("keydown", (ev) => {
+  if (!isHost() || ev.key != "Enter") return
+  RPC.call("update_settings", settings, RPC.Mode.ALL)
+})
