@@ -17,9 +17,11 @@ const playerList = document.getElementById("playerList") as HTMLUListElement;
 const code_span = document.getElementById("code-span") as HTMLSpanElement;
 const name_update_button = document.getElementById("name-update-button") as HTMLButtonElement;
 const name_field = document.getElementById("name-field") as HTMLInputElement;
+const ready_button = document.getElementById("ready-button") as HTMLButtonElement;
 
 code_span.innerText = getRoomCode() ?? "Error";
 myPlayer().setState("name", "unnamed player", true);
+myPlayer().setState("ready", false, true);
 const my_id = myPlayer().id
 
 let player_nodes: { [p: string]: HTMLLIElement } = {}
@@ -42,6 +44,9 @@ onPlayerJoin(player => {
 
 function updatePlayerName(player: PlayerState) {
   player_nodes[player.id].textContent = player.getState("name")
+  if (player.getState("ready")) {
+    player_nodes[player.id].textContent += " (ready)"
+  }
   if (player.id == my_id) {
     const bold = document.createElement("strong")
     bold.textContent = "You: "
@@ -63,6 +68,17 @@ RPC.register("update_name", async (_data, caller) => {
 
 name_update_button.addEventListener("click", () => {
   myPlayer().setState("name", name_field.value)
+  RPC.call("update_name", {}, RPC.Mode.ALL)
+})
+
+ready_button.addEventListener("click", () => {
+  if (myPlayer().getState("ready")) {
+    myPlayer().setState("ready", false, true)
+    ready_button.textContent = "Ready"
+  } else {
+    myPlayer().setState("ready", true, true)
+    ready_button.textContent = "Uneady"
+  }
   RPC.call("update_name", {}, RPC.Mode.ALL)
 })
 
