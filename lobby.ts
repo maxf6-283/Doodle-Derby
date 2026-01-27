@@ -1,4 +1,7 @@
-import { insertCoin, onPlayerJoin, getParticipants, getRoomCode } from "playroomkit";
+import { insertCoin, onPlayerJoin, getParticipants, getRoomCode, isHost} from "playroomkit";
+
+const urlHash = window.location.hash;
+const isJoining = urlHash && urlHash.includes("#r=R");
 
 await insertCoin({
   // Put in environment variable using vercel
@@ -13,10 +16,21 @@ await insertCoin({
   skipLobby: true
 });
 
+if (isHost() && isJoining) {
+  alert("Could not find that room. The code may be invalid or the room may have closed. Creating a new room instead.");
+}
+
 const playerList = document.getElementById("playerList") as HTMLUListElement;
 const code_span = document.getElementById("code-span") as HTMLSpanElement;
+const startGameButton = document.getElementById("start-game") as HTMLButtonElement;
 
 code_span.innerText = getRoomCode() ?? "Error";
+
+if(isHost()) {
+  startGameButton.style.display = "block";
+}
+
+
 
 onPlayerJoin(player => {
   // This relies on the built in lobby
@@ -28,3 +42,11 @@ onPlayerJoin(player => {
   playerNode.textContent = name;
   playerList.appendChild(playerNode);
 })
+
+function startGame() {
+  // TODO: Navigate to writing page when it exists
+  alert("Game starting! (Writing page not created yet)");
+  // window.location.href = "/writing.html";
+}
+
+startGameButton.addEventListener("click", startGame);
