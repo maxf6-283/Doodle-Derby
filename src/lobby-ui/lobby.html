@@ -11,10 +11,52 @@
         <button class="kick" id="kick-btn">Kick</button>
       </div>
 
-      <div id = "customizePlayerModal" class = "modal">
+      <div id="customizePlayerModal" class="modal">
         <div class="modal-content">
           <span class="close">&times;</span>
-          <p>Some text in modal</p>
+
+          <div class="customization-body">
+            <div class="controls-section">
+              <div class="name-group">
+                <label for="name-input"></label>
+                <input
+                  type="text"
+                  id="name-input"
+                  maxlength="12"
+                  spellcheck="false"
+                  placeholder="YOUR NAME"
+                />
+              </div>
+            </div>
+            <div class="preview-section">
+              <div id="character-preview" class="stick-man preview-size">
+                ツ
+              </div>
+            </div>
+
+            <div class="accessory-slots-container">
+              <div class="accessory-slot" data-slot="0" title="Hats">
+                <div class="slot-label">HAT</div>
+                <div class="slot-display" id="slot-0-display"></div>
+              </div>
+              <div class="accessory-slot" data-slot="1" title="Face">
+                <div class="slot-label">FACE</div>
+                <div class="slot-display" id="slot-1-display"></div>
+              </div>
+              <div class="accessory-slot" data-slot="2" title="Items">
+                <div class="slot-label">ITEM</div>
+                <div class="slot-display" id="slot-2-display"></div>
+              </div>
+            </div>
+
+            <div id="accessory-picker" class="picker-popup hidden">
+              <div class="picker-header">
+                <span id="picker-title">SELECT ITEM</span>
+                <button id="close-picker" class="close-small">&times;</button>
+              </div>
+              <div id="picker-grid" class="picker-grid"></div>
+            </div>
+          </div>
         </div>
       </div>
 

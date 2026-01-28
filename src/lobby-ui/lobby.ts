@@ -23,6 +23,28 @@ await insertCoin({
   skipLobby: true,
 });
 
+const ASSORTMENTS = [
+  [
+    "/assets/accessories/top_hat.PNG",
+    "/assets/accessories/chef.PNG",
+    "/assets/accessories/clown.PNG",
+    "none",
+  ],
+  [
+    "/assets/accessories/shades.PNG",
+    "/assets/accessories/disguiseMask.PNG",
+    "/assets/accessories/stache.PNG",
+    "/assets/accessories/bow_tie.PNG",
+    "none",
+  ],
+  [
+    "/assets/accessories/boba.PNG",
+    "/assets/accessories/dona.PNG",
+    "/assets/accessories/fishBowl.PNG",
+    "none",
+  ],
+];
+
 const MAX_PLAYERS = 8;
 
 const playerPopup = document.getElementById("player-popup") as HTMLDivElement;
@@ -31,14 +53,26 @@ const code_span = document.getElementById("code-span") as HTMLSpanElement;
 const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
 const readyCount = document.getElementById("ready-count") as HTMLDivElement;
 const readyBtn = document.getElementById("ready-btn") as HTMLButtonElement;
-const customizeModal = document.getElementById("customizePlayerModal") as HTMLDivElement;
-const modalCloseBtn = document.getElementsByClassName("close")[0] as HTMLElement;
+const customizeModal = document.getElementById(
+  "customizePlayerModal",
+) as HTMLDivElement;
+const modalCloseBtn = document.getElementsByClassName(
+  "close",
+)[0] as HTMLElement;
+
+const accessoryPicker = document.getElementById(
+  "accessory-picker",
+) as HTMLDivElement;
+const pickerGrid = document.getElementById("picker-grid") as HTMLDivElement;
+const closePickerBtn = document.getElementById(
+  "close-picker",
+) as HTMLButtonElement;
+let activeSlotIndex: number | null = null;
 
 const closeModal = () => {
   customizeModal.style.display = "none";
 };
 modalCloseBtn.onclick = closeModal;
-
 
 code_span.innerText = getRoomCode() ?? "Error";
 
@@ -54,6 +88,56 @@ if (isHost()) {
     // Logic to transition to the actual game
     console.log("Game Starting...");
   });
+}
+
+document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
+  slot.addEventListener("click", (e) => {
+    const mouseEvent = e as MouseEvent;
+    activeSlotIndex = index;
+    const mouseX = mouseEvent.clientX;
+    const mouseY = mouseEvent.clientY;
+    accessoryPicker.style.top = `${mouseY + window.scrollY}px`;
+    accessoryPicker.style.left = `${mouseX + window.scrollX}px`;
+    //bottom left anchor
+    accessoryPicker.style.transform = "translateY(-100%) rotate(-1deg)";
+    openPicker(index);
+  });
+});
+closePickerBtn.onclick = () => accessoryPicker.classList.add("hidden");
+
+function openPicker(index: number) {
+  pickerGrid.innerHTML = ""; // Clear existing items
+
+  ASSORTMENTS[index].forEach((path) => {
+    const item = document.createElement("div");
+    item.className = "picker-item";
+
+    // Handle "none" option
+    if (path === "none") {
+      item.innerText = "❌";
+    } else {
+      item.innerHTML = `<img src="${path}">`;
+    }
+
+    item.onclick = () => selectAccessory(path);
+    pickerGrid.appendChild(item);
+  });
+
+  accessoryPicker.classList.remove("hidden");
+}
+function selectAccessory(path: string) {
+  if (activeSlotIndex === null) return;
+
+  // Sync choice to Playroom state
+  myPlayer().setState(`acc_${activeSlotIndex}`, path);
+
+  // Update the slot visual
+  const display = document.getElementById(`slot-${activeSlotIndex}-display`);
+  if (display) {
+    display.innerHTML = path === "none" ? "" : `<img src="${path}">`;
+  }
+
+  accessoryPicker.classList.add("hidden");
 }
 
 function updateUI() {
@@ -104,7 +188,6 @@ function updateUI() {
         "view-profile-btn",
       ) as HTMLButtonElement;
       if (player.id === myPlayer().id) {
-
         customizeBtn.style.display = "block";
         customizeBtn.onclick = () => {
           playerPopup.classList.add("hidden");
@@ -114,7 +197,15 @@ function updateUI() {
         customizeBtn.style.display = "none";
       }
       const kickBtn = document.getElementById("kick-btn") as HTMLButtonElement;
-      kickBtn.style.display = player.id === hostId ? "block" : "none";
+      const canKick = isHost() && player.id !== myPlayer().id;
+      kickBtn.style.display = canKick ? "block" : "none";
+
+      if (canKick) {
+        kickBtn.onclick = () => {
+          //player.kick(); KICK LOGIC HERE!
+          playerPopup.classList.add("hidden");
+        };
+      }
     });
 
     playerGrid.appendChild(slot);
@@ -130,7 +221,6 @@ window.addEventListener("click", (e) => {
   if (e.target === customizeModal) {
     closeModal();
   }
-  
 });
 
 onPlayerJoin(() => updateUI());
