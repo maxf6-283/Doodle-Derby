@@ -31,6 +31,14 @@ const code_span = document.getElementById("code-span") as HTMLSpanElement;
 const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
 const readyCount = document.getElementById("ready-count") as HTMLDivElement;
 const readyBtn = document.getElementById("ready-btn") as HTMLButtonElement;
+const customizeModal = document.getElementById("customizePlayerModal") as HTMLDivElement;
+const modalCloseBtn = document.getElementsByClassName("close")[0] as HTMLElement;
+
+const closeModal = () => {
+  customizeModal.style.display = "none";
+};
+modalCloseBtn.onclick = closeModal;
+
 
 code_span.innerText = getRoomCode() ?? "Error";
 
@@ -47,6 +55,7 @@ if (isHost()) {
     console.log("Game Starting...");
   });
 }
+
 function updateUI() {
   if (isHost()) {
     setState("hostId", myPlayer().id);
@@ -64,7 +73,7 @@ function updateUI() {
   players.forEach((player) => {
     const profile = player.getProfile();
     const isReady = player.getState("isReady") || false;
-  
+
     if (isReady) {
       readyCountNum++;
     }
@@ -83,22 +92,34 @@ function updateUI() {
     const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
     playerBtn.addEventListener("click", (e) => {
       e.stopPropagation(); // Prevent immediate closing from global listener
-      
+
       // Position the popup near the clicked button
       const rect = playerBtn.getBoundingClientRect();
       playerPopup.style.top = `${rect.top + window.scrollY}px`;
       playerPopup.style.left = `${rect.right + 10}px`;
-      
+
       playerPopup.classList.remove("hidden");
 
-      
+      const customizeBtn = document.getElementById(
+        "view-profile-btn",
+      ) as HTMLButtonElement;
+      if (player.id === myPlayer().id) {
+
+        customizeBtn.style.display = "block";
+        customizeBtn.onclick = () => {
+          playerPopup.classList.add("hidden");
+          customizeModal.style.display = "flex";
+        };
+      } else {
+        customizeBtn.style.display = "none";
+      }
       const kickBtn = document.getElementById("kick-btn") as HTMLButtonElement;
       kickBtn.style.display = player.id === hostId ? "block" : "none";
     });
 
     playerGrid.appendChild(slot);
   });
-  
+
   readyCount.innerText = `${readyCountNum}/${players.length} READY`;
 }
 
@@ -106,6 +127,10 @@ window.addEventListener("click", (e) => {
   if (!playerPopup.contains(e.target as Node)) {
     playerPopup.classList.add("hidden");
   }
+  if (e.target === customizeModal) {
+    closeModal();
+  }
+  
 });
 
 onPlayerJoin(() => updateUI());
