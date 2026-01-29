@@ -11,14 +11,6 @@ import {
 } from "playroomkit";
 
 await insertCoin({
-  // Put in environment variable using vercel
-  // Can remove for testing on localhost
-  //
-  // To generate your own GAME_ID:
-  // Go to https://joinplayroom.com/
-  // Then go to Dev, log in, and create a new
-  // project. From there you will get a unique
-  // game ID to use
   gameId: process.env.GAME_ID,
   skipLobby: true,
 });
@@ -82,12 +74,12 @@ readyBtn.addEventListener("click", () => {
   updateUI();
 });
 
-if (isHost()) {
-  startBtn.style.display = "block";
-  startBtn.addEventListener("click", () => {
+let hostFeatureAdded = false
+
+function startGame() {
     // Logic to transition to the actual game
-    console.log("Game Starting...");
-  });
+  console.log("Game Starting...");
+  alert("pretend the game is starting here")
 }
 
 document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
@@ -141,11 +133,19 @@ function selectAccessory(path: string) {
 }
 
 function updateUI() {
-  if (isHost()) {
+  if (!hostFeatureAdded && isHost()) {
     setState("hostId", myPlayer().id);
     startBtn.style.display = "block";
-  } else {
+    startBtn.addEventListener("click", startGame);
+    hostFeatureAdded = true
+  } else if (hostFeatureAdded && !isHost()) {
     startBtn.style.display = "none";
+    startBtn.removeEventListener("click", startGame);
+    hostFeatureAdded = false
+  }
+
+  if (myPlayer().getState("name") == undefined) {
+    myPlayer().setState("name", myPlayer().getProfile().name)
   }
 
   const hostId = getState("hostId");
@@ -155,7 +155,8 @@ function updateUI() {
   playerGrid.innerHTML = ""; // Clear current grid
 
   players.forEach((player) => {
-    const profile = player.getProfile();
+    const name = player.getState("name")
+    const hex = "#A151C1"
     const isReady = player.getState("isReady") || false;
 
     if (isReady) {
@@ -168,9 +169,9 @@ function updateUI() {
 
     slot.innerHTML = `
       ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
-      <button class="player-button"><div class="stick-man" style="background-color: ${profile.color.hex}">ツ</div></button>
+      <button class="player-button"><div class="stick-man" style="background-color: ${hex}">ツ</div></button>
       ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
-      <p>${profile.name}</p>
+      <p>${name}</p>
     `;
 
     const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
@@ -223,5 +224,11 @@ window.addEventListener("click", (e) => {
   }
 });
 
-onPlayerJoin(() => updateUI());
+onPlayerJoin(player => {
+  updateUI()
+  player.onQuit(() => updateUI())
+  console.log("THIS IS RUNNING!!!!!")
+});
 onDisconnect(() => updateUI());
+
+setInterval(updateUI, 250)
