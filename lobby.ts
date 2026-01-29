@@ -1,4 +1,14 @@
-import { insertCoin, onPlayerJoin, myPlayer, getRoomCode, getParticipants, isHost, PlayerState, getState, setState, onDisconnect, RPC } from "playroomkit";
+import {
+  insertCoin,
+  onPlayerJoin,
+  onDisconnect,
+  getParticipants,
+  getRoomCode,
+  isHost,
+  myPlayer,
+  setState,
+  getState,
+} from "playroomkit";
 
 try {
   await insertCoin({
@@ -11,146 +21,232 @@ try {
   window.location.href = "/"
 }
 
-const playerList = document.getElementById("playerList") as HTMLUListElement
-const code_span = document.getElementById("code-span") as HTMLSpanElement
-const name_update_button = document.getElementById("name-update-button") as HTMLButtonElement
-const name_field = document.getElementById("name-field") as HTMLInputElement
-const ready_button = document.getElementById("ready-button") as HTMLButtonElement
-const settings_button = document.getElementById("settings-button") as HTMLButtonElement
-const settings = document.getElementById("settings") as HTMLDivElement
-const setting_of_some_kind = document.getElementById("setting-of-some-kind") as HTMLInputElement
-const start_game = document.getElementById("start-game") as HTMLButtonElement
-const lobby = document.getElementById("lobby") as HTMLDivElement
-const game = document.getElementById("game") as HTMLDivElement
+const ASSORTMENTS = [
+  [
+    "/assets/accessories/top_hat.PNG",
+    "/assets/accessories/chef.PNG",
+    "/assets/accessories/clown.PNG",
+    "none",
+  ],
+  [
+    "/assets/accessories/shades.PNG",
+    "/assets/accessories/disguiseMask.PNG",
+    "/assets/accessories/stache.PNG",
+    "/assets/accessories/bow_tie.PNG",
+    "none",
+  ],
+  [
+    "/assets/accessories/boba.PNG",
+    "/assets/accessories/dona.PNG",
+    "/assets/accessories/fishBowl.PNG",
+    "none",
+  ],
+];
 
-settings_button.addEventListener("click", () => {
-  settings.hidden = !settings.hidden
+const MAX_PLAYERS = 8;
+
+const playerPopup = document.getElementById("player-popup") as HTMLDivElement;
+const playerGrid = document.getElementById("player-grid") as HTMLDivElement;
+const code_span = document.getElementById("code-span") as HTMLSpanElement;
+const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
+const readyCount = document.getElementById("ready-count") as HTMLDivElement;
+const readyBtn = document.getElementById("ready-btn") as HTMLButtonElement;
+const customizeModal = document.getElementById(
+  "customizePlayerModal",
+) as HTMLDivElement;
+const modalCloseBtn = document.getElementsByClassName(
+  "close",
+)[0] as HTMLElement;
+
+const accessoryPicker = document.getElementById(
+  "accessory-picker",
+) as HTMLDivElement;
+const pickerGrid = document.getElementById("picker-grid") as HTMLDivElement;
+const closePickerBtn = document.getElementById(
+  "close-picker",
+) as HTMLButtonElement;
+const nameInput = document.getElementById("name-input") as HTMLInputElement;
+
+let activeSlotIndex: number | null = null;
+
+const closeModal = () => {
+  customizeModal.style.display = "none";
+};
+modalCloseBtn.onclick = closeModal;
+
+code_span.innerText = getRoomCode() ?? "Error";
+
+readyBtn.addEventListener("click", () => {
+  const currentState = myPlayer().getState("isReady") || false;
+  myPlayer().setState("isReady", !currentState);
+  updateUI();
+});
+
+let hostFeatureAdded = false
+
+nameInput.addEventListener("change", () => {
+  if (nameInput.value)
+    myPlayer().setState("name", nameInput.value)
+  else
+    nameInput.value = myPlayer().getState("name")
 })
 
-myPlayer().setState("name", "unnamed player", true);
-myPlayer().setState("ready", false, true);
-const my_id = myPlayer().id
+function startGame() {
+  // Logic to transition to the actual game
+  console.log("Game Starting...");
+  alert("pretend the game is starting here")
+}
 
-let player_nodes: { [p: string]: HTMLLIElement } = {}
-let players_ready: { [p: string]: boolean } = {}
+document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
+  slot.addEventListener("click", (e) => {
+    const mouseEvent = e as MouseEvent;
+    activeSlotIndex = index;
+    const mouseX = mouseEvent.clientX;
+    const mouseY = mouseEvent.clientY;
+    accessoryPicker.style.top = `${mouseY + window.scrollY}px`;
+    accessoryPicker.style.left = `${mouseX + window.scrollX}px`;
+    //bottom left anchor
+    accessoryPicker.style.transform = "translateY(-100%) rotate(-1deg)";
+    openPicker(index);
+  });
+});
+closePickerBtn.onclick = () => accessoryPicker.classList.add("hidden");
+
+function openPicker(index: number) {
+  pickerGrid.innerHTML = ""; // Clear existing items
+
+  ASSORTMENTS[index].forEach((path) => {
+    const item = document.createElement("div");
+    item.className = "picker-item";
+
+    // Handle "none" option
+    if (path === "none") {
+      item.innerText = "❌";
+    } else {
+      item.innerHTML = `<img src="${path}">`;
+    }
+
+    item.onclick = () => selectAccessory(path);
+    pickerGrid.appendChild(item);
+  });
+
+  accessoryPicker.classList.remove("hidden");
+}
+function selectAccessory(path: string) {
+  if (activeSlotIndex === null) return;
+
+  // Sync choice to Playroom state
+  myPlayer().setState(`acc_${activeSlotIndex}`, path);
+
+  // Update the slot visual
+  const display = document.getElementById(`slot-${activeSlotIndex}-display`);
+  if (display) {
+    display.innerHTML = path === "none" ? "" : `<img src="${path}">`;
+  }
+
+  accessoryPicker.classList.add("hidden");
+}
+
+function updateUI() {
+  if (!hostFeatureAdded && isHost()) {
+    setState("hostId", myPlayer().id);
+    startBtn.style.display = "block";
+    startBtn.addEventListener("click", startGame);
+    hostFeatureAdded = true
+  } else if (hostFeatureAdded && !isHost()) {
+    startBtn.style.display = "none";
+    startBtn.removeEventListener("click", startGame);
+    hostFeatureAdded = false
+  }
+
+  if (myPlayer().getState("name") == undefined) {
+    myPlayer().setState("name", myPlayer().getProfile().name)
+  }
+
+  const hostId = getState("hostId");
+
+  const players = Object.values(getParticipants());
+  let readyCountNum = 0;
+  playerGrid.innerHTML = ""; // Clear current grid
+
+  players.forEach((player) => {
+    const name = player.getState("name")
+    const hex = "#A151C1"
+    const isReady = player.getState("isReady") || false;
+
+    if (isReady) {
+      readyCountNum++;
+    }
+
+    // Create the structure matching your lobby.css
+    const slot = document.createElement("div");
+    slot.className = "player-slot active";
+
+    slot.innerHTML = `
+      ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
+      <button class="player-button"><div class="stick-man" style="background-color: ${hex}">ツ</div></button>
+      ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
+      <p>${name}</p>
+    `;
+
+    const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
+    playerBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent immediate closing from global listener
+
+      // Position the popup near the clicked button
+      const rect = playerBtn.getBoundingClientRect();
+      playerPopup.style.top = `${rect.top + window.scrollY}px`;
+      playerPopup.style.left = `${rect.right + 10}px`;
+
+      playerPopup.classList.remove("hidden");
+
+      const customizeBtn = document.getElementById(
+        "view-profile-btn",
+      ) as HTMLButtonElement;
+      if (player.id === myPlayer().id) {
+        customizeBtn.style.display = "block";
+        customizeBtn.onclick = () => {
+          playerPopup.classList.add("hidden");
+          customizeModal.style.display = "flex";
+        };
+      } else {
+        customizeBtn.style.display = "none";
+      }
+      const kickBtn = document.getElementById("kick-btn") as HTMLButtonElement;
+      const canKick = isHost() && player.id !== myPlayer().id;
+      kickBtn.style.display = canKick ? "block" : "none";
+
+      if (canKick) {
+        kickBtn.onclick = () => {
+          player.kick()
+          playerPopup.classList.add("hidden")
+        };
+      }
+    });
+
+    playerGrid.appendChild(slot);
+  });
+
+  readyCount.innerText = `${readyCountNum}/${players.length} READY`;
+}
+
+window.addEventListener("click", (e) => {
+  if (!playerPopup.contains(e.target as Node)) {
+    playerPopup.classList.add("hidden");
+  }
+  if (e.target === customizeModal) {
+    closeModal();
+  }
+});
 
 onPlayerJoin(player => {
-  let name = player.getState("name");
-  let playerNode = document.createElement("li");
-  playerNode.textContent = name;
-  playerList.appendChild(playerNode);
-  player_nodes[player.id] = playerNode;
-  player.onQuit(player => {
-    player_nodes[player.id].remove();
-    delete player_nodes[player.id]
-  })
-  updatePlayerName(player)
-})
-
-function updatePlayerName(player: PlayerState) {
-  player_nodes[player.id].textContent = player.getState("name")
-
-  if (player.getState("ready")) {
-    player_nodes[player.id].textContent += " (ready)"
-    players_ready[player.id] = true
-  } else {
-    players_ready[player.id] = false
-  }
-  if (player.id == my_id) {
-    const bold = document.createElement("strong")
-    bold.textContent = "You: "
-    player_nodes[player.id].prepend(bold)
-  } else if (isHost()) {
-    const kick = document.createElement("button")
-    kick.textContent = "Kick"
-    kick.addEventListener("click", () => {
-      player.kick()
-    })
-    player_nodes[player.id].append(kick)
-  }
-}
-
-function allReady(): boolean {
-  let all_ready = true;
-  for (const [_, ready] of Object.entries(players_ready)) {
-    if (!ready) {
-      all_ready = false
-      break
-    }
-  }
-  return all_ready
-}
-
-// check for changes
-setInterval(() => {
-  let players = getParticipants()
-  for (const [_, player] of Object.entries(players)) {
-    updatePlayerName(player)
-  }
-  updateSettings()
-
-  if (isHost()) {
-    start_game.disabled = !allReady()
-  }
-
-  code_span.innerText = getRoomCode() ?? "Error";
-}, 250)
+  updateUI()
+  player.onQuit(() => updateUI())
+});
 
 onDisconnect((ev) => {
   alert(`Kicked from room: ${ev.reason}`)
   window.location.href = "/"
 })
 
-
-name_update_button.addEventListener("click", () => {
-  myPlayer().setState("name", name_field.value)
-})
-
-name_field.addEventListener("keypress", (ev) => {
-  if (ev.key == "Enter") {
-    myPlayer().setState("name", name_field.value)
-  }
-})
-
-ready_button.addEventListener("click", () => {
-  if (myPlayer().getState("ready")) {
-    myPlayer().setState("ready", false, true)
-    ready_button.textContent = "Ready"
-  } else {
-    myPlayer().setState("ready", true, true)
-    ready_button.textContent = "Unready"
-  }
-})
-
-function updateSettings() {
-  let settings = getState("settings")
-  if (!settings) {
-    settings = {
-      setting_of_some_kind: 120
-    }
-  }
-  if (!isHost()) {
-    setting_of_some_kind.valueAsNumber = settings.setting_of_some_kind
-    setting_of_some_kind.disabled = true;
-  } else {
-    setting_of_some_kind.disabled = false;
-    settings.setting_of_some_kind = setting_of_some_kind.valueAsNumber
-    setState("settings", settings, true)
-  }
-}
-
-setting_of_some_kind.addEventListener("keydown", (ev) => {
-  if (ev.key != "Enter") return
-  updateSettings()
-})
-
-RPC.register("begin_game", async () => {
-  lobby.hidden = true
-  game.hidden = false
-})
-
-start_game.addEventListener("click", () => {
-  if (isHost() && allReady()) {
-    RPC.call("begin_game", {})
-  }
-})
+setInterval(updateUI, 250)

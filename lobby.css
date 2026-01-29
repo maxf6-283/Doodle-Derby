@@ -1,0 +1,499 @@
+:root {
+  --paper-white: #f0f4f7;
+  --line-blue: #b3d1ff;
+  --margin-red: #ffadad;
+  --sticky-pink: #ffb7d5;
+  --sticky-purple: #b11da8;
+  --sticky-yellow: #fff3a0;
+  --sticky-black: #53524d;
+  --btn-green: #9df9bc;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0; /* Remove padding to go edge-to-edge */
+  overflow: hidden; /* Prevents scrollbars if content fits */
+}
+body {
+  background-color: #333;
+  font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.notebook-container {
+  width: 100vw; /* Full Viewport Width */
+  height: 100vh; /* Full Viewport Height */
+  margin: 0;
+  border-radius: 0; /* Optional: remove rounded corners for full-screen look */
+  box-shadow: none; /* Optional: remove shadow when full-screen */
+
+  background-color: var(--paper-white);
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 79px,
+      var(--margin-red) 79px,
+      var(--margin-red) 81px,
+      transparent 81px
+    ),
+    linear-gradient(var(--line-blue) 0.1em, transparent 0.1em);
+  background-size: 100% 40px;
+  position: relative;
+  padding: 40px; /* Adjust padding for full-screen comfort */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box; /* Ensures padding doesn't add to width/height */
+}
+/* Header */
+.lobby-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+}
+
+.lobby-header h1 {
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+/* Rules Note */
+.rules-note {
+  position: absolute;
+  top: 100px; /* Increased from 40px to move it below the header buttons */
+  right: 20px; /* Slightly adjusted for better alignment */
+  background-color: var(--sticky-pink);
+  padding: 15px;
+  width: 200px;
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
+  transform: rotate(1deg);
+  z-index: 5; /* Ensures it stays above the lines but below any popups */
+}
+
+.rules-note h3 {
+  margin-top: 0;
+  font-size: 16px;
+}
+.rules-note ul {
+  padding-left: 15px;
+  font-size: 14px;
+}
+
+/* Player Layout */
+.player-grid {
+  display: flex;
+  flex-wrap: wrap; /* Allows players to wrap to a second row if there are many */
+  gap: 30px;
+  margin-top: 200px;
+  padding-left: 100px;
+  flex-grow: 1; /* Pushes the footer to the bottom */
+}
+
+.plus-icon {
+  width: 30px;
+  height: 30px;
+  opacity: 0.5;
+}
+
+.player-button {
+  /* Reset default button styles */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: block;
+  border-radius: 14px; /* Slightly larger than the 10px stick-man radius */
+
+  /* Create an invisible border of the target thickness */
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease-in-out;
+
+  /* Ensure it wraps the inner stick-man perfectly */
+  width: fit-content;
+  height: fit-content;
+}
+
+.player-button:hover {
+  /* Visuals appear on hover by changing the border color */
+  border-color: #1a1a1a;
+}
+
+/* Optional: remove default focus outline if you prefer the custom border */
+.player-button:focus {
+  outline: none;
+}
+
+
+
+.player-slot {
+  width: 80px;
+  position: relative; /* CRITICAL: Required for the absolute crown and ready-tag to align */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.player-slot p {
+  font-size: 14px;
+  margin-top: 8px; /* Consistent gap between box and text */
+  white-space: nowrap;
+  height: 1.2em; /* Keep name tags at a consistent height */
+}
+.crown-img {
+  position: absolute;
+  top: -35px; /* Sits perfectly above the stick-man box */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 45px;
+  z-index: 10;
+}
+
+/* Ready Tag */
+.ready-tag {
+  position: absolute;
+  bottom: 30px;
+  left: -15px;
+  background: var(--sticky-yellow);
+  font-size: 10px;
+  padding: 5px;
+  transform: rotate(-15deg);
+  font-weight: bold;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.crown {
+  position: absolute;
+  top: -25px;
+  left: 10px;
+  font-size: 24px;
+}
+
+/* Empty Slots */
+.empty {
+  border: 1px dashed #ccc;
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: #999;
+}
+
+/* Footer Actions */
+.lobby-footer {
+  margin-top: auto;
+  padding-bottom: 20px;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.ready-count {
+  color: #ff4d4d;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.start-btn {
+  background-color: var(--btn-green);
+  border: none;
+  padding: 10px 30px;
+  font-size: 20px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #76c893;
+}
+
+.start-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px; /* Space between buttons */
+}
+
+.ready-btn {
+  background-color: var(--sticky-yellow);
+  border: none;
+  padding: 10px 30px;
+  font-size: 20px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #e6d88a;
+}
+
+.ready-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.player-slot.empty {
+  opacity: 0.6; /* Makes them look slightly faded/inactive */
+}
+
+.stick-man,
+.empty-card {
+  width: 80px;
+  height: 80px; /* Forces both boxes to be the exact same size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000;
+  border-radius: 10px;
+  box-sizing: border-box;
+  background: white; /* Default background */
+}
+.empty-card {
+  border: 2px dashed #999;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.context-menu {
+  position: absolute;
+  background: var(--sticky-yellow); /* Change this from --sticky-yellow */
+  width: 120px;
+  z-index: 100;
+  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  transform: rotate(-2deg);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.context-menu.hidden {
+  display: none;
+}
+
+.context-menu button {
+  background: none;
+  border: none;
+  color: black; /* Add this so text is visible on black */
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.context-menu button:hover {
+  background: rgba(174, 119, 119, 0.1); /* Lighten hover for dark mode */
+}
+
+.context-menu .kick {
+  color: #d9534f;
+  font-weight: bold;
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 200; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: none; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 500px; /* Could be more or less, depending on screen size */
+  height: 500px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  align-self:flex-end;
+  margin-right:10px;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-title {
+  text-align: center;
+  margin-top: 0;
+  font-size: 28px;
+  border-bottom: 2px solid var(--sticky-black);
+  padding-bottom: 10px;
+}
+
+.customization-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 20px;
+}
+
+/* Larger Placeholder View */
+.preview-size {
+  width: 150px !important;
+  height: 150px !important;
+  font-size: 60px;
+  border-width: 4px !important;
+  box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
+}
+
+.controls-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+}
+.name-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+
+.name-group,.input-group label {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+
+.name-group input[type="text"] {
+  background: none;
+  border: none;
+  border-bottom: 2px dashed #999;
+  font-family: inherit;
+  font-size: 20px;
+  width: 60%;
+  outline: none;
+  text-align: center;
+}
+
+.input-group input[type="color"] {
+  border: 2px solid #000;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  background: none;
+}
+
+.accessory-slots-container {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  width: 100%;
+}
+
+.accessory-slot {
+  width: 85px;
+  height: 85px;
+  border: 2px dashed var(--sticky-black);
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.4);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.accessory-slot:hover { background: white; }
+
+.slot-label {
+  position: absolute;
+  top: -22px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.slot-display img {
+  max-width: 65px;
+  max-height: 65px;
+}
+
+/* Picker Pop-up styles */
+.picker-popup {
+  position: absolute;
+  transform: rotate(-1deg);
+  width: 320px;
+  background: var(--sticky-yellow);
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+  z-index: 300;
+  padding: 15px;
+}
+
+.picker-popup.hidden { display: none; }
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.picker-item {
+  background: white;
+  border: 1px solid #ccc;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.picker-item:hover { background: var(--btn-green); }
+
+.picker-item img {
+  max-width: 80%;
+  max-height: 80%;
+}
