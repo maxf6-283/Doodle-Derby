@@ -59,6 +59,8 @@ const pickerGrid = document.getElementById("picker-grid") as HTMLDivElement;
 const closePickerBtn = document.getElementById(
   "close-picker",
 ) as HTMLButtonElement;
+const nameInput = document.getElementById("name-input") as HTMLInputElement;
+
 let activeSlotIndex: number | null = null;
 
 const closeModal = () => {
@@ -75,6 +77,13 @@ readyBtn.addEventListener("click", () => {
 });
 
 let hostFeatureAdded = false
+
+nameInput.addEventListener("change", () => {
+  if (nameInput.value)
+    myPlayer().setState("name", nameInput.value)
+  else
+    nameInput.value = myPlayer().getState("name")
+})
 
 function startGame() {
     // Logic to transition to the actual game
