@@ -16,6 +16,13 @@ const small_button = document.getElementById('small-button') as HTMLInputElement
 const med_button = document.getElementById('med-button') as HTMLInputElement;
 const large_button = document.getElementById('large-button') as HTMLInputElement;
 const color_button = document.getElementById('color-button') as HTMLInputElement;
+// const slider = document.getElementById('sliderContainer') as HTMLDivElement;
+// const brush_size = document.getElementById('brushSize') as HTMLInputElement;
+// const brush_value = document.getElementById('brushValue') as HTMLElement;
+// const brush_btn = document.getElementById('brush') as HTMLButtonElement;
+// const color_btn = document.getElementById('color_change') as HTMLButtonElement;
+// const cl_menu = document.getElementById('cl_menu') as HTMLDivElement;
+// const red_btn = document.getElementById('red') as HTMLButtonElement;
 
 let paint = new PaintCanvas(
   canvas,
