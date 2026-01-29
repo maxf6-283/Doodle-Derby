@@ -1,20 +1,44 @@
 <!DOCTYPE html>
 
 <html>
-  <head>
-    <title>
-      Doodle Derby
-    </title>
-  </head>
-  <body>
+
+<head>
+  <title>
+    Doodle Derby
+  </title>
+</head>
+
+<body>
+  <div id="lobby">
     <h1>Doodle derby</h1>
     <h2>Code: <span id="code-span"></span></h2>
-    <h2> 
-      List of players in session 
+    <br>
+    <button id="name-update-button" style="background-color: blue; color: white;"> Update Name </button>
+    <input type="text" placeholder="username" id="name-field">
+    <br>
+    <button id="ready-button">Ready</button>
+    <br>
+    <h2>
+      List of players in session
     </h2>
     <ul id="playerList">
     </ul>
 
-    <script type="module" src="/lobby.ts"></script>
-  </body>
+    <button id="settings-button">Settings</button>
+    <div id="settings" style="width: 50vh; height: 50vh; border: solid black; position:absolute;">
+      Hello!
+      <br>
+      Some setting only the host can change: <input type="number" id="setting-of-some-kind" value="120">
+      <br>
+    </div>
+    <button id="start-game" disabled>START GAME!!!</button>
+  </div>
+
+  <div id="game" hidden>
+    <h1>Pretend the game is here or something idk</h1>
+  </div>
+
+  <script type="module" src="/lobby.ts"></script>
+</body>
+
 </html>
