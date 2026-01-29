@@ -21,7 +21,7 @@ let paint = new PaintCanvas(
   canvas,
   { x: 0, y: 0 },
   stage,
-  { color: "#0000ff", strokeWidth: 10 }
+  { color: "#000000", strokeWidth: 10 }
 );
 
 export function changeBrushSize(size: number) {
@@ -29,13 +29,14 @@ export function changeBrushSize(size: number) {
 }
 
 export function changeColor(color: string) {
+    console.log("In change colour ", color);
     paint.setBrushColor(color);
 }
 
 small_button.addEventListener('click', () => changeBrushSize(10));
 med_button.addEventListener('click', () => changeBrushSize(20));
 large_button.addEventListener('click', () => changeBrushSize(30));
-// color_button.addEventListener('change', () => changeColor(color_button.value));
+color_button.addEventListener('input', () => changeColor(color_button.value));
 
 window.addEventListener("keydown", ev => {
   if (ev.key == "e") {
