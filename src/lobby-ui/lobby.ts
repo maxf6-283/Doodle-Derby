@@ -10,10 +10,16 @@ import {
   getState,
 } from "playroomkit";
 
-await insertCoin({
-  gameId: process.env.GAME_ID,
-  skipLobby: true,
-});
+try {
+  await insertCoin({
+    gameId: process.env.GAME_ID,
+    skipLobby: true
+  });
+} catch {
+  // we have been kicked
+  alert("Permission denied - you have been kicked")
+  window.location.href = "/"
+}
 
 const ASSORTMENTS = [
   [
@@ -212,8 +218,8 @@ function updateUI() {
 
       if (canKick) {
         kickBtn.onclick = () => {
-          //player.kick(); KICK LOGIC HERE!
-          playerPopup.classList.add("hidden");
+          player.kick()
+          playerPopup.classList.add("hidden")
         };
       }
     });
@@ -236,8 +242,11 @@ window.addEventListener("click", (e) => {
 onPlayerJoin(player => {
   updateUI()
   player.onQuit(() => updateUI())
-  console.log("THIS IS RUNNING!!!!!")
 });
-onDisconnect(() => updateUI());
+
+onDisconnect((ev) => {
+  alert(`Kicked from room: ${ev.reason}`)
+  window.location.href = "/"
+})
 
 setInterval(updateUI, 250)
