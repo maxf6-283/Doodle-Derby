@@ -13,33 +13,44 @@ import {
 try {
   await insertCoin({
     gameId: process.env.GAME_ID,
-    skipLobby: true
+    skipLobby: true,
   });
 } catch {
   // we have been kicked
-  alert("Permission denied - you have been kicked")
-  window.location.href = "/"
+  alert("Permission denied - you have been kicked");
+  window.location.href = "/";
 }
+
+const CHARACTER_PATHS = [
+  "/assets/characters/bear_icon.png",
+  "/assets/characters/bunny_icon.png",
+  "/assets/characters/chameleon_icon.png",
+  "/assets/characters/dog_icon.png",
+  "/assets/characters/fish_icon.png",
+  "/assets/characters/puppy_icon.png",
+  "/assets/characters/sheep_icon.png",
+  "/assets/characters/timmy_icon.png",
+];
 
 const ASSORTMENTS = [
   [
     "/assets/accessories/top_hat.PNG",
     "/assets/accessories/chef.PNG",
     "/assets/accessories/clown.PNG",
-    "none",
+    "/assets/accessories/red_access.PNG",
   ],
   [
     "/assets/accessories/shades.PNG",
-    "/assets/accessories/disguiseMask.PNG",
-    "/assets/accessories/stache.PNG",
+    "/assets/accessories/moustache.PNG",
+    "/assets/accessories/glasses.PNG",
     "/assets/accessories/bow_tie.PNG",
-    "none",
+    "/assets/accessories/red_access.PNG",
   ],
   [
     "/assets/accessories/boba.PNG",
     "/assets/accessories/dona.PNG",
     "/assets/accessories/fishBowl.PNG",
-    "none",
+    "/assets/accessories/red_access.PNG",
   ],
 ];
 
@@ -51,17 +62,27 @@ const code_span = document.getElementById("code-span") as HTMLSpanElement;
 const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
 const readyCount = document.getElementById("ready-count") as HTMLDivElement;
 const readyBtn = document.getElementById("ready-btn") as HTMLButtonElement;
-const settingsBtn = document.getElementById("settings-btn") as HTMLButtonElement;
-const timerDuration = document.getElementById('timerDuration') as HTMLSpanElement;
-const lessTimeBtn = document.getElementById('lessTime') as HTMLButtonElement;
-const moreTimeBtn = document.getElementById('moreTime') as HTMLButtonElement;
-const volumeLevel = document.querySelector('label[for="volume"]') as HTMLLabelElement;
-const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
+const settingsBtn = document.getElementById(
+  "settings-btn",
+) as HTMLButtonElement;
+const timerDuration = document.getElementById(
+  "timerDuration",
+) as HTMLSpanElement;
+const lessTimeBtn = document.getElementById("lessTime") as HTMLButtonElement;
+const moreTimeBtn = document.getElementById("moreTime") as HTMLButtonElement;
+const volumeLevel = document.querySelector(
+  'label[for="volume"]',
+) as HTMLLabelElement;
+const volumeSlider = document.getElementById(
+  "volumeSlider",
+) as HTMLInputElement;
 const customizeModal = document.getElementById(
   "customizePlayerModal",
 ) as HTMLDivElement;
-const modalCloseBtns = document.querySelectorAll(".modal .close") as NodeListOf<HTMLElement>; //Finds all .close elements in class .modal --> Returns all nodes found
-modalCloseBtns.forEach(btn => {
+const modalCloseBtns = document.querySelectorAll(
+  ".modal .close",
+) as NodeListOf<HTMLElement>; //Finds all .close elements in class .modal --> Returns all nodes found
+modalCloseBtns.forEach((btn) => {
   btn.onclick = () => {
     const parentModal = btn.closest(".modal") as HTMLDivElement;
     if (parentModal) {
@@ -80,6 +101,9 @@ const closePickerBtn = document.getElementById(
 const nameInput = document.getElementById("name-input") as HTMLInputElement;
 
 let activeSlotIndex: number | null = null;
+const charPreviewBtn = document.getElementById(
+  "character-preview-btn",
+) as HTMLButtonElement;
 
 const closeModal = () => {
   customizeModal.style.display = "none";
@@ -88,31 +112,30 @@ const closeModal = () => {
 
 code_span.innerText = getRoomCode() ?? "Error";
 
-
 /////////////////////////// SETTINGS MENU ////////////////////////////////
-settingsBtn.addEventListener("click", () => { 
+settingsBtn.addEventListener("click", () => {
   settingsMenu.style.display = "flex";
 });
 
 let timerSeconds = 30; // default 30 seconds
-const MIN_SECS = 15;    
-const MAX_SECS = 180; 
+const MIN_SECS = 15;
+const MAX_SECS = 180;
 
 function updateTimerDisplay() {
   const minutes = Math.floor(timerSeconds / 60);
   const seconds = timerSeconds % 60;
-  timerDuration.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`; // ex: 01:00
+  timerDuration.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`; // ex: 01:00
 
   lessTimeBtn.disabled = timerSeconds <= MIN_SECS;
   moreTimeBtn.disabled = timerSeconds >= MAX_SECS;
 }
 
-lessTimeBtn.addEventListener('click', () => {
+lessTimeBtn.addEventListener("click", () => {
   timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
   updateTimerDisplay();
 });
 
-moreTimeBtn.addEventListener('click', () => {
+moreTimeBtn.addEventListener("click", () => {
   timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
   updateTimerDisplay();
 });
@@ -122,7 +145,7 @@ function updateVolumeDisplay() {
   volumeLevel.textContent = `Volume: ${volumeSlider.value}%`;
 }
 
-volumeSlider.addEventListener('input', () => {
+volumeSlider.addEventListener("input", () => {
   updateVolumeDisplay();
 });
 updateVolumeDisplay();
@@ -134,19 +157,17 @@ readyBtn.addEventListener("click", () => {
   updateUI();
 });
 
-let hostFeatureAdded = false
+let hostFeatureAdded = false;
 
 nameInput.addEventListener("change", () => {
-  if (nameInput.value)
-    myPlayer().setState("name", nameInput.value)
-  else
-    nameInput.value = myPlayer().getState("name")
-})
+  if (nameInput.value) myPlayer().setState("name", nameInput.value);
+  else nameInput.value = myPlayer().getState("name");
+});
 
 function startGame() {
-    // Logic to transition to the actual game
+  // Logic to transition to the actual game
   console.log("Game Starting...");
-  alert("pretend the game is starting here")
+  alert("pretend the game is starting here");
 }
 
 document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
@@ -165,24 +186,47 @@ document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
 closePickerBtn.onclick = () => accessoryPicker.classList.add("hidden");
 
 function openPicker(index: number) {
+  // index = -1 : CHARACTER PICKER
+  // index = 0 : HAT PICKER
+  // index = 1 : FACE PICKER
+  // index = 2 : ITEM PICKER
   pickerGrid.innerHTML = ""; // Clear existing items
 
-  ASSORTMENTS[index].forEach((path) => {
-    const item = document.createElement("div");
-    item.className = "picker-item";
+  if (index == -1) {
+    CHARACTER_PATHS.forEach((path) => {
+      const item = document.createElement("div");
+      item.className = "picker-item";
 
-    // Handle "none" option
-    if (path === "none") {
-      item.innerText = "❌";
-    } else {
+      // Handle "none" option
+
+      item.innerHTML = `<img src="${path}" />`;
+
+      item.onclick = () => selectCharacter(path);
+      pickerGrid.appendChild(item);
+    });
+  } else {
+    ASSORTMENTS[index].forEach((path) => {
+      const item = document.createElement("div");
+      item.className = "picker-item";
+
+      // Handle "none" option
+
       item.innerHTML = `<img src="${path}">`;
-    }
 
-    item.onclick = () => selectAccessory(path);
-    pickerGrid.appendChild(item);
-  });
+      item.onclick = () => selectAccessory(path);
+      pickerGrid.appendChild(item);
+    });
+  }
 
   accessoryPicker.classList.remove("hidden");
+}
+function selectCharacter(path: string) {
+  myPlayer().setState(`character`, path);
+  const display = document.getElementById("character-display");
+  if (display) {
+    display.innerHTML = `<img src="${path}"/>`;
+  }
+  accessoryPicker.classList.add("hidden");
 }
 function selectAccessory(path: string) {
   if (activeSlotIndex === null) return;
@@ -193,10 +237,52 @@ function selectAccessory(path: string) {
   // Update the slot visual
   const display = document.getElementById(`slot-${activeSlotIndex}-display`);
   if (display) {
-    display.innerHTML = path === "none" ? "" : `<img src="${path}">`;
+    display.innerHTML =
+      path === "/assets/accessories/red_access.PNG"
+        ? ""
+        : `<img src="${path}">`;
   }
 
   accessoryPicker.classList.add("hidden");
+  //assuming path var started with /assets/accessories/soomething.PNG
+  const previewPath = path.replace(
+    "/assets/accessories/",
+    "/assets/accessories-equip/",
+  );
+  setPreviewAccessory(activeSlotIndex, previewPath);
+}
+
+charPreviewBtn.addEventListener("click", (e) => {
+  // Option A: Open the first picker slot (Hats) automatically
+  const mouseEvent = e as MouseEvent;
+
+  const mouseX = mouseEvent.clientX;
+  const mouseY = mouseEvent.clientY;
+
+  accessoryPicker.style.top = `${mouseY + window.scrollY}px`;
+  accessoryPicker.style.left = `${mouseX + window.scrollX}px`;
+  accessoryPicker.style.transform = "translateY(-100%) rotate(-1deg)";
+
+  openPicker(-1); // Call the existing openPicker function
+});
+
+/**
+ * Updates the visual preview of the character
+ * @param slotId 0 for Hat, 1 for Face, 2 for Item
+ * @param imagePath The URL to the accessory image (e.g., '/assets/hats/top-hat.png')
+ */
+function setPreviewAccessory(slotId: number, imagePath: string | null): void {
+  const layer = document.getElementById(`preview-layer-${slotId}`);
+
+  if (layer) {
+    if (imagePath) {
+      layer.style.backgroundImage = `url('${imagePath}')`;
+      layer.style.display = "block";
+    } else {
+      // Handle "None" or clearing the slot
+      layer.style.backgroundImage = "none";
+    }
+  }
 }
 
 function updateUI() {
@@ -204,15 +290,15 @@ function updateUI() {
     setState("hostId", myPlayer().id);
     startBtn.style.display = "block";
     startBtn.addEventListener("click", startGame);
-    hostFeatureAdded = true
+    hostFeatureAdded = true;
   } else if (hostFeatureAdded && !isHost()) {
     startBtn.style.display = "none";
     startBtn.removeEventListener("click", startGame);
-    hostFeatureAdded = false
+    hostFeatureAdded = false;
   }
 
   if (myPlayer().getState("name") == undefined) {
-    myPlayer().setState("name", myPlayer().getProfile().name)
+    myPlayer().setState("name", myPlayer().getProfile().name);
   }
 
   const hostId = getState("hostId");
@@ -222,9 +308,14 @@ function updateUI() {
   playerGrid.innerHTML = ""; // Clear current grid
 
   players.forEach((player) => {
-    const name = player.getState("name")
-    const hex = "#A151C1"
+    const name = player.getState("name");
+    const characterImg = player.getState("character");
+
     const isReady = player.getState("isReady") || false;
+
+    const characterDisplay = characterImg
+      ? `<img src="${characterImg}" style="width:100%; height:100%; object-fit:contain;" />`
+      : `ツ`;
 
     if (isReady) {
       readyCountNum++;
@@ -235,11 +326,15 @@ function updateUI() {
     slot.className = "player-slot active";
 
     slot.innerHTML = `
-      ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
-      <button class="player-button"><div class="stick-man" style="background-color: ${hex}">ツ</div></button>
-      ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
-      <p>${name} ${player.id === myPlayer().id ? "(You)" : ""}</p>
-    `;
+  ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
+  <button class="player-button">
+    <div class="stick-man">
+      ${characterDisplay}
+    </div>
+  </button>
+  ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
+  <p>${name} ${player.id === myPlayer().id ? "(You)" : ""}</p>
+`;
 
     const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
     playerBtn.addEventListener("click", (e) => {
@@ -270,9 +365,14 @@ function updateUI() {
 
       if (canKick) {
         kickBtn.onclick = () => {
-          player.kick()
-          playerPopup.classList.add("hidden")
+          player.kick();
+          playerPopup.classList.add("hidden");
         };
+      }
+
+      //if no popups can be displayed, there is no point to popup the menu.
+      if (!canKick && player.id != myPlayer().id) {
+        playerPopup.classList.add("hidden");
       }
     });
 
@@ -294,14 +394,14 @@ window.addEventListener("click", (e) => {
   }
 });
 
-onPlayerJoin(player => {
-  updateUI()
-  player.onQuit(() => updateUI())
+onPlayerJoin((player) => {
+  updateUI();
+  player.onQuit(() => updateUI());
 });
 
 onDisconnect((ev) => {
-  alert(`Kicked from room: ${ev.reason}`)
-  window.location.href = "/"
-})
+  alert(`Kicked from room: ${ev.reason}`);
+  window.location.href = "/";
+});
 
-setInterval(updateUI, 250)
+setInterval(updateUI, 250);

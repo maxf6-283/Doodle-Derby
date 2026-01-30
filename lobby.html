@@ -29,9 +29,27 @@
               </div>
             </div>
             <div class="preview-section">
-              <div id="character-preview" class="stick-man preview-size">
-                ツ
-              </div>
+              <div class="slot-label-main">CHARACTER</div>
+              <button id="character-preview-btn" class="preview-button-wrapper">
+                <div id="character-preview" class="stick-man preview-size">
+                  <div class="character-display" id="character-display"></div>
+                  <div
+                    id="preview-layer-0"
+                    class="acc-layer hat"
+                    data-slot="0"
+                  ></div>
+                  <div
+                    id="preview-layer-1"
+                    class="acc-layer face"
+                    data-slot="1"
+                  ></div>
+                  <div
+                    id="preview-layer-2"
+                    class="acc-layer item"
+                    data-slot="2"
+                  ></div>
+                </div>
+              </button>
             </div>
 
             <div class="accessory-slots-container">
@@ -75,9 +93,16 @@
 
             <div id="volumeContainer">
               <label for="volume"></label>
-              <input type="range" id="volumeSlider" name="volumeSlider" min="0" max="100" step="5" />
+              <input
+                type="range"
+                id="volumeSlider"
+                name="volumeSlider"
+                min="0"
+                max="100"
+                step="5"
+              />
             </div>
-          </div>  
+          </div>
         </div>
       </div>
 
