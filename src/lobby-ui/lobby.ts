@@ -51,13 +51,25 @@ const code_span = document.getElementById("code-span") as HTMLSpanElement;
 const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
 const readyCount = document.getElementById("ready-count") as HTMLDivElement;
 const readyBtn = document.getElementById("ready-btn") as HTMLButtonElement;
+const settingsBtn = document.getElementById("settings-btn") as HTMLButtonElement;
+const timerDuration = document.getElementById('timerDuration') as HTMLSpanElement;
+const lessTimeBtn = document.getElementById('lessTime') as HTMLButtonElement;
+const moreTimeBtn = document.getElementById('moreTime') as HTMLButtonElement;
+const volumeLevel = document.querySelector('label[for="volume"]') as HTMLLabelElement;
+const volumeSlider = document.getElementById('volumeSlider') as HTMLInputElement;
 const customizeModal = document.getElementById(
   "customizePlayerModal",
 ) as HTMLDivElement;
-const modalCloseBtn = document.getElementsByClassName(
-  "close",
-)[0] as HTMLElement;
-
+const modalCloseBtns = document.querySelectorAll(".modal .close") as NodeListOf<HTMLElement>; //Finds all .close elements in class .modal --> Returns all nodes found
+modalCloseBtns.forEach(btn => {
+  btn.onclick = () => {
+    const parentModal = btn.closest(".modal") as HTMLDivElement;
+    if (parentModal) {
+      parentModal.style.display = "none";
+    }
+  };
+});
+const settingsMenu = document.getElementById("settingsMenu") as HTMLDivElement;
 const accessoryPicker = document.getElementById(
   "accessory-picker",
 ) as HTMLDivElement;
@@ -71,10 +83,50 @@ let activeSlotIndex: number | null = null;
 
 const closeModal = () => {
   customizeModal.style.display = "none";
+  settingsMenu.style.display = "none";
 };
-modalCloseBtn.onclick = closeModal;
 
 code_span.innerText = getRoomCode() ?? "Error";
+
+
+/////////////////////////// SETTINGS MENU ////////////////////////////////
+settingsBtn.addEventListener("click", () => { 
+  settingsMenu.style.display = "flex";
+});
+
+let timerSeconds = 30; // default 30 seconds
+const MIN_SECS = 15;    
+const MAX_SECS = 180; 
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(timerSeconds / 60);
+  const seconds = timerSeconds % 60;
+  timerDuration.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`; // ex: 01:00
+
+  lessTimeBtn.disabled = timerSeconds <= MIN_SECS;
+  moreTimeBtn.disabled = timerSeconds >= MAX_SECS;
+}
+
+lessTimeBtn.addEventListener('click', () => {
+  timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
+  updateTimerDisplay();
+});
+
+moreTimeBtn.addEventListener('click', () => {
+  timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
+  updateTimerDisplay();
+});
+updateTimerDisplay();
+
+function updateVolumeDisplay() {
+  volumeLevel.textContent = `Volume: ${volumeSlider.value}%`;
+}
+
+volumeSlider.addEventListener('input', () => {
+  updateVolumeDisplay();
+});
+updateVolumeDisplay();
+/////////////////////////// LOBBY LOGIC ////////////////////////////////
 
 readyBtn.addEventListener("click", () => {
   const currentState = myPlayer().getState("isReady") || false;
@@ -235,6 +287,9 @@ window.addEventListener("click", (e) => {
     playerPopup.classList.add("hidden");
   }
   if (e.target === customizeModal) {
+    closeModal();
+  }
+  if (e.target === settingsMenu) {
     closeModal();
   }
 });

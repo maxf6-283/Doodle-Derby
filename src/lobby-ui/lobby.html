@@ -60,12 +60,33 @@
         </div>
       </div>
 
+      <div id="settingsMenu" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <div class="customization-body">
+            <div id="timerContainer">
+              <label for="timer">Timer per round:</label>
+              <div id="custom-timer-display">
+                <button id="lessTime">&lt;</button>
+                <span id="timerDuration"></span>
+                <button id="moreTime">&gt;</button>
+              </div>
+            </div>
+
+            <div id="volumeContainer">
+              <label for="volume"></label>
+              <input type="range" id="volumeSlider" name="volumeSlider" min="0" max="100" step="5" />
+            </div>
+          </div>  
+        </div>
+      </div>
+
       <header class="lobby-header">
         <button class="icon-btn">
           <img src="/assets/lobby/escapearrow.png" alt="Back" class="ui-icon" />
         </button>
         <h1>Code: <span id="code-span"></span></h1>
-        <button class="icon-btn">
+        <button id="settings-btn" class="icon-btn">
           <img
             src="/assets/lobby/settings.png"
             alt="Settings"
