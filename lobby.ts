@@ -238,7 +238,7 @@ function updateUI() {
       ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
       <button class="player-button"><div class="stick-man" style="background-color: ${hex}">ツ</div></button>
       ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
-      <p>${name}</p>
+      <p>${name} ${player.id === myPlayer().id ? "(You)" : ""}</p>
     `;
 
     const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
