@@ -119,7 +119,7 @@ body {
 
   /* Create an invisible border of the target thickness */
   border: 2px solid transparent;
-  transition: border-color 0.2s ease-in-out;
+  transition: none;
 
   /* Ensure it wraps the inner stick-man perfectly */
   width: fit-content;
