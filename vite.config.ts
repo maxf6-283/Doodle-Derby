@@ -7,6 +7,7 @@ export default defineConfig({
       input: {
         main: "index.html",
         lobby: "lobby.html",
+        canvas: "canvas.html",
       },
     },
   },
