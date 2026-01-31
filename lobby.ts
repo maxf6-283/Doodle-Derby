@@ -22,35 +22,35 @@ try {
 }
 
 const CHARACTER_PATHS = [
-  "/assets/characters/bear_icon.png",
-  "/assets/characters/bunny_icon.png",
-  "/assets/characters/chameleon_icon.png",
-  "/assets/characters/dog_icon.png",
-  "/assets/characters/fish_icon.png",
-  "/assets/characters/puppy_icon.png",
-  "/assets/characters/sheep_icon.png",
-  "/assets/characters/timmy_icon.png",
+  "/characters/bear_icon.png",
+  "/characters/bunny_icon.png",
+  "/characters/chameleon_icon.png",
+  "/characters/dog_icon.png",
+  "/characters/fish_icon.png",
+  "/characters/puppy_icon.png",
+  "/characters/sheep_icon.png",
+  "/characters/timmy_icon.png",
 ];
 
 const ASSORTMENTS = [
   [
-    "/assets/accessories/top_hat.PNG",
-    "/assets/accessories/chef.PNG",
-    "/assets/accessories/clown.PNG",
-    "/assets/accessories/red_access.PNG",
+    "/accessories/top_hat.PNG",
+    "/accessories/chef.PNG",
+    "/accessories/clown.PNG",
+    "/accessories/red_access.PNG",
   ],
   [
-    "/assets/accessories/shades.PNG",
-    "/assets/accessories/moustache.PNG",
-    "/assets/accessories/glasses.PNG",
-    "/assets/accessories/bow_tie.PNG",
-    "/assets/accessories/red_access.PNG",
+    "/accessories/shades.PNG",
+    "/accessories/moustache.PNG",
+    "/accessories/glasses.PNG",
+    "/accessories/bow_tie.PNG",
+    "/accessories/red_access.PNG",
   ],
   [
-    "/assets/accessories/boba.PNG",
-    "/assets/accessories/dona.PNG",
-    "/assets/accessories/fishBowl.PNG",
-    "/assets/accessories/red_access.PNG",
+    "/accessories/boba.PNG",
+    "/accessories/dona.PNG",
+    "/accessories/fishBowl.PNG",
+    "/accessories/red_access.PNG",
   ],
 ];
 
@@ -253,16 +253,16 @@ function selectAccessory(path: string) {
   const display = document.getElementById(`slot-${activeSlotIndex}-display`);
   if (display) {
     display.innerHTML =
-      path === "/assets/accessories/red_access.PNG"
+      path === "/accessories/red_access.PNG"
         ? ""
         : `<img src="${path}">`;
   }
 
   accessoryPicker.classList.add("hidden");
-  //assuming path var started with /assets/accessories/soomething.PNG
+  //assuming path var started with /accessories/soomething.PNG
   const previewPath = path.replace(
-    "/assets/accessories/",
-    "/assets/accessories-equip/",
+    "/accessories/",
+    "/accessories-equip/",
   );
   setPreviewAccessory(activeSlotIndex, previewPath);
 }
@@ -284,7 +284,7 @@ charPreviewBtn.addEventListener("click", (e) => {
 /**
  * Updates the visual preview of the character
  * @param slotId 0 for Hat, 1 for Face, 2 for Item
- * @param imagePath The URL to the accessory image (e.g., '/assets/hats/top-hat.png')
+ * @param imagePath The URL to the accessory image (e.g., '/hats/top-hat.png')
  */
 function setPreviewAccessory(slotId: number, imagePath: string | null): void {
   const layer = document.getElementById(`preview-layer-${slotId}`);
@@ -343,7 +343,7 @@ function updateUI() {
     slot.className = "player-slot active";
 
     slot.innerHTML = `
-  ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
+  ${player.id === hostId ? '<img src="/lobby/crown.png" class="crown-img" alt="Host">' : ""}
   <button class="player-button">
     <div class="stick-man">
       ${characterDisplay}
