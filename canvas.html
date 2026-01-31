@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>
+      Doodle Derby
+    </title>
+  </head>
+  <body>
+    <div class="sidebar" id="sidebar">
+        <button id="small-button">small</button>
+        <button id="med-button">medium</button>
+        <button id="large-button">large</button>
+        <input type="color" id="color-button" />
+    </div>
+    <div id="container"></div>
+    <script type="module" src="/draw_canvas_example.ts"></script>
+    <style>
+        .sidebar {
+            position: fixed;
+            left: 5%;
+            background-color: #666666;
+            padding: 10px;
+        }
+
+        .sidebar button {
+            display: block;
+            margin: 3px;
+        }
+
+        #container {
+            border: solid 2px red;
+            position: fixed;
+            left: 20%;
+            right: auto;
+            top: 0;
+        }
+      </style>
+  </body>
+</html>

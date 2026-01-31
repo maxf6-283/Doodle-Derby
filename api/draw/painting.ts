@@ -71,7 +71,7 @@ export class PaintCanvas {
     let paintAction: PaintAction = {
       points: [],
       type: PaintActionType.Draw,
-      brush: this.currentBrush
+      brush: { ...this.currentBrush }
     };
 
     const updateEraserState = () => {
@@ -89,7 +89,9 @@ export class PaintCanvas {
       updateEraserState();
 
       paintAction.points = [];
-      paintAction.brush = this.currentBrush;
+      paintAction.brush = { 
+        ...this.currentBrush 
+      };
     });
 
     this.image.on('mouseup', () => {
@@ -112,6 +114,7 @@ export class PaintCanvas {
         lastMousePos
       ]);
 
+      this.redoBuffer = [];
       this.undoBuffer.push({ ...paintAction });
     });
 
@@ -205,9 +208,9 @@ export class PaintCanvas {
       context.globalCompositeOperation = "source-over";
     }
 
-    context.lineWidth = this.currentBrush.strokeWidth;
-    context.strokeStyle = this.currentBrush.color;
-    context.fillStyle = this.currentBrush.color;
+    context.lineWidth = brush.strokeWidth;
+    context.strokeStyle = brush.color;
+    context.fillStyle = brush.color;
     context.lineJoin = "round";
 
     let radius = brush.strokeWidth;
