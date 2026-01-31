@@ -117,29 +117,44 @@ settingsBtn.addEventListener("click", () => {
   settingsMenu.style.display = "flex";
 });
 
-let timerSeconds = 30; // default 30 seconds
+const DEFAULT_SECS = 30;
 const MIN_SECS = 15;
 const MAX_SECS = 180;
 
 function updateTimerDisplay() {
+  let timerSeconds = getState("timer-seconds")
+  if (timerSeconds == undefined) {
+    if (isHost()) {
+      setState("timer-seconds", DEFAULT_SECS)
+    }
+    timerSeconds = DEFAULT_SECS
+  }
+
   const minutes = Math.floor(timerSeconds / 60);
   const seconds = timerSeconds % 60;
   timerDuration.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`; // ex: 01:00
 
-  lessTimeBtn.disabled = timerSeconds <= MIN_SECS;
-  moreTimeBtn.disabled = timerSeconds >= MAX_SECS;
+  lessTimeBtn.disabled = timerSeconds <= MIN_SECS || !isHost();
+  moreTimeBtn.disabled = timerSeconds >= MAX_SECS || !isHost();
 }
 
 lessTimeBtn.addEventListener("click", () => {
-  timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
+  if (isHost()) {
+    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS
+    timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
+    setState("timer-seconds", timerSeconds)
+  }
   updateTimerDisplay();
 });
 
 moreTimeBtn.addEventListener("click", () => {
-  timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
+  if (isHost()) {
+    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS
+    timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
+    setState("timer-seconds", timerSeconds)
+  }
   updateTimerDisplay();
 });
-updateTimerDisplay();
 
 function updateVolumeDisplay() {
   volumeLevel.textContent = `Volume: ${volumeSlider.value}%`;
@@ -300,6 +315,8 @@ function updateUI() {
   if (myPlayer().getState("name") == undefined) {
     myPlayer().setState("name", myPlayer().getProfile().name);
   }
+
+  updateTimerDisplay()
 
   const hostId = getState("hostId");
 
