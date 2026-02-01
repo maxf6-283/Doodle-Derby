@@ -52,6 +52,9 @@ export class PaintCanvas {
 
     this.context = canvas.getContext('2d');
 
+    (this.context as CanvasRenderingContext2D).fillStyle = "#ffffff";
+    this.context?.fillRect(0, 0, this.image.getWidth(), this.image.getHeight());
+
     this.currentBrush = brush;
 
     this._isErasing = false;
@@ -89,8 +92,8 @@ export class PaintCanvas {
       updateEraserState();
 
       paintAction.points = [];
-      paintAction.brush = { 
-        ...this.currentBrush 
+      paintAction.brush = {
+        ...this.currentBrush
       };
     });
 
@@ -296,5 +299,113 @@ export class PaintCanvas {
     this.undoBuffer.push(lastAction);
 
     this.recreateBuffer(this.undoBuffer);
+  }
+
+  fill(x: number, y: number, newColor: string) {
+    let width = this.layer.getWidth() as number;
+    let height = this.layer.getHeight() as number;
+
+    let imageData = this.context?.getImageData(0, 0, width, height) as ImageData;
+
+    const isSameColor = (a: number[], b: number[], tolerance: number) => {
+      return Math.abs(a[0] - b[0]) <= tolerance &&
+        Math.abs(a[1] - b[1]) <= tolerance &&
+        Math.abs(a[2] - b[2]) <= tolerance &&
+        Math.abs(a[3] - b[3]) <= tolerance;
+    };
+
+    const hexToRGB = (hex: string) =>
+      [
+        parseInt(hex.substring(1, 3), 16),
+        parseInt(hex.substring(3, 5), 16),
+        parseInt(hex.substring(5, 7), 16),
+        255
+      ];
+
+    const newColorRGB = hexToRGB(newColor);
+
+    let pickedIndex = (y * width + x) * 4;
+    const oldColorRGB = [
+      imageData.data[pickedIndex],
+      imageData.data[pickedIndex + 1],
+      imageData.data[pickedIndex + 2],
+      imageData.data[pickedIndex + 3],
+    ];
+    if (isSameColor(newColorRGB, oldColorRGB, 0)) {
+      return;
+    }
+
+    console.log(oldColorRGB);
+
+    let queue: Array<[number, number]> = [];
+    let visited: Set<string> = new Set();
+
+    let currentHead = 0;
+
+    queue.push([x, y]);
+
+    while (currentHead < queue.length) {
+      let currentPixelCoord = queue[currentHead++];
+      visited.add(`${currentPixelCoord[0]},${currentPixelCoord[1]}`);
+      let i = (currentPixelCoord[1] * width + currentPixelCoord[0]) * 4;
+
+      if (i < 0 || i >= width * height * 4) {
+        continue;
+      }
+
+      let currentColor = [
+        imageData.data[i],
+        imageData.data[i + 1],
+        imageData.data[i + 2],
+        imageData.data[i + 3],
+      ];
+
+
+      if (!isSameColor(oldColorRGB, currentColor, 50)) {
+        // console.log(oldColorRGB, currentColor);
+        continue;
+      }
+
+      imageData.data[i] = newColorRGB[0];
+      imageData.data[i + 1] = newColorRGB[1];
+      imageData.data[i + 2] = newColorRGB[2];
+      imageData.data[i + 3] = 255;
+
+      const getColor = (x: number, y: number) => {
+        let i = (y * width + x) * 4;
+
+        return [
+          imageData.data[i],
+          imageData.data[i + 1],
+          imageData.data[i + 2],
+          imageData.data[i + 3],
+        ];
+      }
+
+      const isValidCoord = (x: number, y: number) => {
+        return x >= 0 &&
+          x < width &&
+          y >= 0 &&
+          y < height &&
+          !visited.has(`${x},${y}`) &&
+          !isSameColor(getColor(x, y), newColorRGB, 50);
+      };
+
+      if (isValidCoord(currentPixelCoord[0] + 1, currentPixelCoord[1])) {
+        queue.push([currentPixelCoord[0] + 1, currentPixelCoord[1]]);
+      }
+      if (isValidCoord(currentPixelCoord[0] - 1, currentPixelCoord[1])) {
+        queue.push([currentPixelCoord[0] - 1, currentPixelCoord[1]]);
+      }
+      if (isValidCoord(currentPixelCoord[0], currentPixelCoord[1] + 1)) {
+        queue.push([currentPixelCoord[0], currentPixelCoord[1] + 1]);
+      }
+      if (isValidCoord(currentPixelCoord[0], currentPixelCoord[1] - 1)) {
+        queue.push([currentPixelCoord[0], currentPixelCoord[1] - 1]);
+      }
+    }
+
+    this.context?.putImageData(imageData, 0, 0);
+    this.layer.batchDraw();
   }
 }
