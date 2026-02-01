@@ -32,12 +32,12 @@ let paint = new PaintCanvas(
 );
 
 export function changeBrushSize(size: number) {
-    paint.setBrushStrokeWidth(size);
+  paint.setBrushStrokeWidth(size);
 }
 
 export function changeColor(color: string) {
-    console.log("In change colour ", color);
-    paint.setBrushColor(color);
+  console.log("In change colour ", color);
+  paint.setBrushColor(color);
 }
 
 small_button.addEventListener('click', () => changeBrushSize(10));
@@ -56,6 +56,12 @@ window.addEventListener("keydown", ev => {
 
   if (ev.key == "r") {
     paint.redo();
+  }
+
+  if (ev.key == "f") {
+    let x = stage.pointerPos?.x as number;
+    let y = stage.pointerPos?.y as number;
+    paint.fill(Math.floor(x), Math.floor(y), paint.brushColor);
   }
 });
 
