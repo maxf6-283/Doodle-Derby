@@ -57,13 +57,6 @@ try {
   alert("Permission denied - you have been kicked");
   window.location.href = "/";
 }
-if (myPlayer().getState("character") === undefined) {
-  myPlayer().setState("character", CHARACTER_PATHS[0]); // Set to bear_icon.png
-}
-const charDisplay = document.getElementById("character-display");
-if (charDisplay) {
-  charDisplay.innerHTML = `<img src="${CHARACTER_PATHS[0]}" alt="Default" />`;
-}
 
 const playerPopup = document.getElementById("player-popup") as HTMLDivElement;
 const playerGrid = document.getElementById("player-grid") as HTMLDivElement;
@@ -180,7 +173,7 @@ updateVolumeDisplay();
 readyBtn.addEventListener("click", () => {
   const currentState = myPlayer().getState("isReady") || false;
   myPlayer().setState("isReady", !currentState);
-  updateUI();
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 });
 
 let hostFeatureAdded = false;
@@ -441,6 +434,12 @@ window.addEventListener("click", (e) => {
 });
 
 onPlayerJoin((player) => {
+  if (!player.getState("name")) {
+    player.setState("name", player.getProfile().name, true);
+  }
+  if (player.getState("character") === undefined) {
+    player.setState("character", CHARACTER_PATHS[0], true); // Set to bear_icon.png
+  }
   updateUI();
   player.onQuit(() => updateUI());
 });
