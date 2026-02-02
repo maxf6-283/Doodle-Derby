@@ -5,6 +5,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "curve-interpolator": "^3.3.1",
     "konva": "^10.2.0",
     "playroomkit": "^0.0.95"
   },
