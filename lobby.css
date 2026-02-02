@@ -95,13 +95,12 @@ body {
 .player-grid {
   display: grid;
   /* Automatically fits as many columns as possible, minimum 120px wide */
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
+  gap: 0px;
   margin-top: 15vh; /* Use vh for responsive vertical spacing */
   padding: 0 10%;   /* Use percentage for responsive horizontal spacing */
-  width: 80%;
+  width: 70%;
   justify-items: center;
-  flex-grow: 1;
 }
 
 .plus-icon {
