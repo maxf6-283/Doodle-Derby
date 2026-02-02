@@ -93,12 +93,15 @@ body {
 
 /* Player Layout */
 .player-grid {
-  display: flex;
-  flex-wrap: wrap; /* Allows players to wrap to a second row if there are many */
-  gap: 30px;
-  margin-top: 200px;
-  padding-left: 100px;
-  flex-grow: 1; /* Pushes the footer to the bottom */
+  display: grid;
+  /* Automatically fits as many columns as possible, minimum 120px wide */
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+  gap: 40px;
+  margin-top: 15vh; /* Use vh for responsive vertical spacing */
+  padding: 0 10%;   /* Use percentage for responsive horizontal spacing */
+  width: 80%;
+  justify-items: center;
+  flex-grow: 1;
 }
 
 .plus-icon {
@@ -138,8 +141,8 @@ body {
 
 .stick-man {
   position: relative;
-  width: 80px; /* Match your player-slot width */
-  height: 80px;
+  width: 100px; /* Match your player-slot width */
+  height: 100px;
   border: 2px solid #000;
   border-radius: 10px;
   background: white;
