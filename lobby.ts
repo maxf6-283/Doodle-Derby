@@ -440,6 +440,10 @@ onPlayerJoin((player) => {
   if (player.getState("character") === undefined) {
     player.setState("character", CHARACTER_PATHS[0], true); // Set to bear_icon.png
   }
+  const charDisplay = document.getElementById("character-display");
+  if (charDisplay) {
+    charDisplay.innerHTML = `<img src="${player.getState("character")}" alt="Default Bear" />`;
+  }
   updateUI();
   player.onQuit(() => updateUI());
 });
