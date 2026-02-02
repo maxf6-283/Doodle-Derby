@@ -8,18 +8,11 @@ import {
   myPlayer,
   setState,
   getState,
+  RPC,
+  RPCCallback,
+  RPCMode,
+  PlayerState,
 } from "playroomkit";
-
-try {
-  await insertCoin({
-    gameId: process.env.GAME_ID,
-    skipLobby: true,
-  });
-} catch {
-  // we have been kicked
-  alert("Permission denied - you have been kicked");
-  window.location.href = "/";
-}
 
 const CHARACTER_PATHS = [
   "/characters/bear_icon.png",
@@ -54,7 +47,23 @@ const ASSORTMENTS = [
   ],
 ];
 
-const MAX_PLAYERS = 8;
+try {
+  await insertCoin({
+    gameId: process.env.GAME_ID,
+    skipLobby: true,
+  });
+} catch {
+  // we have been kicked
+  alert("Permission denied - you have been kicked");
+  window.location.href = "/";
+}
+if (myPlayer().getState("character") === undefined) {
+  myPlayer().setState("character", CHARACTER_PATHS[0]); // Set to bear_icon.png
+}
+const charDisplay = document.getElementById("character-display");
+if (charDisplay) {
+  charDisplay.innerHTML = `<img src="${CHARACTER_PATHS[0]}" alt="Default" />`;
+}
 
 const playerPopup = document.getElementById("player-popup") as HTMLDivElement;
 const playerGrid = document.getElementById("player-grid") as HTMLDivElement;
@@ -122,12 +131,12 @@ const MIN_SECS = 15;
 const MAX_SECS = 180;
 
 function updateTimerDisplay() {
-  let timerSeconds = getState("timer-seconds")
+  let timerSeconds = getState("timer-seconds");
   if (timerSeconds == undefined) {
     if (isHost()) {
-      setState("timer-seconds", DEFAULT_SECS)
+      setState("timer-seconds", DEFAULT_SECS);
     }
-    timerSeconds = DEFAULT_SECS
+    timerSeconds = DEFAULT_SECS;
   }
 
   const minutes = Math.floor(timerSeconds / 60);
@@ -140,20 +149,22 @@ function updateTimerDisplay() {
 
 lessTimeBtn.addEventListener("click", () => {
   if (isHost()) {
-    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS
+    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS;
     timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
-    setState("timer-seconds", timerSeconds)
+    setState("timer-seconds", timerSeconds);
   }
   updateTimerDisplay();
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 });
 
 moreTimeBtn.addEventListener("click", () => {
   if (isHost()) {
-    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS
+    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS;
     timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
-    setState("timer-seconds", timerSeconds)
+    setState("timer-seconds", timerSeconds);
   }
   updateTimerDisplay();
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 });
 
 function updateVolumeDisplay() {
@@ -175,8 +186,10 @@ readyBtn.addEventListener("click", () => {
 let hostFeatureAdded = false;
 
 nameInput.addEventListener("change", () => {
-  if (nameInput.value) myPlayer().setState("name", nameInput.value);
-  else nameInput.value = myPlayer().getState("name");
+  if (nameInput.value) {
+    myPlayer().setState("name", nameInput.value);
+    RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
+  } else nameInput.value = myPlayer().getState("name");
 });
 
 function startGame() {
@@ -242,29 +255,24 @@ function selectCharacter(path: string) {
     display.innerHTML = `<img src="${path}"/>`;
   }
   accessoryPicker.classList.add("hidden");
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 }
 function selectAccessory(path: string) {
   if (activeSlotIndex === null) return;
-
-  // Sync choice to Playroom state
-  myPlayer().setState(`acc_${activeSlotIndex}`, path);
 
   // Update the slot visual
   const display = document.getElementById(`slot-${activeSlotIndex}-display`);
   if (display) {
     display.innerHTML =
-      path === "/accessories/red_access.PNG"
-        ? ""
-        : `<img src="${path}">`;
+      path === "/accessories/red_access.PNG" ? "" : `<img src="${path}">`;
   }
 
   accessoryPicker.classList.add("hidden");
   //assuming path var started with /accessories/soomething.PNG
-  const previewPath = path.replace(
-    "/accessories/",
-    "/accessories-equip/",
-  );
+  const previewPath = path.replace("/accessories/", "/accessories-equip/");
   setPreviewAccessory(activeSlotIndex, previewPath);
+  myPlayer().setState(`acc_${activeSlotIndex}`, previewPath);
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 }
 
 charPreviewBtn.addEventListener("click", (e) => {
@@ -280,6 +288,15 @@ charPreviewBtn.addEventListener("click", (e) => {
 
   openPicker(-1); // Call the existing openPicker function
 });
+
+RPC.register("refresh_lobby_ui", refreshLobbyUIRPC);
+async function refreshLobbyUIRPC(
+  payload: any,
+  senderPlayer: PlayerState,
+  mode: RPCMode,
+) {
+  updateUI();
+}
 
 /**
  * Updates the visual preview of the character
@@ -314,9 +331,10 @@ function updateUI() {
 
   if (myPlayer().getState("name") == undefined) {
     myPlayer().setState("name", myPlayer().getProfile().name);
+    RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
   }
 
-  updateTimerDisplay()
+  updateTimerDisplay();
 
   const hostId = getState("hostId");
 
@@ -327,12 +345,20 @@ function updateUI() {
   players.forEach((player) => {
     const name = player.getState("name");
     const characterImg = player.getState("character");
+    const hatImg = player.getState("acc_0");
+    const faceImg = player.getState("acc_1");
+    const itemImg = player.getState("acc_2");
 
     const isReady = player.getState("isReady") || false;
 
-    const characterDisplay = characterImg
-      ? `<img src="${characterImg}" style="width:100%; height:100%; object-fit:contain;" />`
-      : `ツ`;
+    const characterDisplay = `<img src="${characterImg}" style="width:100%; height:100%; object-fit:contain;" />`;
+    const getLayerStyle = (img: string | undefined) => {
+      if (!img || img === "/accessories/red_access.PNG")
+        return "display: none;";
+      // Map path to the "equip" version if necessary, similar to selectAccessory logic
+      const equipPath = img.replace("/accessories/", "/accessories-equip/");
+      return `background-image: url('${equipPath}'); display: block;`;
+    };
 
     if (isReady) {
       readyCountNum++;
@@ -347,6 +373,9 @@ function updateUI() {
   <button class="player-button">
     <div class="stick-man">
       ${characterDisplay}
+      <div class="acc-layer hat" style="${getLayerStyle(hatImg)}"></div>
+      <div class="acc-layer face" style="${getLayerStyle(faceImg)}"></div>
+      <div class="acc-layer item" style="${getLayerStyle(itemImg)}"></div>
     </div>
   </button>
   ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
@@ -420,5 +449,3 @@ onDisconnect((ev) => {
   alert(`Kicked from room: ${ev.reason}`);
   window.location.href = "/";
 });
-
-setInterval(updateUI, 250);
