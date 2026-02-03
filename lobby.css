@@ -102,12 +102,14 @@ body {
 
 /* Player Layout */
 .player-grid {
-  display: flex;
-  flex-wrap: wrap; /* Allows players to wrap to a second row if there are many */
-  gap: 30px;
-  margin-top: 200px;
-  padding-left: 100px;
-  flex-grow: 1; /* Pushes the footer to the bottom */
+  display: grid;
+  /* Automatically fits as many columns as possible, minimum 120px wide */
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
+  gap: 0px;
+  margin-top: 15vh; /* Use vh for responsive vertical spacing */
+  padding: 0 10%;   /* Use percentage for responsive horizontal spacing */
+  width: 70%;
+  justify-items: center;
 }
 
 .plus-icon {
@@ -145,13 +147,14 @@ body {
   outline: none;
 }
 
-.player-slot {
-  width: 80px;
-  position: relative; /* CRITICAL: Required for the absolute crown and ready-tag to align */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+.stick-man {
+  position: relative;
+  width: 100px; /* Match your player-slot width */
+  height: 100px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  background: white;
+  overflow: visible; /* Allows accessories to pop out */
 }
 
 .player-slot p {
@@ -160,26 +163,36 @@ body {
   white-space: nowrap;
   height: 1.2em; /* Keep name tags at a consistent height */
 }
+.player-slot {
+  position: relative; /* Add this so the crown knows where to anchor */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .crown-img {
   position: absolute;
-  top: -35px; /* Sits perfectly above the stick-man box */
+  top: -30px; /* Adjust based on your asset size */
   left: 50%;
   transform: translateX(-50%);
   width: 45px;
-  z-index: 10;
+  z-index: 20; /* Ensure it stays above everything */
+  pointer-events: none; /* Prevents it from blocking clicks to the character */
 }
 
 /* Ready Tag */
 .ready-tag {
   position: absolute;
-  bottom: 30px;
-  left: -15px;
+  top: 50px;
+  right: 50px;
   background: var(--sticky-yellow);
-  font-size: 10px;
-  padding: 5px;
-  transform: rotate(-15deg);
+  font-size: 12px;
+  padding: 5px 10px;
+  transform: rotate(15deg);
   font-weight: bold;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 25;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .crown {
@@ -254,7 +267,6 @@ body {
   opacity: 0.6; /* Makes them look slightly faded/inactive */
 }
 
-.stick-man,
 .empty-card {
   width: 80px;
   height: 80px; /* Forces both boxes to be the exact same size */
