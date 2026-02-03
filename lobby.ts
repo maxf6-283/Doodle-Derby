@@ -7,13 +7,16 @@ import {
   isHost,
   myPlayer,
   setState,
-  getState,
+  getState
 } from "playroomkit";
+
+import Konva from "konva"
 
 try {
   await insertCoin({
     gameId: process.env.GAME_ID,
-    skipLobby: true,
+      skipLobby: true,
+      maxPlayersPerRoom: 8
   });
 } catch {
   // we have been kicked
@@ -55,6 +58,29 @@ const ASSORTMENTS = [
 ];
 
 const MAX_PLAYERS = 8;
+let readyCountNum = 0;
+
+const mainLobby = document.getElementById('mainLobby-container') as HTMLDivElement;
+const gameDiv = document.getElementById('game-wrapper') as HTMLDivElement;
+function showGame() { //A new Konva layer to transition to the page for inputting prompts
+    if (mainLobby) mainLobby.style.display = 'none';
+    if (gameDiv) gameDiv.style.display = 'block';
+}
+
+function showLobby() {
+    if (gameDiv) gameDiv.style.display = 'none';
+    if (mainLobby) mainLobby.style.display = 'block';
+}
+const stage = new Konva.Stage({
+    container: 'game-container',
+    width: window.innerWidth,
+    height: window.innerHeight,
+});
+const promptPage = new Konva.Layer();
+stage.add(promptPage);
+showLobby();
+//showGame(); 
+
 
 const playerPopup = document.getElementById("player-popup") as HTMLDivElement;
 const playerGrid = document.getElementById("player-grid") as HTMLDivElement;
@@ -62,6 +88,10 @@ const code_span = document.getElementById("code-span") as HTMLSpanElement;
 const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
 const readyCount = document.getElementById("ready-count") as HTMLDivElement;
 const readyBtn = document.getElementById("ready-btn") as HTMLButtonElement;
+const back_btn = document.getElementById('back_btn') as HTMLDivElement;
+const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+const promptInput = document.getElementById('promptInput') as HTMLInputElement;
+const uiLayer = document.getElementById('ui-layer') as HTMLDivElement;
 const settingsBtn = document.getElementById(
   "settings-btn",
 ) as HTMLButtonElement;
@@ -70,6 +100,9 @@ const timerDuration = document.getElementById(
 ) as HTMLSpanElement;
 const lessTimeBtn = document.getElementById("lessTime") as HTMLButtonElement;
 const moreTimeBtn = document.getElementById("moreTime") as HTMLButtonElement;
+const lessPromptsBtn = document.getElementById('lessPrompt') as HTMLButtonElement;
+const morePromptsBtn = document.getElementById('morePrompt') as HTMLButtonElement;
+const num_prompts = document.getElementById('num_rounds') as HTMLSpanElement;
 const volumeLevel = document.querySelector(
   'label[for="volume"]',
 ) as HTMLLabelElement;
@@ -117,6 +150,23 @@ settingsBtn.addEventListener("click", () => {
   settingsMenu.style.display = "flex";
 });
 
+let num_input = 0;
+submitBtn.addEventListener('click', () => {
+    num_input++;
+    const prompts = myPlayer().getState('prompts') || [];
+    prompts.push(promptInput.value);
+    myPlayer().setState('prompts', prompts);
+    promptInput.value = "";
+    if (num_input >= numberOfPrompts) {
+        uiLayer.style.display = 'none';
+    }
+});
+
+
+back_btn.addEventListener('click', () => {
+    document.location.href = "/index.html";
+});
+
 let timerSeconds = 30; // default 30 seconds
 const MIN_SECS = 15;
 const MAX_SECS = 180;
@@ -141,6 +191,23 @@ moreTimeBtn.addEventListener("click", () => {
 });
 updateTimerDisplay();
 
+let numberOfPrompts = 5;
+
+lessPromptsBtn.addEventListener('click', () => {
+    numberOfPrompts -= 1;
+    num_prompts.innerText = String(numberOfPrompts);
+    morePromptsBtn.disabled = numberOfPrompts >= 10;
+    lessPromptsBtn.disabled = (numberOfPrompts <= 5);
+});
+
+morePromptsBtn.addEventListener('click', () => {
+    numberOfPrompts += 1;
+    num_prompts.innerText = String(numberOfPrompts);
+    morePromptsBtn.disabled = numberOfPrompts >= 10;
+    lessPromptsBtn.disabled = numberOfPrompts <= 5;
+});
+lessPromptsBtn.disabled = true;
+
 function updateVolumeDisplay() {
   volumeLevel.textContent = `Volume: ${volumeSlider.value}%`;
 }
@@ -164,11 +231,18 @@ nameInput.addEventListener("change", () => {
   else nameInput.value = myPlayer().getState("name");
 });
 
-function startGame() {
-  // Logic to transition to the actual game
-  console.log("Game Starting...");
-  alert("pretend the game is starting here");
+function startGame(readyCountNum: number) {
+    // Logic to transition to the actual game
+    if (readyCountNum != players.length) {
+        alert("Someone is not ready!");
+    }
+    else {
+        console.log("Game Starting...");
+        //alert("pretend the game is starting here");
+    }
 }
+
+
 
 document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
   slot.addEventListener("click", (e) => {
@@ -285,15 +359,17 @@ function setPreviewAccessory(slotId: number, imagePath: string | null): void {
   }
 }
 
+const players = Object.values(getParticipants());
 function updateUI() {
+  
   if (!hostFeatureAdded && isHost()) {
     setState("hostId", myPlayer().id);
     startBtn.style.display = "block";
-    startBtn.addEventListener("click", startGame);
+    startBtn.addEventListener("click",()=>startGame(readyCountNum));
     hostFeatureAdded = true;
   } else if (hostFeatureAdded && !isHost()) {
     startBtn.style.display = "none";
-    startBtn.removeEventListener("click", startGame);
+    startBtn.removeEventListener("click", () => startGame(readyCountNum));
     hostFeatureAdded = false;
   }
 
@@ -303,11 +379,12 @@ function updateUI() {
 
   const hostId = getState("hostId");
 
-  const players = Object.values(getParticipants());
-  let readyCountNum = 0;
+  
+  
   playerGrid.innerHTML = ""; // Clear current grid
+    readyCountNum = 0;
+    players.forEach((player) => {
 
-  players.forEach((player) => {
     const name = player.getState("name");
     const characterImg = player.getState("character");
 
@@ -318,8 +395,10 @@ function updateUI() {
       : `ツ`;
 
     if (isReady) {
-      readyCountNum++;
+        readyCountNum++;
     }
+
+
 
     // Create the structure matching your lobby.css
     const slot = document.createElement("div");
@@ -379,7 +458,7 @@ function updateUI() {
     playerGrid.appendChild(slot);
   });
 
-  readyCount.innerText = `${readyCountNum}/${players.length} READY`;
+    readyCount.innerText = `${readyCountNum}/${players.length} READY`;
 }
 
 window.addEventListener("click", (e) => {
@@ -395,7 +474,7 @@ window.addEventListener("click", (e) => {
 });
 
 onPlayerJoin((player) => {
-  updateUI();
+    updateUI();
   player.onQuit(() => updateUI());
 });
 
