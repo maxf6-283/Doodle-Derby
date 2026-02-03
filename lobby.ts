@@ -7,7 +7,11 @@ import {
   isHost,
   myPlayer,
   setState,
-  getState
+  getState,
+  RPC,
+  RPCCallback,
+  RPCMode,
+  PlayerState,
 } from "playroomkit";
 
 import Konva from "konva"
@@ -25,35 +29,35 @@ try {
 }
 
 const CHARACTER_PATHS = [
-  "/assets/characters/bear_icon.png",
-  "/assets/characters/bunny_icon.png",
-  "/assets/characters/chameleon_icon.png",
-  "/assets/characters/dog_icon.png",
-  "/assets/characters/fish_icon.png",
-  "/assets/characters/puppy_icon.png",
-  "/assets/characters/sheep_icon.png",
-  "/assets/characters/timmy_icon.png",
+  "/characters/bear_icon.png",
+  "/characters/bunny_icon.png",
+  "/characters/chameleon_icon.png",
+  "/characters/dog_icon.png",
+  "/characters/fish_icon.png",
+  "/characters/puppy_icon.png",
+  "/characters/sheep_icon.png",
+  "/characters/timmy_icon.png",
 ];
 
 const ASSORTMENTS = [
   [
-    "/assets/accessories/top_hat.PNG",
-    "/assets/accessories/chef.PNG",
-    "/assets/accessories/clown.PNG",
-    "/assets/accessories/red_access.PNG",
+    "/accessories/top_hat.PNG",
+    "/accessories/chef.PNG",
+    "/accessories/clown.PNG",
+    "/accessories/red_access.PNG",
   ],
   [
-    "/assets/accessories/shades.PNG",
-    "/assets/accessories/moustache.PNG",
-    "/assets/accessories/glasses.PNG",
-    "/assets/accessories/bow_tie.PNG",
-    "/assets/accessories/red_access.PNG",
+    "/accessories/shades.PNG",
+    "/accessories/moustache.PNG",
+    "/accessories/glasses.PNG",
+    "/accessories/bow_tie.PNG",
+    "/accessories/red_access.PNG",
   ],
   [
-    "/assets/accessories/boba.PNG",
-    "/assets/accessories/dona.PNG",
-    "/assets/accessories/fishBowl.PNG",
-    "/assets/accessories/red_access.PNG",
+    "/accessories/boba.PNG",
+    "/accessories/dona.PNG",
+    "/accessories/fishBowl.PNG",
+    "/accessories/red_access.PNG",
   ],
 ];
 
@@ -167,29 +171,46 @@ back_btn.addEventListener('click', () => {
     document.location.href = "/index.html";
 });
 
-let timerSeconds = 30; // default 30 seconds
+const DEFAULT_SECS = 30;
 const MIN_SECS = 15;
 const MAX_SECS = 180;
 
 function updateTimerDisplay() {
+  let timerSeconds = getState("timer-seconds");
+  if (timerSeconds == undefined) {
+    if (isHost()) {
+      setState("timer-seconds", DEFAULT_SECS);
+    }
+    timerSeconds = DEFAULT_SECS;
+  }
+
   const minutes = Math.floor(timerSeconds / 60);
   const seconds = timerSeconds % 60;
   timerDuration.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`; // ex: 01:00
 
-  lessTimeBtn.disabled = timerSeconds <= MIN_SECS;
-  moreTimeBtn.disabled = timerSeconds >= MAX_SECS;
+  lessTimeBtn.disabled = timerSeconds <= MIN_SECS || !isHost();
+  moreTimeBtn.disabled = timerSeconds >= MAX_SECS || !isHost();
 }
 
 lessTimeBtn.addEventListener("click", () => {
-  timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
+  if (isHost()) {
+    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS;
+    timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
+    setState("timer-seconds", timerSeconds);
+  }
   updateTimerDisplay();
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 });
 
 moreTimeBtn.addEventListener("click", () => {
-  timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
+  if (isHost()) {
+    let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS;
+    timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
+    setState("timer-seconds", timerSeconds);
+  }
   updateTimerDisplay();
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 });
-updateTimerDisplay();
 
 let numberOfPrompts = 5;
 
@@ -221,14 +242,16 @@ updateVolumeDisplay();
 readyBtn.addEventListener("click", () => {
   const currentState = myPlayer().getState("isReady") || false;
   myPlayer().setState("isReady", !currentState);
-  updateUI();
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 });
 
 let hostFeatureAdded = false;
 
 nameInput.addEventListener("change", () => {
-  if (nameInput.value) myPlayer().setState("name", nameInput.value);
-  else nameInput.value = myPlayer().getState("name");
+  if (nameInput.value) {
+    myPlayer().setState("name", nameInput.value);
+    RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
+  } else nameInput.value = myPlayer().getState("name");
 });
 
 function startGame(readyCountNum: number) {
@@ -301,29 +324,24 @@ function selectCharacter(path: string) {
     display.innerHTML = `<img src="${path}"/>`;
   }
   accessoryPicker.classList.add("hidden");
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 }
 function selectAccessory(path: string) {
   if (activeSlotIndex === null) return;
-
-  // Sync choice to Playroom state
-  myPlayer().setState(`acc_${activeSlotIndex}`, path);
 
   // Update the slot visual
   const display = document.getElementById(`slot-${activeSlotIndex}-display`);
   if (display) {
     display.innerHTML =
-      path === "/assets/accessories/red_access.PNG"
-        ? ""
-        : `<img src="${path}">`;
+      path === "/accessories/red_access.PNG" ? "" : `<img src="${path}">`;
   }
 
   accessoryPicker.classList.add("hidden");
-  //assuming path var started with /assets/accessories/soomething.PNG
-  const previewPath = path.replace(
-    "/assets/accessories/",
-    "/assets/accessories-equip/",
-  );
+  //assuming path var started with /accessories/soomething.PNG
+  const previewPath = path.replace("/accessories/", "/accessories-equip/");
   setPreviewAccessory(activeSlotIndex, previewPath);
+  myPlayer().setState(`acc_${activeSlotIndex}`, previewPath);
+  RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
 }
 
 charPreviewBtn.addEventListener("click", (e) => {
@@ -340,10 +358,19 @@ charPreviewBtn.addEventListener("click", (e) => {
   openPicker(-1); // Call the existing openPicker function
 });
 
+RPC.register("refresh_lobby_ui", refreshLobbyUIRPC);
+async function refreshLobbyUIRPC(
+  payload: any,
+  senderPlayer: PlayerState,
+  mode: RPCMode,
+) {
+  updateUI();
+}
+
 /**
  * Updates the visual preview of the character
  * @param slotId 0 for Hat, 1 for Face, 2 for Item
- * @param imagePath The URL to the accessory image (e.g., '/assets/hats/top-hat.png')
+ * @param imagePath The URL to the accessory image (e.g., '/hats/top-hat.png')
  */
 function setPreviewAccessory(slotId: number, imagePath: string | null): void {
   const layer = document.getElementById(`preview-layer-${slotId}`);
@@ -375,7 +402,10 @@ function updateUI() {
 
   if (myPlayer().getState("name") == undefined) {
     myPlayer().setState("name", myPlayer().getProfile().name);
+    RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
   }
+
+  updateTimerDisplay();
 
   const hostId = getState("hostId");
 
@@ -387,12 +417,20 @@ function updateUI() {
 
     const name = player.getState("name");
     const characterImg = player.getState("character");
+    const hatImg = player.getState("acc_0");
+    const faceImg = player.getState("acc_1");
+    const itemImg = player.getState("acc_2");
 
     const isReady = player.getState("isReady") || false;
 
-    const characterDisplay = characterImg
-      ? `<img src="${characterImg}" style="width:100%; height:100%; object-fit:contain;" />`
-      : `ツ`;
+    const characterDisplay = `<img src="${characterImg}" style="width:100%; height:100%; object-fit:contain;" />`;
+    const getLayerStyle = (img: string | undefined) => {
+      if (!img || img === "/accessories/red_access.PNG")
+        return "display: none;";
+      // Map path to the "equip" version if necessary, similar to selectAccessory logic
+      const equipPath = img.replace("/accessories/", "/accessories-equip/");
+      return `background-image: url('${equipPath}'); display: block;`;
+    };
 
     if (isReady) {
         readyCountNum++;
@@ -405,10 +443,13 @@ function updateUI() {
     slot.className = "player-slot active";
 
     slot.innerHTML = `
-  ${player.id === hostId ? '<img src="/assets/lobby/crown.png" class="crown-img" alt="Host">' : ""}
+  ${player.id === hostId ? '<img src="/lobby/crown.png" class="crown-img" alt="Host">' : ""}
   <button class="player-button">
     <div class="stick-man">
       ${characterDisplay}
+      <div class="acc-layer hat" style="${getLayerStyle(hatImg)}"></div>
+      <div class="acc-layer face" style="${getLayerStyle(faceImg)}"></div>
+      <div class="acc-layer item" style="${getLayerStyle(itemImg)}"></div>
     </div>
   </button>
   ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
@@ -474,7 +515,17 @@ window.addEventListener("click", (e) => {
 });
 
 onPlayerJoin((player) => {
-    updateUI();
+  if (!player.getState("name")) {
+    player.setState("name", player.getProfile().name, true);
+  }
+  if (player.getState("character") === undefined) {
+    player.setState("character", CHARACTER_PATHS[0], true); // Set to bear_icon.png
+  }
+  const charDisplay = document.getElementById("character-display");
+  if (charDisplay) {
+    charDisplay.innerHTML = `<img src="${player.getState("character")}" alt="Default Bear" />`;
+  }
+  updateUI();
   player.onQuit(() => updateUI());
 });
 
@@ -482,5 +533,3 @@ onDisconnect((ev) => {
   alert(`Kicked from room: ${ev.reason}`);
   window.location.href = "/";
 });
-
-setInterval(updateUI, 250);
