@@ -1,92 +1,47 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doodle Derby</title>
+    <link rel="stylesheet" href="landing-page.css">
+</head>
+<body>
 
-<html>
-  <head>
-    <title>
-    </title>
-  </head>
-  <body>
-    <div class = "logo"></div>
-    <div class="container">
-      <h1 class="title">Doodle Derby</h1>
-    <div class = "buttons">
-      <button  class = "main-button" id="joinBtn" onclick="joinGame()">Join Game</button>
-     <button class = "main-button" id="createBtn" onclick = "window.location.href = 'lobby.html'">Create Game</button>
+    <div class="game-wrapper">
+        <div class="title-section">
+            <h1 class="title-doodle">doodle</h1>
+            <h1 class="title-derby">derby</h1>
+        </div>
+        
+        <img src="/landing-page/logo.png" alt="Apple Doodle" class="logo-img">
     </div>
+
+    <div class="button-container">
+    <button class="image-button" id="createBtn" onclick="window.location.href = 'lobby.html'">
+        <img src="/landing-page/create_button_flat.png" alt="Create Lobby" class="btn-idle">
+        <img src="/landing-page/create_button_hover.png" alt="Create Lobby Hover" class="btn-hover">
+    </button>
+
+    <button class="image-button" id="joinBtn" onclick="joinGame()">
+        <img src="/landing-page/join_button_flat.png" alt="Join Lobby" class="btn-idle">
+        <img src="/landing-page/join_button_hover.png" alt="Join Lobby Hover" class="btn-hover">
+    </button>
+</div>
+
+    <div class="footer-nav">
+        <span class="version-text">Version 0.0.0</span>
+        <span class="footer-link" onclick="alert('Credits coming soon!')">credits</span>
+        <span class="footer-link" onclick="alert('How to play: Draw fast!')">how to play</span>
+    </div>
+
     <script>
         function joinGame() {
-          const code = prompt("Enter Game Code:");
-          if (!code) return;
-          const baseUrl = window.location.origin + "/lobby.html";
-          window.location.replace(`${baseUrl}#r=${code}`);
+            const code = prompt("Enter Game Code:");
+            if (!code) return;
+            const baseUrl = window.location.origin + "/lobby.html";
+            window.location.replace(`${baseUrl}#r=${code}`);
         }
-      </script>
-  </body>
+    </script>
+</body>
 </html>
-
-
-
-<style>
-body{
-  margin: 0;
-  padding: 0;
-  background-color: #ffffff;
-}
-
-.container{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-  padding-top: 40px;
-  font-family: "Comic Sans MS"
-}
-
-.title{
-  font-size: 48px;
-  font-weight: bold;
-  margin: 0;
-}
-
-.logo{
-  display: flex;
-  width: 200px;
-  height: 200px;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-
-}
-
-.code-section input{
-  display: flex;
-  padding: 5px 10px;
-  font-size: 18px;
-  width: 250px;
-  height: 40px;
-  font-family: "Comic Sans MS";
-}
-
-.buttons{
-  display: flex;
-  height: 100px;
-  gap: 50px;
-}
-
-.main-button{
-  width: 450px;
-  height: 100px;
-  background: #ff0000;
-  border: none;
-  border-radius: 30px;
-  font-size: 24px;
-  cursor: pointer;
-  font-family: "Comic Sans MS";
-}
-
-.main-button:hover {
-  background: #f3f3f3;
-}
-
-
-</style>

@@ -1,0 +1,162 @@
+:root {
+    --bg-blue: #f2f2f2;
+    --line-blue: #b4ddec;
+    --margin-pink: #ffcada;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* Recreates the lined notebook paper look */
+    background-color: var(--bg-blue);
+    background-image: 
+        linear-gradient(rgba(152, 197, 214, 0.5) .1em, transparent .1em);
+    background-size: 100% 40px;
+    font-family: 'WinterDrawFont', cursive;
+    overflow: hidden;
+}
+
+.game-wrapper {
+    transform: rotate(-3deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    width: 80%;
+    max-width: 1000px;
+}
+
+.title-section {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    gap: 20px;
+}
+
+.title-doodle {
+    font-size: 80px;
+    margin: 0;
+    line-height: 0.8;
+    color: #000;
+}
+.title-derby {
+    font-size: 80px;
+    margin: 0;
+    line-height: 0.8;
+    color: #000;
+    padding-left: 100px;
+}
+
+.logo-img {
+    width: 300px;
+    height: auto;
+}
+
+.button-container {
+    position: absolute;
+    bottom: 50px;
+    right: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Reduced gap since images likely have whitespace */
+    transform: rotate(3deg);
+}
+
+.image-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.1s;
+}
+
+/* Control the size of your button images here */
+.image-button img {
+    width: 250px; 
+    height: auto;
+    display: block;
+}
+/* Hover Logic: Hide the hover image by default */
+.image-button .btn-hover {
+    display: none;
+}
+
+/* Show hover image and hide idle image on hover */
+.image-button:hover .btn-idle {
+    display: none;
+}
+
+.image-button:hover .btn-hover {
+    display: block;
+}
+
+/* Slight scale effect for extra juice */
+.image-button:hover {
+    transform: scale(1.05);
+}
+
+.image-button:active {
+    transform: scale(0.95);
+}
+
+.footer-nav {
+    position: absolute;
+    bottom: 20px;
+    left: 50px;
+    display: flex;
+    gap: 30px;
+    font-size: 20px;
+    font-family: 'WinterDrawFont', cursive; /* Using your custom font */
+    color: #000;
+}
+
+.footer-link {
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+/* The "Underline" effect */
+.footer-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: #000;
+    transition: width 0.1s ease-in;
+    /* Makes the line look slightly "shaky" like a doodle */
+    border-radius: 50%; 
+}
+
+.footer-link:hover::after {
+    width: 100%;
+   
+}
+
+.footer-link:hover {
+    color: #333; /* Subtle shift on hover */
+    transform :scale(1.05)
+}
+.footer-link:active {
+    transform:scale(0.95)
+}
+
+.version-text {
+    opacity: 0.6;
+    cursor: default;
+}
+@font-face {
+    font-family : 'WinterDrawFont';
+    src : url('public/fonts/WinterDraw.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
