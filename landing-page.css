@@ -1,162 +1,217 @@
 :root {
-    --bg-blue: #f2f2f2;
-    --line-blue: #b4ddec;
-    --margin-pink: #ffcada;
+  --bg-blue: #f2f2f2;
+  --line-blue: #b4ddec;
+  --margin-pink: #ffcada;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    /* Recreates the lined notebook paper look */
-    background-color: var(--bg-blue);
-    background-image: 
-        linear-gradient(rgba(152, 197, 214, 0.5) .1em, transparent .1em);
-    background-size: 100% 40px;
-    font-family: 'WinterDrawFont', cursive;
-    overflow: hidden;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* Recreates the lined notebook paper look */
+  background-color: var(--bg-blue);
+  background-image: linear-gradient(
+    rgba(152, 197, 214, 0.5) 0.1em,
+    transparent 0.1em
+  );
+  background-size: 100% 40px;
+  font-family: "WinterDrawFont", cursive;
+  overflow: hidden;
 }
 
 .game-wrapper {
-    transform: rotate(-3deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 40px;
-    width: 80%;
-    max-width: 1000px;
+  transform: rotate(-3deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  width: 80%;
+  max-width: 1000px;
 }
 
 .title-section {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-self: center;
-    gap: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  gap: 20px;
 }
 
 .title-doodle {
-    font-size: 80px;
-    margin: 0;
-    line-height: 0.8;
-    color: #000;
+  font-size: 80px;
+  margin: 0;
+  line-height: 0.8;
+  color: #000;
 }
 .title-derby {
-    font-size: 80px;
-    margin: 0;
-    line-height: 0.8;
-    color: #000;
-    padding-left: 100px;
-}
-
-.logo-img {
-    width: 300px;
-    height: auto;
+  font-size: 80px;
+  margin: 0;
+  line-height: 0.8;
+  color: #000;
+  padding-left: 100px;
 }
 
 .button-container {
-    position: absolute;
-    bottom: 50px;
-    right: 50px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Reduced gap since images likely have whitespace */
-    transform: rotate(3deg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Reduced gap since images likely have whitespace */
+  transform: rotate(3deg);
 }
 
 .image-button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    outline: none;
-    transition: transform 0.1s;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.1s;
 }
 
 /* Control the size of your button images here */
 .image-button img {
-    width: 250px; 
-    height: auto;
-    display: block;
+  width: 250px;
+  height: auto;
+  display: block;
 }
 /* Hover Logic: Hide the hover image by default */
 .image-button .btn-hover {
-    display: none;
+  display: none;
 }
 
 /* Show hover image and hide idle image on hover */
 .image-button:hover .btn-idle {
-    display: none;
+  display: none;
 }
 
 .image-button:hover .btn-hover {
-    display: block;
+  display: block;
 }
 
 /* Slight scale effect for extra juice */
 .image-button:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
 .image-button:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 .footer-nav {
-    position: absolute;
-    bottom: 20px;
-    left: 50px;
-    display: flex;
-    gap: 30px;
-    font-size: 20px;
-    font-family: 'WinterDrawFont', cursive; /* Using your custom font */
-    color: #000;
+  position: absolute;
+  bottom: 20px; /* More breathing room */
+  left: 30px;
+  right: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 22px; /* Slightly larger for the cursive font */
+  font-family: "WinterDrawFont", cursive;
+  color: #222;
+  pointer-events: none; /* Allows clicks to pass through empty space */
+}
+.footer-nav > div {
+  pointer-events: auto; /* Re-enable clicks for the links */
+  display: flex;
+  gap: 25px;
+  align-items: center;
 }
 
 .footer-link {
-    cursor: pointer;
-    position: relative;
-    transition: color 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
 }
 
 /* The "Underline" effect */
 .footer-link::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -2px;
-    left: 0;
-    background-color: #000;
-    transition: width 0.1s ease-in;
-    /* Makes the line look slightly "shaky" like a doodle */
-    border-radius: 50%; 
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: #000;
+  transition: width 0.1s ease-in;
+  /* Makes the line look slightly "shaky" like a doodle */
+  border-radius: 50%;
 }
 
 .footer-link:hover::after {
-    width: 100%;
-   
+  width: 100%;
 }
 
 .footer-link:hover {
-    color: #333; /* Subtle shift on hover */
-    transform :scale(1.05)
+  color: #333; /* Subtle shift on hover */
+  transform: scale(1.05);
 }
 .footer-link:active {
-    transform:scale(0.95)
+  transform: scale(0.95);
 }
 
 .version-text {
-    opacity: 0.6;
-    cursor: default;
+  opacity: 0.6;
+  cursor: default;
 }
 @font-face {
-    font-family : 'WinterDrawFont';
-    src : url('public/fonts/WinterDraw.ttf');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "WinterDrawFont";
+  src: url("/fonts/WinterDraw.ttf");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.logo-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Ensures the logo stays in front of its shadow */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-img {
+  width: 300px;
+  height: auto;
+  position: relative;
+  z-index: 2;
+  transition:
+    transform 0.1s ease,
+    filter 0.1s ease;
+  /* Gives it a slightly "inked" look */
+  filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.1));
+}
+.logo-button:hover .logo-img {
+  transform: scale(1.02);
+  filter: drop-shadow(6px 8px 0px rgba(0, 0, 0, 0.15));
+}
+.logo-button:active .logo-img {
+  /* Push the logo "down" into the paper */
+  transform: scale(0.92) translateY(4px);
+  /* Flatten the shadow as it gets closer to the page */
+  filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.2));
+}
+
+.moving-sheep {
+  position: absolute;
+  right: -200px; /* Start off-screen to the right */
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes moveLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* Moves the element across the width of the screen */
+    transform: translateX(-120vw);
+  }
 }

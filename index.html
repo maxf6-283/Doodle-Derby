@@ -1,47 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Doodle Derby</title>
-    <link rel="stylesheet" href="landing-page.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="landing-page.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.png" />
+    
+  </head>
+  <body>
     <div class="game-wrapper">
-        <div class="title-section">
-            <h1 class="title-doodle">doodle</h1>
-            <h1 class="title-derby">derby</h1>
-        </div>
-        
-        <img src="/landing-page/logo.png" alt="Apple Doodle" class="logo-img">
+      <button class="logo-button">
+        <img src="/landing-page/logo.png" alt="Apple Doodle" class="logo-img" />
+        <div class="logo-shadow"></div>
+      </button>
     </div>
 
-    <div class="button-container">
-    <button class="image-button" id="createBtn" onclick="window.location.href = 'lobby.html'">
-        <img src="/landing-page/create_button_flat.png" alt="Create Lobby" class="btn-idle">
-        <img src="/landing-page/create_button_hover.png" alt="Create Lobby Hover" class="btn-hover">
-    </button>
-
-    <button class="image-button" id="joinBtn" onclick="joinGame()">
-        <img src="/landing-page/join_button_flat.png" alt="Join Lobby" class="btn-idle">
-        <img src="/landing-page/join_button_hover.png" alt="Join Lobby Hover" class="btn-hover">
-    </button>
-</div>
-
     <div class="footer-nav">
+      <div>
         <span class="version-text">Version 0.0.0</span>
-        <span class="footer-link" onclick="alert('Credits coming soon!')">credits</span>
-        <span class="footer-link" onclick="alert('How to play: Draw fast!')">how to play</span>
+        <span class="footer-link" onclick="alert('Credits coming soon!')"
+          >credits</span
+        >
+        <span class="footer-link" onclick="alert('How to play: Draw fast!')"
+          >how to play</span
+        >
+      </div>
+
+      <div class="button-container">
+        <button
+          class="image-button"
+          id="createBtn"
+          onclick="window.location.href = 'lobby.html'"
+        >
+          <img
+            src="/landing-page/create_button_flat.png"
+            alt="Create Lobby"
+            class="btn-idle"
+          />
+          <img
+            src="/landing-page/create_button_hover.png"
+            alt="Create Lobby Hover"
+            class="btn-hover"
+          />
+        </button>
+
+        <button class="image-button" id="joinBtn" onclick="joinGame()">
+          <img
+            src="/landing-page/join_button_flat.png"
+            alt="Join Lobby"
+            class="btn-idle"
+          />
+          <img
+            src="/landing-page/join_button_hover.png"
+            alt="Join Lobby Hover"
+            class="btn-hover"
+          />
+        </button>
+      </div>
     </div>
 
     <script>
-        function joinGame() {
-            const code = prompt("Enter Game Code:");
-            if (!code) return;
-            const baseUrl = window.location.origin + "/lobby.html";
-            window.location.replace(`${baseUrl}#r=${code}`);
-        }
+      function joinGame() {
+        const code = prompt("Enter Game Code:");
+        if (!code) return;
+        const baseUrl = window.location.origin + "/lobby.html";
+        window.location.replace(`${baseUrl}#r=${code}`);
+      }
     </script>
-</body>
+    <script src="landing-page.js"></script>
+  </body>
 </html>
