@@ -3,9 +3,78 @@
   <head>
     <title>Doodle Derby</title>
     <link rel="stylesheet" href="./lobby.css" />
+    <style>
+      /* Basic styles for the hidden game section */
+      #game-wrapper {
+        display: none; /* Hidden by default */
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background-color: #333; /* Dark background for game */
+      }
+      
+      #game-container {
+        width: 100%;
+        height: 100%;
+      }
+
+      #ui-layer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 10; /* Ensure UI sits above canvas */
+        background: rgba(255, 255, 255, 0.9);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      }
+
+      #ui-layer h2 {
+        font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+        margin-bottom: 20px;
+      }
+
+      #promptInput {
+        padding: 10px;
+        font-size: 1.2rem;
+        border: 2px solid #333;
+        border-radius: 5px;
+        width: 300px;
+        margin-bottom: 10px;
+      }
+
+      #submitBtn {
+        padding: 10px 20px;
+        font-size: 1.2rem;
+        background-color: #9df9bc;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: bold;
+      }
+      
+      #submitBtn:hover {
+        background-color: #76c893;
+      }
+
+      /* Back button for game screen */
+      #back_btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: white;
+        padding: 10px;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 20;
+      }
+    </style>
   </head>
   <body>
-    <div class="notebook-container">
+    <div id="mainLobby-container" class="notebook-container">
       <div id="player-popup" class="context-menu hidden">
         <button id="view-profile-btn">Customize</button>
         <button class="kick" id="kick-btn">Kick</button>
@@ -141,6 +210,23 @@
           </button>
         </div>
       </footer>
+    </div>
+
+    <div id="game-wrapper">
+        <div id="back_btn">← Lobby</div>
+        <div id="game-container"></div>
+        
+        <div id="ui-layer">
+            <h2>Write a Prompt!</h2>
+            <input type="text" id="promptInput" placeholder="Enter a funny prompt..." />
+            <button id="submitBtn">Submit Prompt</button>
+            
+            <div style="display: none;">
+                <span id="num_rounds">5</span>
+                <button id="lessPrompt">-</button>
+                <button id="morePrompt">+</button>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="./lobby.ts"></script>

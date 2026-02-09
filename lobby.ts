@@ -254,15 +254,20 @@ nameInput.addEventListener("change", () => {
   } else nameInput.value = myPlayer().getState("name");
 });
 
-function startGame(readyCountNum: number) {
-    // Logic to transition to the actual game
-    if (readyCountNum != players.length) {
-        alert("Someone is not ready!");
-    }
-    else {
-        console.log("Game Starting...");
-        //alert("pretend the game is starting here");
-    }
+function startGame() {
+  const currentPlayers = Object.values(getParticipants());
+  
+  const currentReadyCount = currentPlayers.filter(p => p.getState("isReady")).length;
+
+  if (currentReadyCount !== currentPlayers.length) {
+      alert("Someone is not ready!");
+      return;
+  }
+
+  if (isHost()) {
+      console.log("Starting Game...");
+      setState("gamePhase", "writing");
+  }
 }
 
 
@@ -386,18 +391,20 @@ function setPreviewAccessory(slotId: number, imagePath: string | null): void {
   }
 }
 
-const players = Object.values(getParticipants());
 function updateUI() {
-  
-  if (!hostFeatureAdded && isHost()) {
+  if (getState("gamePhase") === "writing") {
+    showGame();
+    return;
+}
+  const players = Object.values(getParticipants());
+
+  if (isHost()) {
     setState("hostId", myPlayer().id);
     startBtn.style.display = "block";
-    startBtn.addEventListener("click",()=>startGame(readyCountNum));
-    hostFeatureAdded = true;
-  } else if (hostFeatureAdded && !isHost()) {
+    startBtn.onclick = startGame; 
+  } else {
     startBtn.style.display = "none";
-    startBtn.removeEventListener("click", () => startGame(readyCountNum));
-    hostFeatureAdded = false;
+    startBtn.onclick = null;
   }
 
   if (myPlayer().getState("name") == undefined) {
@@ -409,67 +416,56 @@ function updateUI() {
 
   const hostId = getState("hostId");
 
-  
-  
-  playerGrid.innerHTML = ""; // Clear current grid
-    readyCountNum = 0;
-    players.forEach((player) => {
+  playerGrid.innerHTML = ""; 
+  let readyCountNum = 0; 
 
+  players.forEach((player) => {
     const name = player.getState("name");
     const characterImg = player.getState("character");
     const hatImg = player.getState("acc_0");
     const faceImg = player.getState("acc_1");
     const itemImg = player.getState("acc_2");
-
     const isReady = player.getState("isReady") || false;
-
-    const characterDisplay = `<img src="${characterImg}" style="width:100%; height:100%; object-fit:contain;" />`;
-    const getLayerStyle = (img: string | undefined) => {
-      if (!img || img === "/accessories/red_access.PNG")
-        return "display: none;";
-      // Map path to the "equip" version if necessary, similar to selectAccessory logic
-      const equipPath = img.replace("/accessories/", "/accessories-equip/");
-      return `background-image: url('${equipPath}'); display: block;`;
-    };
 
     if (isReady) {
         readyCountNum++;
     }
 
+    const characterDisplay = `<img src="${characterImg}" style="width:100%; height:100%; object-fit:contain;" />`;
+    
+    const getLayerStyle = (img: string | undefined) => {
+      if (!img || img === "/accessories/red_access.PNG") return "display: none;";
+      const equipPath = img.replace("/accessories/", "/accessories-equip/");
+      return `background-image: url('${equipPath}'); display: block;`;
+    };
 
-
-    // Create the structure matching your lobby.css
     const slot = document.createElement("div");
     slot.className = "player-slot active";
 
     slot.innerHTML = `
-  ${player.id === hostId ? '<img src="/lobby/crown.png" class="crown-img" alt="Host">' : ""}
-  <button class="player-button">
-    <div class="stick-man">
-      ${characterDisplay}
-      <div class="acc-layer hat" style="${getLayerStyle(hatImg)}"></div>
-      <div class="acc-layer face" style="${getLayerStyle(faceImg)}"></div>
-      <div class="acc-layer item" style="${getLayerStyle(itemImg)}"></div>
-    </div>
-  </button>
-  ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
-  <p>${name} ${player.id === myPlayer().id ? "(You)" : ""}</p>
-`;
+      ${player.id === hostId ? '<img src="/lobby/crown.png" class="crown-img" alt="Host">' : ""}
+      <button class="player-button">
+        <div class="stick-man">
+          ${characterDisplay}
+          <div class="acc-layer hat" style="${getLayerStyle(hatImg)}"></div>
+          <div class="acc-layer face" style="${getLayerStyle(faceImg)}"></div>
+          <div class="acc-layer item" style="${getLayerStyle(itemImg)}"></div>
+        </div>
+      </button>
+      ${isReady ? '<div class="ready-tag">READY!</div>' : ""}
+      <p>${name} ${player.id === myPlayer().id ? "(You)" : ""}</p>
+    `;
 
     const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
     playerBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevent immediate closing from global listener
+      e.stopPropagation(); 
 
-      // Position the popup near the clicked button
       const rect = playerBtn.getBoundingClientRect();
       playerPopup.style.top = `${rect.top + window.scrollY}px`;
       playerPopup.style.left = `${rect.right + 10}px`;
-
       playerPopup.classList.remove("hidden");
 
-      const customizeBtn = document.getElementById(
-        "view-profile-btn",
-      ) as HTMLButtonElement;
+      const customizeBtn = document.getElementById("view-profile-btn") as HTMLButtonElement;
       if (player.id === myPlayer().id) {
         customizeBtn.style.display = "block";
         customizeBtn.onclick = () => {
@@ -479,6 +475,7 @@ function updateUI() {
       } else {
         customizeBtn.style.display = "none";
       }
+
       const kickBtn = document.getElementById("kick-btn") as HTMLButtonElement;
       const canKick = isHost() && player.id !== myPlayer().id;
       kickBtn.style.display = canKick ? "block" : "none";
@@ -490,7 +487,6 @@ function updateUI() {
         };
       }
 
-      //if no popups can be displayed, there is no point to popup the menu.
       if (!canKick && player.id != myPlayer().id) {
         playerPopup.classList.add("hidden");
       }
@@ -499,7 +495,7 @@ function updateUI() {
     playerGrid.appendChild(slot);
   });
 
-    readyCount.innerText = `${readyCountNum}/${players.length} READY`;
+  readyCount.innerText = `${readyCountNum}/${players.length} READY`;
 }
 
 window.addEventListener("click", (e) => {
@@ -533,3 +529,5 @@ onDisconnect((ev) => {
   alert(`Kicked from room: ${ev.reason}`);
   window.location.href = "/";
 });
+
+setInterval(updateUI, 250);
