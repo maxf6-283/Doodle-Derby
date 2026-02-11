@@ -61,6 +61,8 @@ const ASSORTMENTS = [
   ],
 ];
 
+assignRandomCharacterIfNone();
+
 const MAX_PLAYERS = 8;
 let readyCountNum = 0;
 
@@ -259,9 +261,14 @@ function startGame() {
   
   const currentReadyCount = currentPlayers.filter(p => p.getState("isReady")).length;
 
+  
   if (currentReadyCount !== currentPlayers.length) {
       alert("Someone is not ready!");
       return;
+  }
+  if (currentPlayers.length < 3) {
+    alert("Need at least 3 players to start!");
+    return;
   }
 
   if (isHost()) {
@@ -496,6 +503,14 @@ function updateUI() {
   });
 
   readyCount.innerText = `${readyCountNum}/${players.length} READY`;
+}
+
+function assignRandomCharacterIfNone() {
+  if (!myPlayer().getState("character")) {
+    const randomIndex = Math.floor(Math.random() * CHARACTER_PATHS.length);
+    const randomCharacter = CHARACTER_PATHS[randomIndex];
+    myPlayer().setState("character", randomCharacter);
+  }
 }
 
 window.addEventListener("click", (e) => {
