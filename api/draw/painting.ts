@@ -15,16 +15,44 @@ export enum PaintActionType {
   Fill
 }
 
-type PointsArray = [number, number][]
+type BoundingBox = {
+  min: [number, number],
+  max: [number, number]
+}
 
-// Array of tuples to construct a user's stroke
-type Strokes = PointsArray[];
+function boundingBoxDefault(): BoundingBox {
+  return {
+    min: [Number.MAX_VALUE, Number.MAX_VALUE],
+    max: [Number.MIN_VALUE, Number.MIN_VALUE],
+  };
+}
+
+interface ImageCapture {
+  beforeImage: ImageData | null,
+  afterImage: ImageData | null,
+  boundingBox: BoundingBox
+}
+
+// TODO: If adding more actions in the future, ensure
+//       to create dedicated function to pushing into undo
+//       buffer as redo buffer should ALWAYS be cleared when
+//       pushing into undo buffer!
 
 export interface PaintAction {
   // Array of connecting points
-  points: Strokes,
-  type: PaintActionType,
-  brush: Brush
+  strokes: ImageCapture,
+  type: PaintActionType
+}
+
+function paintActionDefault(): PaintAction {
+  return {
+    strokes: {
+      beforeImage: null,
+      afterImage: null,
+      boundingBox: boundingBoxDefault()
+    },
+    type: PaintActionType.Draw
+  };
 }
 
 export class PaintCanvas {
@@ -78,21 +106,12 @@ export class PaintCanvas {
     this.undoBuffer = [];
     this.redoBuffer = [];
 
-
-    // default initialization, it
-    // doesn't mean anything yet.
-
-    // When pushing to the undo buffer, it is very important
-    // this gets copied because this variable is reused across
-    // all callbacks.
-    let paintAction: PaintAction = {
-      points: [],
-      type: PaintActionType.Draw,
-      brush: { ...this.currentBrush }
-    };
+    let currentType: PaintActionType = PaintActionType.Draw;
 
     let isPainting = false;
     let imageData: ImageData | null = null;
+    let previousImageData: ImageData | null = null;
+    let currentBoundingBox: BoundingBox | null = null;
 
     const submitDraw = () => {
       if (imageData != null) {
@@ -112,26 +131,90 @@ export class PaintCanvas {
       this.pointsBuffer.push(pos);
 
       if (this.pointsBuffer.length > this.requiredPoints) {
+        let segment = this.getSegmentPoints(this.pointsBuffer);
+        if (!segment) return;
+        if (segment.points.length == 0) return;
         submitDraw();
-        paintAction.points.push(this.pointsBuffer.slice());
         this.pointsBuffer.shift();
       }
 
+      let segment = this.getSegmentPoints(this.pointsBuffer);
+
+      if (!segment) {
+        segment = { bounding_box: { min: [0, 0], max: [0, 0] }, points: [] };
+      };
+
       if (clicked) {
-        paintAction.points.push(this.pointsBuffer.slice());
+        segment.points.push(pos);
       }
 
-      this.drawPoint(this.pointsBuffer, brush, this.isErasing, imageData);
+      if (segment.points.length == 0) return;
+
+      let newBoundingBox = this.drawPoint(segment.points, brush, this.isErasing, imageData);
+      if (newBoundingBox == null) return;
+      if (currentBoundingBox == null) {
+        currentBoundingBox = { ...newBoundingBox };
+      } else {
+        currentBoundingBox.min[0] = Math.min(currentBoundingBox.min[0], newBoundingBox.min[0]);
+        currentBoundingBox.min[1] = Math.min(currentBoundingBox.min[1], newBoundingBox.min[1]);
+
+        currentBoundingBox.max[0] = Math.max(currentBoundingBox.max[0], newBoundingBox.max[0]);
+        currentBoundingBox.max[1] = Math.max(currentBoundingBox.max[1], newBoundingBox.max[1]);
+      }
     };
 
     const finish = () => {
+      if (currentBoundingBox == null) {
+        console.error("no bounding box created!");
+        return;
+      }
+      if (previousImageData == null) {
+        console.error("previous image data is NULL!");
+        return;
+      }
+
+      let startX = Math.floor(currentBoundingBox.min[0]);
+      let startY = Math.floor(currentBoundingBox.min[1]);
+      let endX = Math.floor(currentBoundingBox.max[0]);
+      let endY = Math.floor(currentBoundingBox.max[1]);
+
+      let width = endX - startX;
+      let height = endY - startY;
+
+      let previousImage = this.getImageSlice(
+        previousImageData,
+        startX,
+        startY,
+        width,
+        height
+      );
+
       submitDraw();
+
+      let afterImage = this.context.getImageData(
+        startX,
+        startY,
+        width,
+        height
+      );
+
       isPainting = false;
+
+      let paintAction = paintActionDefault();
+
+      paintAction.strokes = {
+        afterImage,
+        beforeImage: previousImage,
+        boundingBox: { ...currentBoundingBox }
+      };
+
       this.undoBuffer.push({
         ...paintAction
       });
 
-      paintAction.points = [];
+      console.log(this.undoBuffer);
+
+      paintAction = paintActionDefault();
       this.pointsBuffer = [];
     }
 
@@ -156,13 +239,18 @@ export class PaintCanvas {
         this.hasReverted = false;
       }
 
+      previousImageData = this.context.getImageData(
+        0,
+        0,
+        this.canvasWidth,
+        this.canvasHeight
+      );
+
+      currentBoundingBox = null;
+
       isPainting = true;
 
-      paintAction.brush = {
-        ...this.currentBrush
-      };
-
-      paintAction.type = this.isErasing ?
+      currentType = this.isErasing ?
         PaintActionType.Erase :
         PaintActionType.Draw;
 
@@ -186,6 +274,28 @@ export class PaintCanvas {
 
   private getImageData() {
     return this.context.getImageData(0, 0, this.canvasWidth, this.canvasHeight);
+  }
+
+  private getImageSlice(
+    previousImage: ImageData,
+    srcX: number,
+    srcY: number,
+    srcWidth: number,
+    srcHeight: number
+  ): ImageData {
+    let startX = Math.floor(srcX);
+    let startY = Math.floor(srcY);
+
+    let imageData = this.context.createImageData(srcWidth, srcHeight);
+
+    const rowBytes = srcWidth * 4;
+    for (let y = 0; y < srcHeight; ++y) {
+      const srcStart = ((startY + y) * this.canvasWidth + startX) * 4;
+      const dstStart = (y * srcWidth) * 4;
+      imageData.data.set(previousImage.data.subarray(srcStart, srcStart + rowBytes), dstStart);
+    }
+
+    return imageData;
   }
 
   get isErasing() {
@@ -220,8 +330,8 @@ export class PaintCanvas {
     this.currentBrush.strokeWidth = strokeWidth;
   }
 
-  private clear() {
-    let imageData = this.getImageData();
+  private clear(image?: ImageData) {
+    let imageData = image ?? this.getImageData();
 
     for (let i = 0; i < this.canvasWidth * this.canvasHeight; ++i) {
       let index = i * 4;
@@ -231,10 +341,11 @@ export class PaintCanvas {
       imageData.data[index + 3] = 255;
     }
 
+    if (image) return;
+
     this.context.putImageData(imageData, 0, 0);
     this.layer.batchDraw();
   }
-
 
   private hexToRGB(hex: string) {
     return [
@@ -276,13 +387,14 @@ export class PaintCanvas {
       let ph = point[1] + hh;
 
       for (let y = point[1] - hh; y <= ph; ++y) {
+        if (rx < 0 || y < 0) continue;
         this.drawPixel([rx, y], color, image);
       }
     }
   }
 
-  private drawSegment(points: [number, number][], radius: number, color: string, image: ImageData) {
-    if (points.length < this.requiredPoints) return;
+  private getSegmentPoints(points: [number, number][]) {
+    if (points.length < this.requiredPoints) return null;
 
     const interp = new CurveInterpolator(
       points,
@@ -291,9 +403,14 @@ export class PaintCanvas {
 
     const segments = 100;
 
-    const interpolated_points = interp.getPoints(segments);
+    return {
+      bounding_box: interp.getBoundingBox(),
+      points: interp.getPoints(segments)
+    };
+  }
 
-    for (let point of interpolated_points) {
+  private drawSegment(segment: [number, number][], radius: number, color: string, image: ImageData) {
+    for (let point of segment) {
       this.drawCircle(point, radius, color, image);
     }
   }
@@ -303,10 +420,10 @@ export class PaintCanvas {
     brush: Brush,
     isErasing: boolean,
     image: ImageData
-  ) {
+  ): BoundingBox | null {
     if (points.length == 0) {
       console.warn("Trying to draw point with 0 points?");
-      return;
+      return null;
     }
 
     let color = isErasing ? "#ffffff" : brush.color;
@@ -321,6 +438,30 @@ export class PaintCanvas {
       radius /= 2;
     }
 
+    let boundingBox: BoundingBox = {
+      min: [Math.floor(points[0][0]), Math.floor(points[0][1])],
+      max: [Math.floor(points[0][0]), Math.floor(points[0][1])],
+    };
+
+    // Subtracting radius alone does not account for all pixels drawn.
+    // Use BIAS to widen bounding box, but keep it as small as possible as to not store excessive
+    // information.
+    const BIAS = 5;
+
+    for (let point of points) {
+      boundingBox.min[0] = Math.min(boundingBox.min[0], Math.floor(point[0] - radius - BIAS));
+      boundingBox.min[1] = Math.min(boundingBox.min[1], Math.floor(point[1] - radius - BIAS));
+
+      boundingBox.min[0] = Math.max(boundingBox.min[0], 0);
+      boundingBox.min[1] = Math.max(boundingBox.min[1], 0);
+
+      boundingBox.max[0] = Math.max(boundingBox.max[0], Math.floor(point[0] + radius + BIAS));
+      boundingBox.max[1] = Math.max(boundingBox.max[1], Math.floor(point[1] + radius + BIAS));
+
+      boundingBox.max[0] = Math.min(boundingBox.max[0], this.canvasWidth);
+      boundingBox.max[1] = Math.min(boundingBox.max[1], this.canvasHeight);
+    }
+
     this.drawCircle(points[0], radius, color, image);
 
     if (points.length > 1) {
@@ -331,34 +472,33 @@ export class PaintCanvas {
         image
       );
     }
+
+    return boundingBox;
   }
 
-  private recreateBuffer(buffer: PaintAction[], image: ImageData) {
-    for (let action of buffer) {
-      switch (action.type) {
-        case PaintActionType.Draw: {
-          for (let point of action.points) {
-            this.drawPoint(point, action.brush, false, image);
-          }
-          break;
-        }
-        case PaintActionType.Erase: {
-          for (let point of action.points) {
-            this.drawPoint(point, action.brush, true, image);
-          }
-          break;
-        }
-        case PaintActionType.Fill: {
-          let point = action.points[0][0];
-          this.fill(
-            point[0],
-            point[1],
-            action.brush.color,
-            image
-          );
-          break;
-        }
+  private recreateBuffer(action: PaintAction, isUndo: boolean) {
+    let strokes = action.strokes;
+
+    if (isUndo) {
+      if (strokes.beforeImage == null) {
+        console.error("Before image shouldn't be NULL!");
+        return;
       }
+      this.context.putImageData(
+        strokes.beforeImage,
+        strokes.boundingBox.min[0],
+        strokes.boundingBox.min[1]
+      );
+    } else {
+      if (strokes.afterImage == null) {
+        console.error("After image shouldn't be NULL!");
+        return;
+      }
+      this.context.putImageData(
+        strokes.afterImage,
+        strokes.boundingBox.min[0],
+        strokes.boundingBox.min[1]
+      );
     }
 
     this.hasReverted = true;
@@ -371,16 +511,11 @@ export class PaintCanvas {
     if (this.undoBuffer.length == 0)
       return;
 
-    this.clear();
-
     let lastAction = this.undoBuffer.pop() as PaintAction;
     this.redoBuffer.push(lastAction);
 
-    let imageData = this.getImageData();
+    this.recreateBuffer(lastAction, true);
 
-    this.recreateBuffer(this.undoBuffer, imageData);
-
-    this.context.putImageData(imageData, 0, 0);
     this.layer.batchDraw();
   }
 
@@ -388,20 +523,15 @@ export class PaintCanvas {
     if (this.redoBuffer.length == 0)
       return;
 
-    this.clear();
-
     let lastAction = this.redoBuffer.pop() as PaintAction;
     this.undoBuffer.push(lastAction);
 
-    let imageData = this.getImageData();
+    this.recreateBuffer(lastAction, false);
 
-    this.recreateBuffer(this.undoBuffer, imageData);
-
-    this.context.putImageData(imageData, 0, 0);
     this.layer.batchDraw();
   }
 
-  fill(x: number, y: number, newColor: string, image?: ImageData) {
+  fill(x: number, y: number, newColor: string) {
     let width = this.layer.getWidth() as number;
     let height = this.layer.getHeight() as number;
 
@@ -415,7 +545,7 @@ export class PaintCanvas {
       return;
     }
 
-    let imageData = image ?? this.getImageData();
+    let imageData = this.getImageData();
     this.context.imageSmoothingEnabled = false;
 
     const isSameColor = (a: number[], b: number[], tolerance: number) => {
@@ -484,14 +614,32 @@ export class PaintCanvas {
       return [false, x];
     };
 
+    let fillBoundingBox: BoundingBox = {
+      min: [Math.floor(x), Math.floor(y)],
+      max: [Math.floor(x), Math.floor(y)]
+    };
+
+    // Used to extend the boundaries on the max edges of the
+    // bounding box
+    const MAX_BIAS = 5;
+
     while (pixel_span.length > 0) {
       let currentPixelCoord = pixel_span.pop() as [number, number];
+
       let currentSpan = getSpan(currentPixelCoord[0], currentPixelCoord[1]);
 
       // Used for checking adjacent rows to current row filled
       let isInsideSpan = false;
 
       let currentY = currentSpan[2];
+
+      fillBoundingBox.min[0] = Math.min(fillBoundingBox.min[0], currentSpan[0]);
+      fillBoundingBox.min[1] = Math.min(fillBoundingBox.min[1], currentY);
+
+      fillBoundingBox.max[0] = Math.max(fillBoundingBox.max[0], currentSpan[1] + MAX_BIAS);
+      fillBoundingBox.max[0] = Math.min(fillBoundingBox.max[0], width);
+      fillBoundingBox.max[1] = Math.max(fillBoundingBox.max[1], currentY + MAX_BIAS);
+      fillBoundingBox.max[1] = Math.min(fillBoundingBox.max[1], height);
 
       // Check above
 
@@ -527,18 +675,32 @@ export class PaintCanvas {
       }
     }
 
-    if (image) return;
+    let minX = Math.floor(fillBoundingBox.min[0]);
+    let minY = Math.floor(fillBoundingBox.min[1]);
+    let maxX = Math.floor(fillBoundingBox.max[0]);
+    let maxY = Math.floor(fillBoundingBox.max[1]);
+    let bbWidth = maxX - minX;
+    let bbHeight = maxY - minY;
+
+    let beforeImage = this.context.getImageData(minX, minY, bbWidth, bbHeight);
 
     this.context.putImageData(imageData, 0, 0);
+
+    let afterImage = this.context.getImageData(minX, minY, bbWidth, bbHeight);
+
     this.layer.batchDraw();
     this.hasFilled = true;
 
     let fillAction: PaintAction = {
-      points: [[[x, y]]],
+      strokes: {
+        beforeImage,
+        afterImage,
+        boundingBox: fillBoundingBox
+      },
       type: PaintActionType.Fill,
-      brush: { ...this.currentBrush }
     };
 
+    this.redoBuffer = [];
     this.undoBuffer.push(fillAction);
   }
 }
