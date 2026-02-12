@@ -9,6 +9,7 @@ export default defineConfig({
         game: "game.html",
         lobby: "lobby.html",
         canvas: "canvas.html",
+        "pick-words": "pick-words.html"
       },
     },
   },
