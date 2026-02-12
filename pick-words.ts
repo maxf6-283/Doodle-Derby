@@ -10,6 +10,7 @@ export default function mount(switchScreen: (page: string) => void) {
   const players_list = document.getElementById("players-list") as HTMLDivElement;
   const word_input = document.getElementById("word-input") as HTMLInputElement;
   const word_list = document.getElementById("word-list") as HTMLDivElement;
+  const done = document.getElementById("done") as HTMLButtonElement
 
   let my_words: string[] = [];
 
@@ -65,12 +66,19 @@ export default function mount(switchScreen: (page: string) => void) {
         wordDiv.append(changeWord)
 
         word_list.append(wordDiv)
+
+        if (my_words.length == 10) {
+          done.disabled = false;
+        }
       }
     }
   }
   )
 
-  setInterval(updateUI, 250)
+  const updateId = window.setInterval(updateUI, 250)
 
-  console.log("HELP", word_input)
+  done.addEventListener("click", () => {
+    clearInterval(updateId)
+    switchScreen("waiting")
+  })
 }
