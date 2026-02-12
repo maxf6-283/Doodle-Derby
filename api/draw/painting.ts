@@ -132,25 +132,20 @@ export class PaintCanvas {
 
       if (this.pointsBuffer.length > this.requiredPoints) {
         let segment = this.getSegmentPoints(this.pointsBuffer);
-        if (!segment) return;
-        if (segment.points.length == 0) return;
+        if (segment.length == 0) return;
         submitDraw();
         this.pointsBuffer.shift();
       }
 
       let segment = this.getSegmentPoints(this.pointsBuffer);
 
-      if (!segment) {
-        segment = { bounding_box: { min: [0, 0], max: [0, 0] }, points: [] };
-      };
-
       if (clicked) {
-        segment.points.push(pos);
+        segment.push(pos);
       }
 
-      if (segment.points.length == 0) return;
+      if (segment.length == 0) return;
 
-      let newBoundingBox = this.drawPoint(segment.points, brush, this.isErasing, imageData);
+      let newBoundingBox = this.drawPoint(segment, brush, this.isErasing, imageData);
       if (newBoundingBox == null) return;
       if (currentBoundingBox == null) {
         currentBoundingBox = { ...newBoundingBox };
@@ -211,8 +206,6 @@ export class PaintCanvas {
       this.undoBuffer.push({
         ...paintAction
       });
-
-      console.log(this.undoBuffer);
 
       paintAction = paintActionDefault();
       this.pointsBuffer = [];
@@ -393,8 +386,8 @@ export class PaintCanvas {
     }
   }
 
-  private getSegmentPoints(points: [number, number][]) {
-    if (points.length < this.requiredPoints) return null;
+  private getSegmentPoints(points: [number, number][]): [number, number][] {
+    if (points.length < this.requiredPoints) return [];
 
     const interp = new CurveInterpolator(
       points,
@@ -403,10 +396,7 @@ export class PaintCanvas {
 
     const segments = 100;
 
-    return {
-      bounding_box: interp.getBoundingBox(),
-      points: interp.getPoints(segments)
-    };
+    return interp.getPoints(segments);
   }
 
   private drawSegment(segment: [number, number][], radius: number, color: string, image: ImageData) {
