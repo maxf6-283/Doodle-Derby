@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doodle Derby Winners</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to top, #f4f7f9, #dfe9f3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  margin-top: 40px;
+  font-size: 3rem;
+}
+
+/* PODIUM CONTAINER */
+.podium-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 60px;
+  height: 550px;
+}
+
+/* EACH PODIUM */
+.podium {
+  width: 220px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  position: relative;
+  padding-top: 20px;
+  color: white;
+}
+
+/* HEIGHTS */
+.gold { height: 500px; background: linear-gradient(to top, #f9d423, #ffcc00); order: 2; }
+.silver { height: 420px; background: linear-gradient(to top, #bdc3c7, #d7dde8); order: 1; }
+.bronze { height: 360px; background: linear-gradient(to top, #cd7f32, #b87333); order: 3; }
+
+/* PROFILE CIRCLE */
+.profile {
+  width: 120px;
+  height: 120px;
+  background-color: #444;
+  border-radius: 50%;
+  border: 6px solid white;
+  position: absolute;
+  top: -60px;
+}
+
+/* TEXT INSIDE PODIUM */
+.username {
+  margin-top: 80px;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.points {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Doodle Derby Winners!</h1>
+
+<div class="podium-container">
+
+  <!-- SILVER -->
+  <div class="podium silver">
+    <div class="profile"></div>
+    <div class="username">CheeseborgerSilver</div>
+    <div class="points">1,000,000 pts</div>
+  </div>
+
+  <!-- GOLD -->
+  <div class="podium gold">
+    <div class="profile"></div>
+    <div class="username">Cheeseborger100</div>
+    <div class="points">12123,13,125,22 pts</div>
+  </div>
+
+  <!-- BRONZE -->
+  <div class="podium bronze">
+    <div class="profile"></div>
+    <div class="username">Bronzee</div>
+    <div class="points">12,13,125,22 pts</div>
+  </div>
+
+</div>
+
+<script type="module" src="./podium.ts"></script>
+
+</body>
+</html>
