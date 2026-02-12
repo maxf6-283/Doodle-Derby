@@ -1,0 +1,34 @@
+<div id="settingsMenu" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div class="customization-body">
+      <div id="timerContainer">
+        <label for="timer">Timer per round:</label>
+        <div id="custom-timer-display">
+          <button id="lessTime">&lt;</button>
+          <span id="timerDuration"></span>
+          <button id="moreTime">&gt;</button>
+        </div>
+      </div>
+
+      <div id="volumeContainer">
+        <label for="volume"></label>
+        <input type="range" id="volumeSlider" name="volumeSlider" min="0" max="100" step="5" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="lobby-header">
+  <button class="icon-btn">
+    <img src="/lobby/escapearrow.png" alt="Back" class="ui-icon" />
+  </button>
+  <h1>Code: <span id="code-span"></span></h1>
+  <button id="settings-btn" class="icon-btn">
+    <img src="/lobby/settings.png" alt="Settings" class="ui-icon" />
+  </button>
+</header>
+
+<div id="players-list"></div>
+<input id="word-input" type="text" placeholder="Input a topic!">
+<div id="word-list"></div>
