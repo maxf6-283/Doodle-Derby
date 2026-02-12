@@ -175,6 +175,7 @@ function startGame() {
 }
 
 RPC.register("pick-words", async (_payload, _player) => {
+  clearInterval(updateId)
   switchScreen("pick-words")
 })
 
@@ -404,6 +405,6 @@ window.addEventListener("click", (e) => {
   }
 });
 
-setInterval(updateUI, 250);
+  const updateId = window.setInterval(updateUI, 250);
 
 }
