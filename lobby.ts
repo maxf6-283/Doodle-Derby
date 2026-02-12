@@ -1,25 +1,12 @@
 import {
-  insertCoin,
-  onPlayerJoin,
-  onDisconnect,
   getParticipants,
   getRoomCode,
   isHost,
   myPlayer,
   setState,
   getState,
+  RPC,
 } from "playroomkit";
-
-try {
-  await insertCoin({
-    gameId: process.env.GAME_ID,
-    skipLobby: true,
-  });
-} catch {
-  // we have been kicked
-  alert("Permission denied - you have been kicked");
-  window.location.href = "/";
-}
 
 const CHARACTER_PATHS = [
   "/characters/bear_icon.png",
@@ -54,7 +41,7 @@ const ASSORTMENTS = [
   ],
 ];
 
-const MAX_PLAYERS = 8;
+export default function mount(switchScreen: (page: string) => void) {
 
 const playerPopup = document.getElementById("player-popup") as HTMLDivElement;
 const playerGrid = document.getElementById("player-grid") as HTMLDivElement;
@@ -180,10 +167,17 @@ nameInput.addEventListener("change", () => {
 });
 
 function startGame() {
-  // Logic to transition to the actual game
-  console.log("Game Starting...");
-  alert("pretend the game is starting here");
+  if (isHost()) {
+    // Logic to transition to the actual game
+    console.log("Game Starting...");
+    RPC.call("pick-words", {}, RPC.Mode.ALL)
+  }
 }
+
+RPC.register("pick-words", async (_payload, _player) => {
+  clearInterval(updateId)
+  switchScreen("pick-words")
+})
 
 document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
   slot.addEventListener("click", (e) => {
@@ -411,14 +405,6 @@ window.addEventListener("click", (e) => {
   }
 });
 
-onPlayerJoin((player) => {
-  updateUI();
-  player.onQuit(() => updateUI());
-});
+  const updateId = window.setInterval(updateUI, 250);
 
-onDisconnect((ev) => {
-  alert(`Kicked from room: ${ev.reason}`);
-  window.location.href = "/";
-});
-
-setInterval(updateUI, 250);
+}
