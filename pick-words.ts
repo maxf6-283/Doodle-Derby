@@ -1,4 +1,4 @@
-import { getParticipants, getRoomCode, myPlayer } from "playroomkit";
+import { getParticipants, getRoomCode, myPlayer,RPC,isHost } from "playroomkit";
 
 const MAX_WORDS = 10;
 
@@ -36,13 +36,32 @@ export default function mount(switchScreen: (page: string) => void) {
       playerDiv.append(name + ` ${words_complete}/${MAX_WORDS}`)
 
       players_list.append(playerDiv)
-    }
+      }
+      toGamePage();
   }
 
   function updateWords() {
     myPlayer().setState("words", my_words)
     myPlayer().setState("words_complete", my_words.length)
-  }
+    }
+
+    function toGamePage() {
+        const players = Object.values(getParticipants());
+        // Check if ALL players have completed more than 10 words
+        const allReady = players.every(p => p.getState("words_complete") >= 10);
+
+        // If not everyone is ready, stop here
+        if (!allReady) {
+            return;
+        }
+        if (isHost()) {
+            RPC.call("canvas", RPC.Mode.ALL);
+        }
+    }
+
+    RPC.register("canvas", async (_payload, _player) => {
+        switchScreen("canvas")
+    })
 
   word_input.addEventListener("keydown", (ev) => {
     if (ev.key == "Enter") {

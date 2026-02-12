@@ -33,7 +33,12 @@ async function switchScreen(screen: string) {
       app.innerHTML = html;
       mountPickWords(switchScreen)
       break;
-    }
+      }
+      case "canvas":
+        const html = await fetch("canvas.html").then(r => r.text());
+        app.innerHTML = html;
+        mountPickWords(switchScreen)
+        break;
   }
 }
 
