@@ -1,6 +1,7 @@
 import { insertCoin, onDisconnect, switchRole } from "playroomkit";
 import mountLobby from "./lobby"
 import mountPickWords from "./pick-words"
+import mountWaiting from "./waiting"
 
 try {
   await insertCoin({
@@ -32,6 +33,12 @@ async function switchScreen(screen: string) {
       const html = await fetch("pick-words.html").then(r => r.text());
       app.innerHTML = html;
       mountPickWords(switchScreen)
+      break;
+    }
+    case "waiting": {
+      const html = await fetch("waiting.html").then(r => r.text());
+      app.innerHTML = html;
+      mountWaiting(switchScreen)
       break;
     }
   }
