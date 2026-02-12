@@ -1,14 +1,15 @@
-import { setInterval } from "node:timers/promises";
-import { getParticipants, myPlayer, getRoomCode } from "playroomkit";
+import { getParticipants, myPlayer, getRoomCode, getState } from "playroomkit";
 
 const MAX_WORDS = 10
+const PICK_TIME = 30
 
 export default function mount(switchScreen: (name: string) => void) {
   const code_span = document.getElementById("code-span") as HTMLSpanElement;
   const settingsBtn = document.getElementById(
     "settings-btn",
   );
-  const players_list = document.getElementById("player-list") as HTMLDivElement
+  const players_list = document.getElementById("player-list") as HTMLDivElement;
+  const timer = document.getElementById("timer") as HTMLSpanElement;
 
   function updateUI() {
     code_span.innerText = getRoomCode() ?? "Error";
@@ -34,6 +35,11 @@ export default function mount(switchScreen: (name: string) => void) {
 
       players_list.append(playerDiv)
     }
+
+    let seconds = getState("seconds-remaining") ?? PICK_TIME
+    let minutes = Math.floor(seconds / 60)
+    seconds %= 60
+    timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
   }
 
   window.setInterval(updateUI, 250)

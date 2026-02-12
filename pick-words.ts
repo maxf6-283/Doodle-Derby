@@ -1,6 +1,8 @@
-import { getParticipants, getRoomCode, myPlayer } from "playroomkit";
+import { getParticipants, getRoomCode, getState, isHost, myPlayer, RPC, setState } from "playroomkit";
 
 const MAX_WORDS = 10;
+
+const PICK_TIME = 30;
 
 export default function mount(switchScreen: (page: string) => void) {
   const code_span = document.getElementById("code-span") as HTMLSpanElement;
@@ -10,9 +12,11 @@ export default function mount(switchScreen: (page: string) => void) {
   const players_list = document.getElementById("players-list") as HTMLDivElement;
   const word_input = document.getElementById("word-input") as HTMLInputElement;
   const word_list = document.getElementById("word-list") as HTMLDivElement;
-  const done = document.getElementById("done") as HTMLButtonElement
+  const done = document.getElementById("done") as HTMLButtonElement;
+  const timer = document.getElementById("timer") as HTMLSpanElement;
 
   let my_words: string[] = [];
+  let timerId: number | null = null
 
   function updateUI() {
     code_span.innerText = getRoomCode() ?? "Error";
@@ -38,6 +42,23 @@ export default function mount(switchScreen: (page: string) => void) {
 
       players_list.append(playerDiv)
     }
+
+    let seconds = getState("seconds-remaining")
+    if (isHost() && seconds == undefined) {
+      setState("seconds-remaining", PICK_TIME)
+      timerId = window.setInterval(() => {
+        let seconds_remaining = getState("seconds-remaining") - 1
+        if (seconds_remaining <= 0) {
+          RPC.call("writing-timeout", {}, RPC.Mode.ALL)
+        } else {
+          setState("seconds-remaining", seconds_remaining)
+        }
+      }, 1000)
+    }
+    seconds ??= PICK_TIME
+    let minutes = Math.floor(seconds / 60)
+    seconds %= 60
+    timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`  
   }
 
   function updateWords() {
@@ -80,5 +101,11 @@ export default function mount(switchScreen: (page: string) => void) {
   done.addEventListener("click", () => {
     clearInterval(updateId)
     switchScreen("waiting")
+  })
+
+  RPC.register("writing-timeout", async (_payload, _player) => {
+    clearInterval(updateId)
+    if (timerId != null) clearInterval(timerId)
+    alert("Game starting!!!")
   })
 }
