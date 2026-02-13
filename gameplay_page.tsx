@@ -2,7 +2,7 @@ import { Page } from "./page";
 import { render } from "solid-js/web"
 import { createSignal, onMount } from "solid-js";
 
-import { getParticipants, PlayerState, me, isHost, RPC } from "playroomkit";
+import { getParticipants, PlayerState, me, isHost, setState, getState, RPC } from "playroomkit";
 
 import konva from "konva";
 import { PaintCanvas } from "./api/draw/painting"
@@ -22,8 +22,6 @@ function pickRandomArtists() {
   do {
     secondIndex = randInt();
   } while (secondIndex == firstIndex);
-
-  console.log(`first: ${firstIndex}, second: ${secondIndex}`);
 
   if (firstIndex < 0 || firstIndex >= size ||
     secondIndex < 0 || secondIndex >= size ||
@@ -156,9 +154,34 @@ const SpectatorPage = () => {
   );
 }
 
+function DrawImages(props: { drawCanvases: Map<string, string> }) {
+  return (
+    <ul style={{ display: "flex", gap: "16px", padding: 0, "list-style": "none" }}>
+      {
+        Array.from(props.drawCanvases.entries()).map(([name, data]) =>
+        (
+          <li style={{ display: "flex", "align-items": "center", "flex-direction": "column" }}>
+            <span>{name}</span>
+            <img
+              src={data}
+              style={
+                {
+                  width: "250px",
+                  height: "250px",
+                  "object-fit": "contain",
+                  border: "1px solid #ccc"
+                }
+              }
+            />
+          </li>
+        )
+        )
+      }
+    </ul>);
+}
+
 function actualRender(root: HTMLElement) {
   const currentPlayer = me();
-
   const Dummy = () => {
     let isArtist: boolean = currentPlayer.getState("isArtist") ?? false;
 
@@ -173,41 +196,15 @@ function actualRender(root: HTMLElement) {
       });
     });
 
-    const DrawImages = () => {
-      return (
-        <ul style={{ display: "flex", gap: "16px", padding: 0, "list-style": "none" }}>
-          {
-            Array.from(drawCanvases().entries()).map(([name, data]) =>
-            (
-              <li style={{ display: "flex", "align-items": "center", "flex-direction": "column" }}>
-                <span>{name}</span>
-                <img
-                  src={data}
-                  style={
-                    {
-                      width: "250px",
-                      height: "250px",
-                      "object-fit": "contain",
-                      border: "1px solid #ccc"
-                    }
-                  }
-                />
-              </li>
-            )
-            )
-          }
-        </ul>);
-    }
-
     if (isArtist) {
       return (<DrawPage />);
     }
 
-
     return (
-      <>
-        <DrawImages />
-      </>
+      <div style={{ display: "flex", "flex-direction": "column", gap: "24px" }}>
+        <DrawImages drawCanvases={drawCanvases()} />
+        <SpectatorPage />
+      </div>
     )
   };
 
@@ -217,15 +214,12 @@ function actualRender(root: HTMLElement) {
 //
 
 export const GameplayPage: Page = {
-
   render(root: HTMLElement) {
-    RPC.register("actualRender", async () => actualRender(root));
-
+    RPC.register('actualRender', async () => actualRender(root));
     if (isHost()) {
       pickRandomArtists();
-      RPC.call("actualRender", {}, RPC.Mode.ALL);
+      RPC.call('actualRender', {}, RPC.Mode.OTHERS);
+      actualRender(root);
     }
-
-    root.innerHTML = "";
   }
 }
