@@ -150,6 +150,10 @@ const SpectatorPage = () => {
   let [text, setText] = createSignal("");
   let [display, setDisplay] = createSignal("");
 
+  const guessChecker = () => {
+    
+  }
+
   
   return (
     <>
@@ -157,7 +161,7 @@ const SpectatorPage = () => {
         <h2>{display()}</h2>
       </div>
       <input type="text" onChange={(c) => setText(text => text = c.currentTarget.value)} />
-      <button onClick={() => setDisplay(text())}>Submit</button>
+      <button onClick={() => setDisplay("{" + text() + "}")}>Submit</button>
     </>
   );
 }
