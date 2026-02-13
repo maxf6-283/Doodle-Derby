@@ -5,7 +5,7 @@ import { routerNavigate } from "./tiny_router";
 
 const MAX_WORDS = 10;
 
-const PICK_TIME = 30;
+const PICK_TIME = 5;
 
 export default function mount() {
   const word_input = document.getElementById("word-input") as HTMLInputElement;
@@ -102,21 +102,38 @@ export default function mount() {
       word_input.classList.add("error-shake");
       setTimeout(() => word_input.classList.remove("error-shake"), 300);
     }
+    seconds ??= PICK_TIME
+    let minutes = Math.floor(seconds / 60)
+    seconds %= 60
+      timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+      //toGamePage();
   }
 
-  word_input.addEventListener("keydown", (ev) => ev.key === "Enter" && submitWord());
-  confirm_word_btn.addEventListener("click", submitWord);
+  function updateWords() {
+    myPlayer().setState("words", my_words)
+    myPlayer().setState("words_complete", my_words.length)
+    }
 
-  continue_btn.addEventListener("click", () => {
-    pick_words_container.style.display = "none";
-    waiting_screen.style.display = "flex";
-    continue_btn.style.display = "none";
-    myPlayer().setState("picked_words", true);
-    RPC.call("player-picked-words", {}, RPC.Mode.HOST);
-  });
-  start_game_btn.addEventListener("click", () => {
-    RPC.call("players-start-game", {}, RPC.Mode.ALL);
-  });
+//function toGamePage() {
+//    const players = Object.values(getParticipants());
+//    const allReady = players.every(p => p.getState("words_complete") >= 10);
+
+//    if (!allReady) {
+//        return;
+//    }
+//    if (isHost()) {
+//        RPC.call("writing-timeout", RPC.Mode.ALL);
+//    }
+// }
+
+  word_input.addEventListener("keydown", (ev) => {
+    if (ev.key == "Enter") {
+      if (my_words.length < 10) {
+        const idx = my_words.length
+        const new_word = word_input.value
+        my_words.push(new_word)
+        word_input.value = ""
+        updateWords()
 
   RPC.register("players-start-game", async () => {
     routerNavigate("/game");
@@ -140,7 +157,12 @@ export default function mount() {
 
   setInterval(updateUI, 250)
 
-  console.log("HELP", word_input)
+  RPC.register("writing-timeout", async (_payload, _player) => {
+    clearInterval(updateId)
+    if (timerId != null) clearInterval(timerId)
+    console.log("SWITCH GAME!");
+    routerNavigate("index.html");
+  })
 }
 
 export const PickWordsPage: Page = {
