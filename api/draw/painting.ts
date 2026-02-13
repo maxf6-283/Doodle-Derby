@@ -265,6 +265,10 @@ export class PaintCanvas {
     this.clear();
   }
 
+  public getPixelBuffer(): ArrayBuffer {
+    return this.getImageData().data.buffer;
+  }
+
   private getImageData() {
     return this.context.getImageData(0, 0, this.canvasWidth, this.canvasHeight);
   }

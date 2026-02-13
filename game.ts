@@ -1,10 +1,10 @@
-import { insertCoin, onDisconnect, switchRole } from "playroomkit";
+import { insertCoin, onDisconnect, getState } from "playroomkit";
 import { LobbyPage } from "./lobby"
 import { PickWordsPage } from "./pick-words"
 import { WaitingPage } from "./waiting"
 import { GameplayPage } from "./gameplay_page";
 
-import { routerNavigate, addPage, getPage } from "./tiny_router";
+import { routerNavigate, addPage } from "./tiny_router";
 
 try {
   await insertCoin({
@@ -27,13 +27,9 @@ addPage("/pick-words", PickWordsPage);
 addPage("/waiting", WaitingPage);
 addPage("/game", GameplayPage);
 
-routerNavigate("/lobby");
-
-// browser back/forward
-// We will think about back/forward history later
-// window.onpopstate = () => {
-//   const page = getPage(location.pathname);
-//   if (page) {
-//     routerNavigate(location.pathname);
-//   }
-// }
+const gameStarted = getState("game-started");
+if (gameStarted) {
+  routerNavigate("/pick-words");
+} else {
+  routerNavigate("/lobby");
+}
