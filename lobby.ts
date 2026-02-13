@@ -84,7 +84,9 @@ function mount() {
       }
     };
   });
-  const settingsMenu = document.getElementById("settingsMenu") as HTMLDivElement;
+  const settingsMenu = document.getElementById(
+    "settingsMenu",
+  ) as HTMLDivElement;
   const accessoryPicker = document.getElementById(
     "accessory-picker",
   ) as HTMLDivElement;
@@ -116,12 +118,12 @@ function mount() {
   const MAX_SECS = 180;
 
   function updateTimerDisplay() {
-    let timerSeconds = getState("timer-seconds")
+    let timerSeconds = getState("timer-seconds");
     if (timerSeconds == undefined) {
       if (isHost()) {
-        setState("timer-seconds", DEFAULT_SECS)
+        setState("timer-seconds", DEFAULT_SECS);
       }
-      timerSeconds = DEFAULT_SECS
+      timerSeconds = DEFAULT_SECS;
     }
 
     const minutes = Math.floor(timerSeconds / 60);
@@ -134,18 +136,18 @@ function mount() {
 
   lessTimeBtn.addEventListener("click", () => {
     if (isHost()) {
-      let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS
+      let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS;
       timerSeconds = Math.max(MIN_SECS, timerSeconds - 15);
-      setState("timer-seconds", timerSeconds)
+      setState("timer-seconds", timerSeconds);
     }
     updateTimerDisplay();
   });
 
   moreTimeBtn.addEventListener("click", () => {
     if (isHost()) {
-      let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS
+      let timerSeconds = getState("timer-seconds") ?? DEFAULT_SECS;
       timerSeconds = Math.min(MAX_SECS, timerSeconds + 15);
-      setState("timer-seconds", timerSeconds)
+      setState("timer-seconds", timerSeconds);
     }
     updateTimerDisplay();
   });
@@ -177,14 +179,15 @@ function mount() {
     if (isHost()) {
       // Logic to transition to the actual game
       console.log("Game Starting...");
-      RPC.call("pick-words", {}, RPC.Mode.ALL)
+      setState("game-started", true, true);
+      RPC.call("pick-words", {}, RPC.Mode.ALL);
     }
   }
 
   RPC.register("pick-words", async (_payload, _player) => {
     clearInterval(updateId)
-    routerNavigate("/pick-words")
-  })
+    routerNavigate("/pick-words");
+  });
 
   document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
     slot.addEventListener("click", (e) => {
@@ -254,17 +257,12 @@ function mount() {
     const display = document.getElementById(`slot-${activeSlotIndex}-display`);
     if (display) {
       display.innerHTML =
-        path === "/accessories/red_access.PNG"
-          ? ""
-          : `<img src="${path}">`;
+        path === "/accessories/red_access.PNG" ? "" : `<img src="${path}">`;
     }
 
     accessoryPicker.classList.add("hidden");
     //assuming path var started with /accessories/soomething.PNG
-    const previewPath = path.replace(
-      "/accessories/",
-      "/accessories-equip/",
-    );
+    const previewPath = path.replace("/accessories/", "/accessories-equip/");
     setPreviewAccessory(activeSlotIndex, previewPath);
   }
 
@@ -302,6 +300,11 @@ function mount() {
   }
 
   function updateUI() {
+    if (getState("game-started")) {
+      clearInterval(updateId);
+      routerNavigate("/pick-words");
+      return; // Stop running lobby logic
+    }
     if (!hostFeatureAdded && isHost()) {
       setState("hostId", myPlayer().id);
       startBtn.style.display = "block";
@@ -317,7 +320,7 @@ function mount() {
       myPlayer().setState("name", myPlayer().getProfile().name);
     }
 
-    updateTimerDisplay()
+    updateTimerDisplay();
 
     const hostId = getState("hostId");
 
@@ -354,7 +357,9 @@ function mount() {
   <p>${name} ${player.id === myPlayer().id ? "(You)" : ""}</p>
 `;
 
-      const playerBtn = slot.querySelector(".player-button") as HTMLButtonElement;
+      const playerBtn = slot.querySelector(
+        ".player-button",
+      ) as HTMLButtonElement;
       playerBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent immediate closing from global listener
 
@@ -377,7 +382,9 @@ function mount() {
         } else {
           customizeBtn.style.display = "none";
         }
-        const kickBtn = document.getElementById("kick-btn") as HTMLButtonElement;
+        const kickBtn = document.getElementById(
+          "kick-btn",
+        ) as HTMLButtonElement;
         const canKick = isHost() && player.id !== myPlayer().id;
         kickBtn.style.display = canKick ? "block" : "none";
 
@@ -412,8 +419,7 @@ function mount() {
     }
   });
 
-  const updateId = window.setInterval(updateUI, 250);
-
+  const updateId = setInterval(updateUI, 250);
 }
 
 export const LobbyPage: Page = {
