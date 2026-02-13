@@ -1,7 +1,9 @@
 import { insertCoin, onDisconnect, switchRole } from "playroomkit";
-import mountLobby from "./lobby"
-import mountPickWords from "./pick-words"
-import mountWaiting from "./waiting"
+import { LobbyPage } from "./lobby"
+import { PickWordsPage } from "./pick-words"
+import { WaitingPage } from "./waiting"
+
+import { routerNavigate, addPage, getPage } from "./tiny_router";
 
 try {
   await insertCoin({
@@ -14,34 +16,22 @@ try {
   window.location.href = "/";
 }
 
-const app = document.getElementById("app") as HTMLDivElement;
-
 onDisconnect((ev) => {
   alert(`Kicked from room: ${ev.reason}`);
   window.location.href = "/";
 });
 
-async function switchScreen(screen: string) {
-  switch (screen) {
-    case "lobby": {
-      const html = await fetch("lobby.html").then(r => r.text());
-      app.innerHTML = html;
-      mountLobby(switchScreen);
-      break;
-    }
-    case "pick-words": {
-      const html = await fetch("pick-words.html").then(r => r.text());
-      app.innerHTML = html;
-      mountPickWords(switchScreen)
-      break;
-    }
-    case "waiting": {
-      const html = await fetch("waiting.html").then(r => r.text());
-      app.innerHTML = html;
-      mountWaiting(switchScreen)
-      break;
-    }
-  }
-}
+addPage("/lobby", LobbyPage);
+addPage("/pick-words", PickWordsPage);
+addPage("/waiting", WaitingPage);
 
-switchScreen("lobby")
+routerNavigate("/lobby");
+
+// browser back/forward
+// We will think about back/forward history later
+// window.onpopstate = () => {
+//   const page = getPage(location.pathname);
+//   if (page) {
+//     routerNavigate(location.pathname);
+//   }
+// }
