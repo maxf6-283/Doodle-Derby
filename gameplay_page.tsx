@@ -175,18 +175,18 @@ function actualRender(root: HTMLElement) {
 
     const DrawImages = () => {
       return (
-        <ul>
+        <ul style={{ display: "flex", gap: "16px", padding: 0, "list-style": "none" }}>
           {
             Array.from(drawCanvases().entries()).map(([name, data]) =>
             (
-              <li>
+              <li style={{ display: "flex", "align-items": "center", "flex-direction": "column" }}>
                 <span>{name}</span>
                 <img
                   src={data}
                   style={
                     {
-                      width: "500px",
-                      height: "500px",
+                      width: "250px",
+                      height: "250px",
                       "object-fit": "contain",
                       border: "1px solid #ccc"
                     }
