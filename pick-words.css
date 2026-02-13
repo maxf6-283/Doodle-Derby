@@ -49,23 +49,32 @@
   outline: none;
 }
 
-#word-input:focus { border-color: #007bff; }
+#word-input:focus {
+  border-color: #007bff;
+}
 
 #add-word-btn {
   padding: 15px 25px;
   font-size: 1.1rem;
   cursor: pointer;
   border-radius: 8px;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  transition: all 0.2s;
+  border: 2px solid #000; /* Added border to match lobby style */
+  background-color: var(--btn-green); /* Changed to lobby green */
+  color: #000; /* Black text for better readability on green */
+  font-family: inherit;
+  box-shadow: 2px 2px 0px #76c893; /* Lobby-style shadow */
+  transition: all 0.1s;
 }
 
 #add-word-btn:hover {
   background-color: #0056b3;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#add-word-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
 }
 
 /* Merged .player-card-column and .player-progress-card */
@@ -142,17 +151,32 @@
   position: absolute;
 }
 /* Re-use shared logic for all layers */
-.mini-stick-man .base-char { position: relative; } 
+.mini-stick-man .base-char {
+  position: relative;
+}
 
 /* Remaining animations and buttons stay the same */
 @keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
-  50% { transform: translateX(8px); }
-  75% { transform: translateX(-8px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+  75% {
+    transform: translateX(-8px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
-.error-shake { animation: shake 0.3s ease-in-out; border-color: #ff4d4d !important; }
+.error-shake {
+  animation: shake 0.3s ease-in-out;
+  border-color: #ff4d4d !important;
+}
 
 .word-item {
   display: flex;
@@ -164,7 +188,9 @@
   border-radius: 6px;
   transition: background 0.2s;
 }
-.word-item:hover { background: #e9ecef; }
+.word-item:hover {
+  background: #e9ecef;
+}
 .delete-btn {
   background: #ff4d4d;
   color: white;
@@ -176,18 +202,27 @@
   opacity: 0;
   transition: opacity 0.2s;
 }
-.word-item:hover .delete-btn { opacity: 1; }
+.word-item:hover .delete-btn {
+  opacity: 1;
+}
 .continue-btn {
   position: fixed;
   bottom: 30px;
   right: 30px;
   padding: 15px 40px;
   font-size: 1.2rem;
-  background-color: #28a745;
-  color: white;
-  border: none;
+  background-color: var(--btn-green); /* Use lobby green */
+  color: #000;
+  border: 2px solid #000;
   border-radius: 50px;
   cursor: pointer;
+  font-family: inherit;
+  box-shadow: 3px 3px 0px #76c893;
+  transition: all 0.1s;
+}
+.continue-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
 }
 
 .waiting-screen {
@@ -198,9 +233,22 @@
   height: 100vh; /* Takes up the full height of the viewport */
   gap: 30px; /* Space between the title and the player list */
 }
+.waiting-label {
+  text-align: center;
+}
+.players-progress-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap:wrap;
+  gap: 5px;
+}
 
 .waiting-screen h1 {
   font-size: 2rem;
   color: #333;
   margin: 0;
+}
+#start-game-btn {
+  background-color: var(--sticky-yellow) !important;
+  box-shadow: 3px 3px 0px #e6d88a !important;
 }
