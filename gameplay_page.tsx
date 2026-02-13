@@ -40,62 +40,13 @@ function pickRandomArtists() {
 
 // This is very hacky! Let's change this as soon as possible!!!
 
-function drawTools(stage: konva.Stage, canvas: HTMLCanvasElement | null) {
-  if (canvas == null) return;
-
-  canvas.width = stage.width();
-  canvas.height = stage.height();
-
-  const small_button = document.getElementById('small-button') as HTMLInputElement;
-  const med_button = document.getElementById('med-button') as HTMLInputElement;
-  const large_button = document.getElementById('large-button') as HTMLInputElement;
-  const color_button = document.getElementById('color-button') as HTMLInputElement;
-
-  let paint = new PaintCanvas(
-    canvas,
-    { x: 0, y: 0 },
-    stage,
-    { color: "#000000", strokeWidth: 5 }
-  );
-
-  function changeBrushSize(size: number) {
-    paint.setBrushStrokeWidth(size);
-  }
-
-  function changeColor(color: string) {
-    console.log("In change colour ", color);
-    paint.setBrushColor(color);
-  }
-
-  small_button.addEventListener('click', () => changeBrushSize(5));
-  med_button.addEventListener('click', () => changeBrushSize(20));
-  large_button.addEventListener('click', () => changeBrushSize(30));
-  color_button.addEventListener('input', () => changeColor(color_button.value));
-
-  window.addEventListener("keydown", ev => {
-    if (ev.key == "e") {
-      paint.setErasing(!paint.isErasing);
-    }
-
-    if (ev.key == "u") {
-      paint.undo();
-    }
-
-    if (ev.key == "r") {
-      paint.redo();
-    }
-
-    if (ev.key == "f") {
-      let x = stage.pointerPos?.x as number;
-      let y = stage.pointerPos?.y as number;
-      paint.fill(Math.floor(x), Math.floor(y), paint.brushColor);
-    }
-  });
-}
-
 const DrawPage = () => {
   let container: HTMLDivElement | undefined;
   let canvas: HTMLCanvasElement | undefined;
+  let small_button: HTMLInputElement | undefined;
+  let med_button: HTMLInputElement | undefined;
+  let large_button: HTMLInputElement | undefined;
+  let color_button: HTMLInputElement | undefined;
 
   onMount(() => {
     let stage = new konva.Stage({
@@ -104,13 +55,88 @@ const DrawPage = () => {
       height: 600
     });
 
-    drawTools(stage, canvas || null);
+    if (canvas == null) return;
+
+    canvas.width = stage.width();
+    canvas.height = stage.height();
+
+    let paint = new PaintCanvas(
+      canvas,
+      { x: 0, y: 0 },
+      stage,
+      { color: "#000000", strokeWidth: 5 }
+    );
+
+    function changeBrushSize(size: number) {
+      paint.setBrushStrokeWidth(size);
+    }
+
+    function changeColor(color: string) {
+      console.log("In change colour ", color);
+      paint.setBrushColor(color);
+    }
+
+    small_button?.addEventListener('click', () => changeBrushSize(5));
+    med_button?.addEventListener('click', () => changeBrushSize(20));
+    large_button?.addEventListener('click', () => changeBrushSize(30));
+    color_button?.addEventListener('input', () => changeColor(color_button.value));
+
+    window.addEventListener("keydown", ev => {
+      if (ev.key == "e") {
+        paint.setErasing(!paint.isErasing);
+      }
+
+      if (ev.key == "u") {
+        paint.undo();
+      }
+
+      if (ev.key == "r") {
+        paint.redo();
+      }
+
+      if (ev.key == "f") {
+        let x = stage.pointerPos?.x as number;
+        let y = stage.pointerPos?.y as number;
+        paint.fill(Math.floor(x), Math.floor(y), paint.brushColor);
+      }
+    });
   });
 
   return (
-    <div ref={container} id='container'>
-      <canvas ref={canvas} />
-    </div>
+    <>
+      <div ref={container} id='container'>
+        <canvas ref={canvas} />
+      </div>
+      <div class="sidebar" id="sidebar">
+        <input type="button" ref={small_button} value="Small" />
+        <input type="button" ref={med_button} value="Medium" />
+        <input type="button" ref={large_button} value="Large" />
+        <input type="color" ref={color_button} />
+      </div>
+      <style>
+        {`
+        .sidebar {
+          position: fixed;
+        left: 5%;
+        background-color: #666666;
+        padding: 5px;
+        }
+
+        .sidebar button {
+          display: block;
+        margin: 3px;
+        }
+
+        #container {
+          border: solid 2px red;
+        position: fixed;
+        left: 40%;
+        right: auto;
+        top: 0;
+        }
+      `}
+      </style>
+    </>
   );
 }
 
