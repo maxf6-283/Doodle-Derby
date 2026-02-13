@@ -43,7 +43,7 @@ const ASSORTMENTS = [
   ],
   [
     "/accessories/boba.PNG",
-    "/accessories/dona.PNG",
+    "/accessories/dondona.PNG",
     "/accessories/fishBowl.PNG",
     "/accessories/red_access.PNG",
   ],
