@@ -1,0 +1,206 @@
+/* Sidebar - unchanged logic but cleaned up */
+.word-list-container {
+  position: absolute;
+  left: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 10px;
+  width: 250px;
+}
+
+.pick-words-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Simplified Input Group - removed unnecessary flex-column wrapper */
+.input-group > div {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  max-width: 500px;
+  z-index: 10;
+  position: relative;
+}
+
+.input-label {
+  z-index: 10;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+#word-input {
+  padding: 15px 20px;
+  font-size: 1.5rem;
+  flex-grow: 1;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+}
+
+#word-input:focus { border-color: #007bff; }
+
+#add-word-btn {
+  padding: 15px 25px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  transition: all 0.2s;
+}
+
+#add-word-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Merged .player-card-column and .player-progress-card */
+.player-progress-card {
+  padding: 20px;
+  border-radius: 16px;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-name-label {
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.progress-container-vertical {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.progress-bar-bg {
+  width: 60%;
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Added explicit fill color */
+.progress-bar-fill {
+  height: 100%;
+  background: #28a745;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.player-icon-wrapper {
+  width: 100px;
+  height: 100px;
+}
+
+.mini-stick-man {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #000;
+  border-radius: 8px;
+  background: white;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-stick-man img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  position: absolute;
+}
+/* Re-use shared logic for all layers */
+.mini-stick-man .base-char { position: relative; } 
+
+/* Remaining animations and buttons stay the same */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  50% { transform: translateX(8px); }
+  75% { transform: translateX(-8px); }
+  100% { transform: translateX(0); }
+}
+.error-shake { animation: shake 0.3s ease-in-out; border-color: #ff4d4d !important; }
+
+.word-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.word-item:hover { background: #e9ecef; }
+.delete-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.word-item:hover .delete-btn { opacity: 1; }
+.continue-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+.waiting-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* Takes up the full height of the viewport */
+  gap: 30px; /* Space between the title and the player list */
+}
+
+.waiting-screen h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+}
