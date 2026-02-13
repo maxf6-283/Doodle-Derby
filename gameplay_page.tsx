@@ -8,35 +8,71 @@ import konva from "konva";
 import { PaintCanvas } from "./api/draw/painting"
 
 // Functions here are throwaways and only serve as substitutes
+const participants: PlayerState[] = Object.values(getParticipants());
+let size = participants.length;
+let availablePlayers: number[] = [];
+for (let i = 0; i < size; i++) {
+    availablePlayers.push(i);
+}
+const randInt = (length: number) => {
+    return Math.floor(Math.random() * length);
+}
+function pickPrompts() {
+    let firstIndex = -1;
+    let secondIndex = -1;
+    for (let i = 0; i < size; i++) {
+        if (firstIndex >= 0) {
+            if (participants[i].getState('isArtist')) {
+                secondIndex = i;
+            }
+        }
+        else {
+            if (participants[i].getState('isArtist')) {
+                firstIndex = i;
+            }
+        }
+    }
+    let index = randInt(10);
+    let player1Words = participants[secondIndex].getState("words");
+    participants[firstIndex].setState("prompt", player1Words[index]);
+    participants[secondIndex].setState("words", player1Words.splice(index, 1));
 
+    index = randInt(10);
+    let player2Words = participants[firstIndex].getState("words");
+    participants[secondIndex].setState("prompt", player2Words[index]);
+    participants[firstIndex].setState("words", player2Words.splice(index, 1));
+}
 function pickRandomArtists() {
-  const participants: PlayerState[] = Object.values(getParticipants());
-  let size = participants.length;
+    //Picking the first artist
+    let random = randInt(availablePlayers.length);
+    availablePlayers.splice(random, 1);
+    let firstIndex = availablePlayers[random];
 
-  const randInt = () => {
-    return Math.floor(Math.random() * size);
-  }
+    //Picking the second artist
+    let secondIndex = -1;
+    if (availablePlayers.length == 0) {
+        random = randInt(size);
+        secondIndex = random;
+    }
+    else {
+        random = randInt(availablePlayers.length);
+        availablePlayers.splice(random, 1);
+        secondIndex = availablePlayers[random];
+    }
+    if (firstIndex < 0 || firstIndex >= size ||
+        secondIndex < 0 || secondIndex >= size ||
+        firstIndex == secondIndex) {
+        alert("bruh picking random artists went wrong...");
+    }
 
-  let firstIndex = randInt();
-  let secondIndex = 0;
-  do {
-    secondIndex = randInt();
-  } while (secondIndex == firstIndex);
+    participants.forEach((player: PlayerState) => player.setState("isArtist", false));
 
-  console.log(`first: ${firstIndex}, second: ${secondIndex}`);
-
-  if (firstIndex < 0 || firstIndex >= size ||
-    secondIndex < 0 || secondIndex >= size ||
-    firstIndex == secondIndex) {
-    alert("bruh picking random artists went wrong...");
-  }
-
-  participants.forEach((player: PlayerState) => player.setState("isArtist", false));
-
-  participants[firstIndex].setState("isArtist", true);
-  participants[secondIndex].setState("isArtist", true);
+    participants[firstIndex].setState("isArtist", true);
+    participants[secondIndex].setState("isArtist", true);
 
 }
+
+
 
 // This is very hacky! Let's change this as soon as possible!!!
 
@@ -234,6 +270,7 @@ export const GameplayPage: Page = {
     RPC.register("actualRender", async () => actualRender(root));
 
     if (isHost()) {
+      pickPrompts();
       pickRandomArtists();
       RPC.call("actualRender", {}, RPC.Mode.ALL);
     }
