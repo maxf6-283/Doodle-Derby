@@ -1,10 +1,13 @@
 import { getParticipants, getRoomCode, getState, isHost, myPlayer, RPC, setState } from "playroomkit";
 
+import { Page } from "./page"
+import { routerNavigate } from "./tiny_router";
+
 const MAX_WORDS = 10;
 
 const PICK_TIME = 30;
 
-export default function mount(switchScreen: (page: string) => void) {
+export default function mount() {
   const code_span = document.getElementById("code-span") as HTMLSpanElement;
   const settingsBtn = document.getElementById(
     "settings-btn",
@@ -58,7 +61,7 @@ export default function mount(switchScreen: (page: string) => void) {
     seconds ??= PICK_TIME
     let minutes = Math.floor(seconds / 60)
     seconds %= 60
-    timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`  
+    timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
   }
 
   function updateWords() {
@@ -100,7 +103,7 @@ export default function mount(switchScreen: (page: string) => void) {
 
   done.addEventListener("click", () => {
     clearInterval(updateId)
-    switchScreen("waiting")
+    routerNavigate("/waiting")
   })
 
   RPC.register("writing-timeout", async (_payload, _player) => {
@@ -108,4 +111,12 @@ export default function mount(switchScreen: (page: string) => void) {
     if (timerId != null) clearInterval(timerId)
     alert("Game starting!!!")
   })
+}
+
+export const PickWordsPage: Page = {
+  async render(root: HTMLElement) {
+    const html = await fetch("pick-words.html").then(r => r.text());
+    root.innerHTML = html;
+    mount();
+  }
 }

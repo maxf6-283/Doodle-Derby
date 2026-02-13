@@ -1,9 +1,12 @@
 import { getParticipants, myPlayer, getRoomCode, getState } from "playroomkit";
 
+import { Page } from "./page";
+import { routerNavigate } from "./tiny_router";
+
 const MAX_WORDS = 10
 const PICK_TIME = 30
 
-export default function mount(switchScreen: (name: string) => void) {
+export default function mount() {
   const code_span = document.getElementById("code-span") as HTMLSpanElement;
   const settingsBtn = document.getElementById(
     "settings-btn",
@@ -43,4 +46,12 @@ export default function mount(switchScreen: (name: string) => void) {
   }
 
   window.setInterval(updateUI, 250)
+}
+
+export const WaitingPage: Page = {
+  async render(root: HTMLElement) {
+    const html = await fetch("waiting.html").then(r => r.text());
+    root.innerHTML = html;
+    mount();
+  }
 }
