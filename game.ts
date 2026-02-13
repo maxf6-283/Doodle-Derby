@@ -1,4 +1,4 @@
-import { insertCoin, onDisconnect, switchRole } from "playroomkit";
+import { getState, insertCoin, onDisconnect, switchRole } from "playroomkit";
 import mountLobby from "./lobby"
 import mountPickWords from "./pick-words"
 
@@ -37,4 +37,9 @@ async function switchScreen(screen: string) {
   }
 }
 
-switchScreen("lobby")
+const gameStarted = getState("game-started");
+if (gameStarted) {
+  switchScreen("pick-words");
+} else {
+  switchScreen("lobby");
+}
