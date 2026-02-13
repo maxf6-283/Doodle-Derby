@@ -1,4 +1,4 @@
-import { getParticipants, myPlayer } from "playroomkit";
+import { getParticipants, isHost, myPlayer, RPC } from "playroomkit";
 
 const MAX_WORDS = 10;
 
@@ -10,6 +10,8 @@ export default function mount(switchScreen: (page: string) => void) {
   const waiting_screen = document.getElementById("waiting-screen") as HTMLDivElement;
   const pick_words_container = document.querySelector(".pick-words-container") as HTMLDivElement;
   const players_progress_list = document.getElementById("players-progress-list") as HTMLDivElement;
+  const start_game_btn = document.getElementById("start-game-btn") as HTMLButtonElement;
+  const waiting_status_text = document.getElementById("waiting-status-text") as HTMLHeadingElement;
 
   let my_words: string[] = [];
 
@@ -103,7 +105,27 @@ export default function mount(switchScreen: (page: string) => void) {
     pick_words_container.style.display = "none";
     waiting_screen.style.display = "flex";
     continue_btn.style.display = "none";
-    myPlayer().setState("ready", true);
+    myPlayer().setState("picked_words", true);
+    RPC.call("player-picked-words", {}, RPC.Mode.HOST);
+  });
+  start_game_btn.addEventListener("click", () => {
+    switchScreen("doodle-page"); // Or whatever your next screen name is
+  });
+
+  RPC.register("all-players-ready", async (_payload, _player) => {
+    waiting_status_text.innerText = "Waiting for the Host to start...";
+  });
+
+  RPC.register("player-picked-words", async (_payload, _player) => {
+    const players = Object.values(getParticipants());
+    const allFinished = players.every(p => p.getState("picked_words") === true);
+
+    if (allFinished) {
+      // Tell everyone (including the host themselves) that we are ready
+      start_game_btn.style.display = "block";
+      waiting_status_text.innerText = "Start Doodling!";
+      RPC.call("all-players-ready", {}, RPC.Mode.OTHERS);
+    }
   });
 
   setInterval(updateUI, 250);
