@@ -1,4 +1,4 @@
-import { getParticipants, isHost, myPlayer, RPC } from "playroomkit";
+import { getParticipants, isHost, myPlayer, RPC, setState, getState } from "playroomkit";
 
 import { Page } from "./page"
 import { routerNavigate } from "./tiny_router";
@@ -6,6 +6,8 @@ import { routerNavigate } from "./tiny_router";
 const MAX_WORDS = 10;
 
 const PICK_TIME = 30;
+
+let hostSwitched = false;
 
 export default function mount() {
   const word_input = document.getElementById("word-input") as HTMLInputElement;
@@ -115,11 +117,19 @@ export default function mount() {
     RPC.call("player-picked-words", {}, RPC.Mode.HOST);
   });
   start_game_btn.addEventListener("click", () => {
-    RPC.call("players-start-game", {}, RPC.Mode.ALL);
+    if (isHost() && !(getState('drawing-transition') ?? false)) {
+      RPC.call("players-start-game", {}, RPC.Mode.ALL);
+      setState('drawing-transition', true);
+    }
   });
 
   RPC.register("players-start-game", async () => {
-    routerNavigate("/game");
+    if (!isHost()) {
+      routerNavigate("/game");
+    } else if (isHost() && !hostSwitched) {
+      hostSwitched = true;
+      routerNavigate("/game");
+    }
   });
 
   RPC.register("all-players-ready", async (_payload, _player) => {
