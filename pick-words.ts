@@ -1,4 +1,4 @@
-import { getParticipants, getRoomCode, getState, isHost, myPlayer, RPC, setState } from "playroomkit";
+import { getParticipants, isHost, myPlayer, RPC } from "playroomkit";
 
 import { Page } from "./page"
 import { routerNavigate } from "./tiny_router";
@@ -7,117 +7,134 @@ const MAX_WORDS = 10;
 
 const PICK_TIME = 30;
 
-export default function mount() {
-  const code_span = document.getElementById("code-span") as HTMLSpanElement;
-  const settingsBtn = document.getElementById(
-    "settings-btn",
-  ) as HTMLButtonElement;
-  const players_list = document.getElementById("players-list") as HTMLDivElement;
+export default function mount(switchScreen: (page: string) => void) {
   const word_input = document.getElementById("word-input") as HTMLInputElement;
   const word_list = document.getElementById("word-list") as HTMLDivElement;
-  const done = document.getElementById("done") as HTMLButtonElement;
-  const timer = document.getElementById("timer") as HTMLSpanElement;
+  const confirm_word_btn = document.getElementById("add-word-btn") as HTMLButtonElement;
+  const continue_btn = document.getElementById("continue-btn") as HTMLButtonElement;
+  const waiting_screen = document.getElementById("waiting-screen") as HTMLDivElement;
+  const pick_words_container = document.querySelector(".pick-words-container") as HTMLDivElement;
+  const players_progress_list = document.getElementById("players-progress-list") as HTMLDivElement;
+  const start_game_btn = document.getElementById("start-game-btn") as HTMLButtonElement;
+  const waiting_status_text = document.getElementById("waiting-status-text") as HTMLHeadingElement;
 
   let my_words: string[] = [];
   let timerId: number | null = null
 
   function updateUI() {
-    code_span.innerText = getRoomCode() ?? "Error";
-
     const players = Object.values(getParticipants());
+    players_progress_list.innerHTML = "";
 
-    players_list.innerHTML = ""
+    players.forEach((player) => {
+      const name = player.getState("name") || "Guest";
+      const characterImg = player.getState("character");
+      const accessories = [
+        player.getState("acc_0"),
+        player.getState("acc_1"),
+        player.getState("acc_2")
+      ];
 
-    for (let player of players) {
       const words_complete = player.getState("words_complete") ?? 0;
-      const name = player.getState("name") ?? "Unnammed Player";
-      const character = player.getState("character")
+      const progressPercent = (words_complete / MAX_WORDS) * 100;
 
-      const playerDiv = document.createElement("div")
+      const card = document.createElement("div");
+      card.className = "player-progress-card";
 
-      const image = document.createElement("img")
-      image.src = character
-      image.width = 100
-      image.height = 100
-      playerDiv.append(image)
+      // Cleaner template literal using the merged CSS class
+      card.innerHTML = `
+        <span class="player-name-label">${name} ${player.id === myPlayer().id ? "(You)" : ""}</span>
+        <div class="player-icon-wrapper">
+          <div class="mini-stick-man">
+            ${characterImg ? `<img src="${characterImg}" class="base-char" />` : "ツ"}
+            ${accessories.filter(a => a).map(acc => 
+              `<img src="${acc.replace("/accessories/", "/accessories-equip/")}" class="acc-layer" />`
+            ).join("")}
+          </div>
+        </div>
+        <div class="progress-container-vertical">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${progressPercent}%"></div>
+          </div>
+          <span class="progress-text">${words_complete}/${MAX_WORDS}</span>
+        </div>
+      `;
+      players_progress_list.append(card);
+    });
+  }
 
-      playerDiv.append(name + ` ${words_complete}/${MAX_WORDS}`)
+  function renderWords() {
+    word_list.innerHTML = ""; 
+    my_words.forEach((word, index) => {
+      const wordDiv = document.createElement("div");
+      wordDiv.className = "word-item";
+      wordDiv.innerHTML = `<span>${word}</span>`;
 
-      players_list.append(playerDiv)
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.innerHTML = "&times;";
+      deleteBtn.onclick = () => {
+        my_words.splice(index, 1);
+        syncState();
+      };
+
+      wordDiv.appendChild(deleteBtn);
+      word_list.appendChild(wordDiv);
+    });
+
+    // Logical check moved OUTSIDE the loop
+    continue_btn.style.display = my_words.length >= MAX_WORDS ? "block" : "none";
+  }
+
+  // Consolidated sync function to avoid repeated setState calls
+  function syncState() {
+    myPlayer().setState("words", my_words);
+    myPlayer().setState("words_complete", my_words.length);
+    renderWords();
+  }
+
+  function submitWord() {
+    const new_word = word_input.value.trim();
+    if (my_words.length < MAX_WORDS && new_word.length > 0) {
+      my_words.push(new_word);
+      word_input.value = "";
+      syncState();
+    } else {
+      word_input.classList.add("error-shake");
+      setTimeout(() => word_input.classList.remove("error-shake"), 300);
     }
+  }
 
-    let seconds = getState("seconds-remaining")
-    if (isHost() && seconds == undefined) {
-      setState("seconds-remaining", PICK_TIME)
-      timerId = window.setInterval(() => {
-        let seconds_remaining = getState("seconds-remaining") - 1
-        if (seconds_remaining <= 0) {
-          RPC.call("writing-timeout", {}, RPC.Mode.ALL)
-        } else {
-          setState("seconds-remaining", seconds_remaining)
-        }
-      }, 1000)
+  word_input.addEventListener("keydown", (ev) => ev.key === "Enter" && submitWord());
+  confirm_word_btn.addEventListener("click", submitWord);
+  
+  continue_btn.addEventListener("click", () => {
+    pick_words_container.style.display = "none";
+    waiting_screen.style.display = "flex";
+    continue_btn.style.display = "none";
+    myPlayer().setState("picked_words", true);
+    RPC.call("player-picked-words", {}, RPC.Mode.HOST);
+  });
+  start_game_btn.addEventListener("click", () => {
+    switchScreen("doodle-page"); // Or whatever your next screen name is
+  });
+
+  RPC.register("all-players-ready", async (_payload, _player) => {
+    waiting_status_text.innerText = "Waiting for the Host to start...";
+  });
+
+  RPC.register("player-picked-words", async (_payload, _player) => {
+    const players = Object.values(getParticipants());
+    const allFinished = players.every(p => p.getState("picked_words") === true);
+
+    if (allFinished) {
+      // Tell everyone (including the host themselves) that we are ready
+      start_game_btn.style.display = "block";
+      waiting_status_text.innerText = "Start Doodling!";
+      RPC.call("all-players-ready", {}, RPC.Mode.OTHERS);
     }
-    seconds ??= PICK_TIME
-    let minutes = Math.floor(seconds / 60)
-    seconds %= 60
-    timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
-  }
+  });
 
-  function updateWords() {
-    myPlayer().setState("words", my_words)
-    myPlayer().setState("words_complete", my_words.length)
-  }
+  setInterval(updateUI, 250)
 
-  word_input.addEventListener("keydown", (ev) => {
-    if (ev.key == "Enter") {
-      if (my_words.length < 10) {
-        const idx = my_words.length
-        const new_word = word_input.value
-        my_words.push(new_word)
-        word_input.value = ""
-        updateWords()
-
-        const wordDiv = document.createElement("div");
-
-        const changeWord = document.createElement("input")
-        changeWord.type = "text"
-        changeWord.value = new_word
-        changeWord.addEventListener("change", ev => {
-          my_words[idx] = changeWord.value
-          updateWords()
-        })
-        wordDiv.append(changeWord)
-
-        word_list.append(wordDiv)
-
-        if (my_words.length == 10) {
-          done.disabled = false;
-        }
-      }
-    }
-  }
-  )
-
-  const updateId = window.setInterval(updateUI, 250)
-
-  done.addEventListener("click", () => {
-    clearInterval(updateId)
-    routerNavigate("/waiting")
-  })
-
-  RPC.register("writing-timeout", async (_payload, _player) => {
-    clearInterval(updateId)
-    if (timerId != null) clearInterval(timerId)
-    console.log("SWITCH GAME!");
-    routerNavigate("/game");
-  })
-}
-
-export const PickWordsPage: Page = {
-  async render(root: HTMLElement) {
-    const html = await fetch("pick-words.html").then(r => r.text());
-    root.innerHTML = html;
-    mount();
-  }
+  console.log("HELP", word_input)
 }

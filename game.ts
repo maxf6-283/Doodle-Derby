@@ -27,13 +27,9 @@ addPage("/pick-words", PickWordsPage);
 addPage("/waiting", WaitingPage);
 addPage("/game", GameplayPage);
 
-routerNavigate("/lobby");
-
-// browser back/forward
-// We will think about back/forward history later
-// window.onpopstate = () => {
-//   const page = getPage(location.pathname);
-//   if (page) {
-//     routerNavigate(location.pathname);
-//   }
-// }
+const gameStarted = getState("game-started");
+if (gameStarted) {
+  switchScreen("pick-words");
+} else {
+  switchScreen("lobby");
+}
