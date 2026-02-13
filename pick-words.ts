@@ -109,7 +109,8 @@ export default function mount() {
   RPC.register("writing-timeout", async (_payload, _player) => {
     clearInterval(updateId)
     if (timerId != null) clearInterval(timerId)
-    alert("Game starting!!!")
+    console.log("SWITCH GAME!");
+    routerNavigate("/game");
   })
 }
 
