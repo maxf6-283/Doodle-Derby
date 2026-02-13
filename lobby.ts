@@ -109,6 +109,8 @@ const moreTimeBtn = document.getElementById("moreTime") as HTMLButtonElement;
 const lessPromptsBtn = document.getElementById('lessPrompt') as HTMLButtonElement;
 const morePromptsBtn = document.getElementById('morePrompt') as HTMLButtonElement;
 const num_prompts = document.getElementById('num_rounds') as HTMLSpanElement;
+const bgMusic = document.getElementById("bgMusic") as HTMLAudioElement;
+
 const volumeLevel = document.querySelector(
   'label[for="volume"]',
 ) as HTMLLabelElement;
@@ -154,6 +156,7 @@ code_span.innerText = getRoomCode() ?? "Error";
 /////////////////////////// SETTINGS MENU ////////////////////////////////
 settingsBtn.addEventListener("click", () => {
   settingsMenu.style.display = "flex";
+  updateVolumeDisplay();
 });
 
 let num_input = 0;
@@ -233,12 +236,18 @@ lessPromptsBtn.disabled = true;
 
 function updateVolumeDisplay() {
   volumeLevel.textContent = `Volume: ${volumeSlider.value}%`;
+  bgMusic.volume = parseInt(volumeSlider.value) / 100;
 }
 
-volumeSlider.addEventListener("input", () => {
-  updateVolumeDisplay();
+bgMusic.volume = 0.5;
+volumeSlider.value = "50";
+
+volumeSlider.addEventListener("input", updateVolumeDisplay);
+
+bgMusic.play().catch(err => {
+  console.log("Autoplay blocked:", err);
 });
-updateVolumeDisplay();
+
 /////////////////////////// LOBBY LOGIC ////////////////////////////////
 
 readyBtn.addEventListener("click", () => {
