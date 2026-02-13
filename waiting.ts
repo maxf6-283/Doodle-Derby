@@ -42,6 +42,9 @@ export default function mount() {
     let seconds = getState("seconds-remaining") ?? PICK_TIME
     let minutes = Math.floor(seconds / 60)
     seconds %= 60
+
+    // TODO: CLEAN THIS UP MAYBE?
+    if (timer == null) return;
     timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
   }
 
