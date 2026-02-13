@@ -1,10 +1,10 @@
-import { insertCoin, onDisconnect, switchRole } from "playroomkit";
+import { insertCoin, onDisconnect, getState } from "playroomkit";
 import { LobbyPage } from "./lobby"
 import { PickWordsPage } from "./pick-words"
 import { WaitingPage } from "./waiting"
 import { GameplayPage } from "./gameplay_page";
 
-import { routerNavigate, addPage, getPage } from "./tiny_router";
+import { routerNavigate, addPage } from "./tiny_router";
 
 try {
   await insertCoin({
@@ -29,7 +29,7 @@ addPage("/game", GameplayPage);
 
 const gameStarted = getState("game-started");
 if (gameStarted) {
-  switchScreen("pick-words");
+  routerNavigate("/pick-words");
 } else {
-  switchScreen("lobby");
+  routerNavigate("/lobby");
 }

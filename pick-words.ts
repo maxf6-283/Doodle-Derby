@@ -7,7 +7,7 @@ const MAX_WORDS = 10;
 
 const PICK_TIME = 30;
 
-export default function mount(switchScreen: (page: string) => void) {
+export default function mount() {
   const word_input = document.getElementById("word-input") as HTMLInputElement;
   const word_list = document.getElementById("word-list") as HTMLDivElement;
   const confirm_word_btn = document.getElementById("add-word-btn") as HTMLButtonElement;
@@ -46,9 +46,9 @@ export default function mount(switchScreen: (page: string) => void) {
         <div class="player-icon-wrapper">
           <div class="mini-stick-man">
             ${characterImg ? `<img src="${characterImg}" class="base-char" />` : "ツ"}
-            ${accessories.filter(a => a).map(acc => 
-              `<img src="${acc.replace("/accessories/", "/accessories-equip/")}" class="acc-layer" />`
-            ).join("")}
+            ${accessories.filter(a => a).map(acc =>
+        `<img src="${acc.replace("/accessories/", "/accessories-equip/")}" class="acc-layer" />`
+      ).join("")}
           </div>
         </div>
         <div class="progress-container-vertical">
@@ -63,7 +63,7 @@ export default function mount(switchScreen: (page: string) => void) {
   }
 
   function renderWords() {
-    word_list.innerHTML = ""; 
+    word_list.innerHTML = "";
     my_words.forEach((word, index) => {
       const wordDiv = document.createElement("div");
       wordDiv.className = "word-item";
@@ -106,7 +106,7 @@ export default function mount(switchScreen: (page: string) => void) {
 
   word_input.addEventListener("keydown", (ev) => ev.key === "Enter" && submitWord());
   confirm_word_btn.addEventListener("click", submitWord);
-  
+
   continue_btn.addEventListener("click", () => {
     pick_words_container.style.display = "none";
     waiting_screen.style.display = "flex";
@@ -115,7 +115,11 @@ export default function mount(switchScreen: (page: string) => void) {
     RPC.call("player-picked-words", {}, RPC.Mode.HOST);
   });
   start_game_btn.addEventListener("click", () => {
-    switchScreen("doodle-page"); // Or whatever your next screen name is
+    RPC.call("players-start-game", {}, RPC.Mode.ALL);
+  });
+
+  RPC.register("players-start-game", async () => {
+    routerNavigate("/game");
   });
 
   RPC.register("all-players-ready", async (_payload, _player) => {
@@ -137,4 +141,12 @@ export default function mount(switchScreen: (page: string) => void) {
   setInterval(updateUI, 250)
 
   console.log("HELP", word_input)
+}
+
+export const PickWordsPage: Page = {
+  async render(root: HTMLElement) {
+    const html = await fetch("pick-words.html").then(r => r.text());
+    root.innerHTML = html;
+    mount();
+  }
 }

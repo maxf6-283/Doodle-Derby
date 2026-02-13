@@ -185,8 +185,8 @@ function mount() {
   }
 
   RPC.register("pick-words", async (_payload, _player) => {
-  clearInterval(updateId)
-    switchScreen("pick-words");
+    clearInterval(updateId)
+    routerNavigate("/pick-words");
   });
 
   document.querySelectorAll(".accessory-slot").forEach((slot, index) => {
@@ -302,7 +302,7 @@ function mount() {
   function updateUI() {
     if (getState("game-started")) {
       clearInterval(updateId);
-      switchScreen("pick-words");
+      routerNavigate("/pick-words");
       return; // Stop running lobby logic
     }
     if (!hostFeatureAdded && isHost()) {
@@ -420,4 +420,12 @@ function mount() {
   });
 
   const updateId = setInterval(updateUI, 250);
+}
+
+export const LobbyPage: Page = {
+  async render(root: HTMLElement) {
+    const html = await fetch("lobby.html").then(r => r.text());
+    root.innerHTML = html;
+    mount();
+  }
 }
