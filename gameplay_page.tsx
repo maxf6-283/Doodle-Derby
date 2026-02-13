@@ -2,7 +2,7 @@ import { Page } from "./page";
 import { render } from "solid-js/web"
 import { createSignal, onMount } from "solid-js";
 
-import { getParticipants, PlayerState, me, isHost, setState, getState, RPC } from "playroomkit";
+import { getParticipants, PlayerState, me, isHost, RPC } from "playroomkit";
 
 import konva from "konva";
 import { PaintCanvas } from "./api/draw/painting"
@@ -134,7 +134,7 @@ const DrawPage = () => {
         #container {
           border: solid 2px red;
         position: fixed;
-        left: 40%;
+        left: 25%;
         right: auto;
         top: 0;
         }
@@ -197,7 +197,14 @@ function actualRender(root: HTMLElement) {
     });
 
     if (isArtist) {
-      return (<DrawPage />);
+      return (
+        <div style={{ display: "flex", "gap": "1rem" }}>
+          <DrawImages drawCanvases={
+            new Map(drawCanvases().entries().filter((v, _) => v[0] !== me().getState('name')))
+          } />
+          <DrawPage />
+        </div>
+      );
     }
 
     return (
