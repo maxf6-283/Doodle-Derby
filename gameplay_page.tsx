@@ -142,10 +142,16 @@ const DrawPage = () => {
 
 const SpectatorPage = () => {
   let [text, setText] = createSignal("");
+  let [display, setDisplay] = createSignal("");
+
+  
   return (
     <>
-      <h1>{text()}</h1>
+      <div style="border: solid 4px black;">
+        <h2>{display()}</h2>
+      </div>
       <input type="text" onChange={(c) => setText(text => text = c.currentTarget.value)} />
+      <button onClick={() => setDisplay(text())}>Submit</button>
     </>
   );
 }
@@ -157,8 +163,9 @@ function actualRender(root: HTMLElement) {
     let isArtist: boolean = currentPlayer.getState("isArtist") ?? false;
     if (isArtist) {
       return (<DrawPage />);
+    } else {
+      return <SpectatorPage />
     }
-    return <SpectatorPage />
   };
 
   render(() => (<Dummy />), root);
