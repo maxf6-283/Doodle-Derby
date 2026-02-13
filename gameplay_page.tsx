@@ -76,10 +76,16 @@ const DrawPage = () => {
       paint.setBrushColor(color);
     }
 
+    setInterval(() => {
+      const url = canvas.toDataURL();
+      RPC.call("canvasChange", { data: url }, RPC.Mode.OTHERS);
+    }, 300);
+
     small_button?.addEventListener('click', () => changeBrushSize(5));
     med_button?.addEventListener('click', () => changeBrushSize(20));
     large_button?.addEventListener('click', () => changeBrushSize(30));
     color_button?.addEventListener('input', () => changeColor(color_button.value));
+
 
     window.addEventListener("keydown", ev => {
       if (ev.key == "e") {
@@ -155,10 +161,54 @@ function actualRender(root: HTMLElement) {
 
   const Dummy = () => {
     let isArtist: boolean = currentPlayer.getState("isArtist") ?? false;
+
+    const [drawCanvases, setDrawCanvases] = createSignal(new Map<string, string>())
+
+    RPC.register('canvasChange', async (payload, player) => {
+      let name = player.getState('name');
+      setDrawCanvases(previous => {
+        const newMap = new Map(previous);
+        newMap.set(name, payload.data);
+        return newMap;
+      });
+    });
+
+    const DrawImages = () => {
+      return (
+        <ul>
+          {
+            Array.from(drawCanvases().entries()).map(([name, data]) =>
+            (
+              <li>
+                <span>{name}</span>
+                <img
+                  src={data}
+                  style={
+                    {
+                      width: "500px",
+                      height: "500px",
+                      "object-fit": "contain",
+                      border: "1px solid #ccc"
+                    }
+                  }
+                />
+              </li>
+            )
+            )
+          }
+        </ul>);
+    }
+
     if (isArtist) {
       return (<DrawPage />);
     }
-    return <SpectatorPage />
+
+
+    return (
+      <>
+        <DrawImages />
+      </>
+    )
   };
 
   render(() => (<Dummy />), root);
