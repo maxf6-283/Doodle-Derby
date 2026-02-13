@@ -2,6 +2,7 @@ import { insertCoin, onDisconnect, switchRole } from "playroomkit";
 import { LobbyPage } from "./lobby"
 import { PickWordsPage } from "./pick-words"
 import { WaitingPage } from "./waiting"
+import { GameplayPage } from "./gameplay_page";
 
 import { routerNavigate, addPage, getPage } from "./tiny_router";
 
@@ -24,6 +25,7 @@ onDisconnect((ev) => {
 addPage("/lobby", LobbyPage);
 addPage("/pick-words", PickWordsPage);
 addPage("/waiting", WaitingPage);
+addPage("/game", GameplayPage);
 
 routerNavigate("/lobby");
 
