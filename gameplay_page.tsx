@@ -275,7 +275,10 @@ function actualRender(root: HTMLElement) {
     const [drawCanvases, setDrawCanvases] = createSignal(new Map<string, string>())
 
     RPC.register('canvasChange', async (payload, player) => {
-      let name = player.getState('name');
+      let name = player.getState('name') ?? "";
+      if (name === "") {
+        console.error("Hey someone's name doesn't exist");
+      }
       const guessersSize = Object.values(getParticipants()).length - 2;
       if (getState('playersGuessed') == guessersSize) {
         return;
@@ -294,10 +297,12 @@ function actualRender(root: HTMLElement) {
 
     if (isArtist) {
       console.log(`my only prompt: ${currentPlayer.getState('prompt')}`);
+      let myName: string = me().getState('name') ?? "";
+
       return (
         <div style={{ display: "flex", "gap": "3rem" }}>
           <DrawImages drawCanvases={
-            new Map(drawCanvases().entries().filter((v, _) => v[0] !== me().getState('name')))
+            new Map(drawCanvases().entries().filter((v, _) => v[0] !== myName))
           } />
           <DrawPage />
         </div>
