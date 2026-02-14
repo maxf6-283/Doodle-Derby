@@ -148,7 +148,7 @@ const DrawPage = () => {
 
   return (
     <>
-      <h1>
+      <h1 style={{position: "fixed", right: "200px"}}>
         {prompt.toUpperCase()}
       </h1>
       <div ref={container} id='container'>
