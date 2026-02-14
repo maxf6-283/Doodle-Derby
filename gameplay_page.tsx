@@ -302,7 +302,7 @@ function actualRender(root: HTMLElement) {
       return (
         <div style={{ display: "flex", "gap": "3rem" }}>
           <DrawImages drawCanvases={
-            new Map(drawCanvases().entries().filter((v, _) => v[0] !== myName))
+            new Map()
           } />
           <DrawPage />
         </div>
