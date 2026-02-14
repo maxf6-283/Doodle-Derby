@@ -182,22 +182,62 @@ const DrawPage = () => {
   );
 }
 
+function findArtists() {
+    let firstIndex = -1;
+    let secondIndex = -1;
+    let participants = Object.values(getParticipants());
+    for (let i = 0; i < participants.length; i++) {
+        if (firstIndex >= 0) {
+            if (participants[i].getState('isArtist')) {
+                secondIndex = i;
+            }
+        }
+        else {
+            if (participants[i].getState('isArtist')) {
+                firstIndex = i;
+            }
+        }
+    }
+    return [firstIndex, secondIndex];
+}
+
 const SpectatorPage = () => {
   let [text, setText] = createSignal("");
   let [display, setDisplay] = createSignal("");
+  let [isDisabled, setIsDisabled] = createSignal(false);
+  let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
+
+  let promptSet: Set<string> = getState("promptList");
+  console.log(promptSet);
+  console.log(promptSet.keys());
+  
+  // let guessCounter = 0;
+  let correctGuesses = 0;
 
   const guessChecker = () => {
-
+    if (guessedWords().find((word) => word === text().toLowerCase())) {
+        setDisplay(text() + " alr checked bruh");
+    } else if (promptSet.has(text().toLowerCase())) {
+        correctGuesses++;
+        setGuessedWords((wordList: string[]) => { 
+            wordList.push(text().toLowerCase()) 
+            return wordList;
+        });
+        setDisplay(text() + " is correct!");
+    }
+    if (correctGuesses >= 2) {
+        setIsDisabled(true);
+    }
   }
 
 
   return (
     <>
-      <div style="border: solid 4px black;">
+      <div>
         <h2>{display()}</h2>
       </div>
-      <input type="text" onChange={(c) => setText(text => text = c.currentTarget.value)} />
-      <button onClick={() => setDisplay("{" + text() + "}")}>Submit</button>
+      <input disabled={isDisabled()} type="text" onChange={(c) => setText(text => text = c.currentTarget.value)} />
+      <button onClick={guessChecker}>Submit</button>
     </>
   );
 }
