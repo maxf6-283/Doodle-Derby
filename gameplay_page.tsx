@@ -53,7 +53,7 @@ function pickRandomArtists() {
   //Picking the second artist
   let secondArtistIndex: number;
   if (availablePlayers.length == 0) {
-    let secondRandom = random;
+    let secondRandom = firstArtistIndex;
     do {
       secondRandom = randInt(participants.length);
     } while (secondRandom == firstArtistIndex);
