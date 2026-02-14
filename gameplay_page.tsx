@@ -34,9 +34,9 @@ function pickPrompts() {
   participants[secondArtistIndex].setState('prompt', firstWords[randInt(firstWords.length)].toLowerCase());
   participants[firstArtistIndex].setState('prompt', secondWords[randInt(secondWords.length)].toLowerCase());
 
-  let promptList: Set<string> = new Set();
-  promptList.add(participants[secondArtistIndex].getState('prompt'));
-  promptList.add(participants[firstArtistIndex].getState('prompt'));
+  let promptList: string[] = [];
+  promptList.push(participants[secondArtistIndex].getState('prompt'));
+  promptList.push(participants[firstArtistIndex].getState('prompt'));
 
   setState('promptList', promptList);
 }
@@ -255,8 +255,6 @@ function actualRender(root: HTMLElement) {
         </div>
       );
     }
-
-    console.log(`here's a cheat! ${getState('promptList')}`);
 
     return (
       <div style={{ display: "flex", "flex-direction": "column", gap: "24px" }}>
