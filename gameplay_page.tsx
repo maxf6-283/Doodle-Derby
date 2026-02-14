@@ -44,6 +44,11 @@ function pickPrompts() {
 function pickRandomArtists() {
   let availablePlayers: number[] = getState("availablePlayers");
 
+  if (availablePlayers.length == 0) {
+    alert("Game is done! Refresh and restart to play again >:)");
+    return;
+  }
+
   //Picking the first artist
   let random = randInt(availablePlayers.length);
   let firstArtistIndex: number = availablePlayers[random];
@@ -148,7 +153,7 @@ const DrawPage = () => {
 
   return (
     <>
-      <h1 style={{position: "fixed", right: "200px"}}>
+      <h1 style={{ position: "fixed", right: "200px" }}>
         {prompt.toUpperCase()}
       </h1>
       <div ref={container} id='container'>
@@ -187,25 +192,6 @@ const DrawPage = () => {
   );
 }
 
-function findArtists() {
-  let firstIndex = -1;
-  let secondIndex = -1;
-  let participants = Object.values(getParticipants());
-  for (let i = 0; i < participants.length; i++) {
-    if (firstIndex >= 0) {
-      if (participants[i].getState('isArtist')) {
-        secondIndex = i;
-      }
-    }
-    else {
-      if (participants[i].getState('isArtist')) {
-        firstIndex = i;
-      }
-    }
-  }
-  return [firstIndex, secondIndex];
-}
-
 const SpectatorPage = () => {
   let [text, setText] = createSignal("");
   let [display, setDisplay] = createSignal("");
@@ -224,6 +210,9 @@ const SpectatorPage = () => {
       setDisplay(text() + " alr checked bruh");
     } else if (promptSet.find(word => word === text().toLowerCase())) {
       correctGuesses++;
+      if (correctGuesses == 2) {
+        RPC.call('playerGuessed', {}, RPC.Mode.HOST);
+      }
       setGuessedWords((wordList: string[]) => {
         wordList.push(text().toLowerCase())
         return wordList;
@@ -273,6 +262,9 @@ function DrawImages(props: { drawCanvases: Map<string, string> }) {
     </ul>);
 }
 
+// THIS IS VERY BAD REMOVE THIS AS SOON AS POSSIBLE
+let disposeSolid: (() => void) | null = null;
+
 function actualRender(root: HTMLElement) {
   const currentPlayer = me();
   const Dummy = () => {
@@ -309,7 +301,7 @@ function actualRender(root: HTMLElement) {
     )
   };
 
-  render(() => (<Dummy />), root);
+  disposeSolid = render(() => (<Dummy />), root);
 }
 
 //
@@ -317,6 +309,33 @@ function actualRender(root: HTMLElement) {
 export const GameplayPage: Page = {
   render(root: HTMLElement) {
     RPC.register('actualRender', async () => actualRender(root));
+    RPC.register('playerGuessed', async () => {
+      if (!isHost()) return;
+      setState('playersGuessed', getState('playersGuessed') + 1);
+      const guessersSize = Object.values(getParticipants()).length - 2;
+      if (getState('playersGuessed') == guessersSize) {
+        RPC.call('startNewLoop', {}, RPC.Mode.HOST);
+      }
+    });
+    RPC.register('dumpRender', async () => {
+      if (disposeSolid == null) {
+        console.error("this shouldn't be null!!!");
+        return;
+      }
+      console.log('solid disposed. start new loop');
+      disposeSolid();
+      actualRender(root);
+    });
+    RPC.register('startNewLoop', async () => {
+      if (isHost()) {
+        console.log('called loop');
+        pickRandomArtists();
+        pickPrompts();
+        setState('playersGuessed', 0);
+        RPC.call('dumpRender', {}, RPC.Mode.ALL);
+      }
+    });
+
     if (isHost()) {
       const participants: PlayerState[] = Object.values(getParticipants());
       let size = participants.length;
@@ -324,6 +343,8 @@ export const GameplayPage: Page = {
       for (let i = 0; i < size; i++) {
         availablePlayers.push(i);
       }
+
+      setState('playersGuessed', 0);
       setState("availablePlayers", availablePlayers);
 
       pickRandomArtists();
