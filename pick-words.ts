@@ -1,11 +1,13 @@
-import { getParticipants, isHost, myPlayer, RPC } from "playroomkit";
+import { getParticipants, isHost, myPlayer, RPC, setState, getState } from "playroomkit";
 
 import { Page } from "./page"
 import { routerNavigate } from "./tiny_router";
 
 const MAX_WORDS = 10;
 
-const PICK_TIME = 5;
+const PICK_TIME = 30;
+
+let hostSwitched = false;
 
 export default function mount() {
   const word_input = document.getElementById("word-input") as HTMLInputElement;
@@ -102,41 +104,32 @@ export default function mount() {
       word_input.classList.add("error-shake");
       setTimeout(() => word_input.classList.remove("error-shake"), 300);
     }
-    seconds ??= PICK_TIME
-    let minutes = Math.floor(seconds / 60)
-    seconds %= 60
-      timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
-      //toGamePage();
   }
 
-  function updateWords() {
-    myPlayer().setState("words", my_words)
-    myPlayer().setState("words_complete", my_words.length)
+  word_input.addEventListener("keydown", (ev) => ev.key === "Enter" && submitWord());
+  confirm_word_btn.addEventListener("click", submitWord);
+
+  continue_btn.addEventListener("click", () => {
+    pick_words_container.style.display = "none";
+    waiting_screen.style.display = "flex";
+    continue_btn.style.display = "none";
+    myPlayer().setState("picked_words", true);
+    RPC.call("player-picked-words", {}, RPC.Mode.HOST);
+  });
+  start_game_btn.addEventListener("click", () => {
+    if (isHost() && !(getState('drawing-transition') ?? false)) {
+      RPC.call("players-start-game", {}, RPC.Mode.ALL);
+      setState('drawing-transition', true);
     }
-
-//function toGamePage() {
-//    const players = Object.values(getParticipants());
-//    const allReady = players.every(p => p.getState("words_complete") >= 10);
-
-//    if (!allReady) {
-//        return;
-//    }
-//    if (isHost()) {
-//        RPC.call("writing-timeout", RPC.Mode.ALL);
-//    }
-// }
-
-  word_input.addEventListener("keydown", (ev) => {
-    if (ev.key == "Enter") {
-      if (my_words.length < 10) {
-        const idx = my_words.length
-        const new_word = word_input.value
-        my_words.push(new_word)
-        word_input.value = ""
-        updateWords()
+  });
 
   RPC.register("players-start-game", async () => {
-    routerNavigate("/game");
+    if (!isHost()) {
+      routerNavigate("/game");
+    } else if (isHost() && !hostSwitched) {
+      hostSwitched = true;
+      routerNavigate("/game");
+    }
   });
 
   RPC.register("all-players-ready", async (_payload, _player) => {
@@ -157,12 +150,7 @@ export default function mount() {
 
   setInterval(updateUI, 250)
 
-  RPC.register("writing-timeout", async (_payload, _player) => {
-    clearInterval(updateId)
-    if (timerId != null) clearInterval(timerId)
-    console.log("SWITCH GAME!");
-    routerNavigate("index.html");
-  })
+  console.log("HELP", word_input)
 }
 
 export const PickWordsPage: Page = {
