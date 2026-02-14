@@ -144,8 +144,13 @@ const DrawPage = () => {
     });
   });
 
+  let prompt: string = me().getState('prompt');
+
   return (
     <>
+      <h1>
+        {prompt.toUpperCase()}
+      </h1>
       <div ref={container} id='container'>
         <canvas ref={canvas} />
       </div>
@@ -183,22 +188,22 @@ const DrawPage = () => {
 }
 
 function findArtists() {
-    let firstIndex = -1;
-    let secondIndex = -1;
-    let participants = Object.values(getParticipants());
-    for (let i = 0; i < participants.length; i++) {
-        if (firstIndex >= 0) {
-            if (participants[i].getState('isArtist')) {
-                secondIndex = i;
-            }
-        }
-        else {
-            if (participants[i].getState('isArtist')) {
-                firstIndex = i;
-            }
-        }
+  let firstIndex = -1;
+  let secondIndex = -1;
+  let participants = Object.values(getParticipants());
+  for (let i = 0; i < participants.length; i++) {
+    if (firstIndex >= 0) {
+      if (participants[i].getState('isArtist')) {
+        secondIndex = i;
+      }
     }
-    return [firstIndex, secondIndex];
+    else {
+      if (participants[i].getState('isArtist')) {
+        firstIndex = i;
+      }
+    }
+  }
+  return [firstIndex, secondIndex];
 }
 
 const SpectatorPage = () => {
@@ -207,26 +212,26 @@ const SpectatorPage = () => {
   let [isDisabled, setIsDisabled] = createSignal(false);
   let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
 
-  let promptSet: Set<string> = getState("promptList");
+  let promptSet: string[] = getState("promptList");
   console.log(promptSet);
   console.log(promptSet.keys());
-  
+
   // let guessCounter = 0;
   let correctGuesses = 0;
 
   const guessChecker = () => {
     if (guessedWords().find((word) => word === text().toLowerCase())) {
-        setDisplay(text() + " alr checked bruh");
-    } else if (promptSet.has(text().toLowerCase())) {
-        correctGuesses++;
-        setGuessedWords((wordList: string[]) => { 
-            wordList.push(text().toLowerCase()) 
-            return wordList;
-        });
-        setDisplay(text() + " is correct!");
+      setDisplay(text() + " alr checked bruh");
+    } else if (promptSet.find(word => word === text().toLowerCase())) {
+      correctGuesses++;
+      setGuessedWords((wordList: string[]) => {
+        wordList.push(text().toLowerCase())
+        return wordList;
+      });
+      setDisplay(text() + " is correct!");
     }
     if (correctGuesses >= 2) {
-        setIsDisabled(true);
+      setIsDisabled(true);
     }
   }
 
