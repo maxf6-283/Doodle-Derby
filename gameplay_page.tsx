@@ -1,6 +1,6 @@
 import { Page } from "./page";
 import { render } from "solid-js/web"
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 
 import { getParticipants, PlayerState, me, isHost, RPC, getState, setState } from "playroomkit";
 
@@ -81,6 +81,8 @@ function pickRandomArtists() {
 
 // This is very hacky! Let's change this as soon as possible!!!
 
+let intervalId: NodeJS.Timeout
+
 const DrawPage = () => {
   let container: HTMLDivElement | undefined;
   let canvas: HTMLCanvasElement | undefined;
@@ -117,7 +119,7 @@ const DrawPage = () => {
       paint.setBrushColor(color);
     }
 
-    setInterval(() => {
+    intervalId = setInterval(() => {
       const url = canvas.toDataURL();
       RPC.call("canvasChange", { data: url }, RPC.Mode.OTHERS);
     }, 300);
@@ -248,8 +250,8 @@ function DrawImages(props: { drawCanvases: Map<string, string> }) {
               src={data}
               style={
                 {
-                  width: "250px",
-                  height: "250px",
+                  width: "120px",
+                  height: "120px",
                   "object-fit": "contain",
                   border: "1px solid #ccc"
                 }
@@ -274,6 +276,10 @@ function actualRender(root: HTMLElement) {
 
     RPC.register('canvasChange', async (payload, player) => {
       let name = player.getState('name');
+      const guessersSize = Object.values(getParticipants()).length - 2;
+      if (getState('playersGuessed') == guessersSize) {
+        return;
+      }
       setDrawCanvases(previous => {
         const newMap = new Map(previous);
         newMap.set(name, payload.data);
@@ -281,10 +287,15 @@ function actualRender(root: HTMLElement) {
       });
     });
 
+    onCleanup(() => {
+      clearInterval(intervalId);
+      setDrawCanvases(new Map<string, string>());
+    });
+
     if (isArtist) {
       console.log(`my only prompt: ${currentPlayer.getState('prompt')}`);
       return (
-        <div style={{ display: "flex", "gap": "1rem" }}>
+        <div style={{ display: "flex", "gap": "3rem" }}>
           <DrawImages drawCanvases={
             new Map(drawCanvases().entries().filter((v, _) => v[0] !== me().getState('name')))
           } />
