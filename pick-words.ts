@@ -5,7 +5,7 @@ import { routerNavigate } from "./tiny_router";
 
 const MAX_WORDS = 10;
 
-const PICK_TIME = 5;
+const PICK_TIME = 30;
 
 let hostSwitched = false;
 
@@ -104,17 +104,10 @@ export default function mount() {
       word_input.classList.add("error-shake");
       setTimeout(() => word_input.classList.remove("error-shake"), 300);
     }
-    seconds ??= PICK_TIME
-    let minutes = Math.floor(seconds / 60)
-    seconds %= 60
-      timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
-      //toGamePage();
   }
 
-  function updateWords() {
-    myPlayer().setState("words", my_words)
-    myPlayer().setState("words_complete", my_words.length)
-    }
+  word_input.addEventListener("keydown", (ev) => ev.key === "Enter" && submitWord());
+  confirm_word_btn.addEventListener("click", submitWord);
 
   continue_btn.addEventListener("click", () => {
     pick_words_container.style.display = "none";
@@ -157,12 +150,7 @@ export default function mount() {
 
   setInterval(updateUI, 250)
 
-  RPC.register("writing-timeout", async (_payload, _player) => {
-    clearInterval(updateId)
-    if (timerId != null) clearInterval(timerId)
-    console.log("SWITCH GAME!");
-    routerNavigate("index.html");
-  })
+  console.log("HELP", word_input)
 }
 
 export const PickWordsPage: Page = {
