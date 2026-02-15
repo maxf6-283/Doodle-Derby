@@ -75,7 +75,7 @@ function showGame() { //A new Konva layer to transition to the page for inputtin
 
 function showLobby() {
     if (gameDiv) gameDiv.style.display = 'none';
-    if (mainLobby) mainLobby.style.display = 'block';
+    if (mainLobby) mainLobby.style.display = 'flex';
 }
 const stage = new Konva.Stage({
     container: 'game-container',
@@ -553,5 +553,3 @@ onDisconnect((ev) => {
   alert(`Kicked from room: ${ev.reason}`);
   window.location.href = "/";
 });
-
-setInterval(updateUI, 250);

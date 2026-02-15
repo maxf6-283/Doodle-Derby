@@ -26,12 +26,12 @@ body {
 }
 
 .back_btn {
-    width: 85px;
-    height: 90px;
-    position: absolute;
-    top: 20px;
-    left: 55px;
-    cursor: pointer;
+  width: 85px;
+  height: 90px;
+  position: absolute;
+  top: 20px;
+  left: 55px;
+  cursor: pointer;
 }
 
 .notebook-container {
@@ -40,7 +40,7 @@ body {
   margin: 0;
   border-radius: 0; /* Optional: remove rounded corners for full-screen look */
   box-shadow: none; /* Optional: remove shadow when full-screen */
-
+  
   background-color: var(--paper-white);
   background-image:
     linear-gradient(
@@ -57,13 +57,13 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box; /* Ensures padding doesn't add to width/height */
+  justify-content: space-between;
 }
 /* Header */
 .lobby-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 40px;
 }
 
 .lobby-header h1 {
@@ -78,11 +78,32 @@ body {
   cursor: pointer;
 }
 
+/* Specific overrides if you want to use the data-hover attribute approach */
+#settings-btn:hover img {
+  content: url("/lobby/settings_icon_highlighted.png");
+}
+#exit-btn:hover img {
+  content: url("/lobby/back_icon_highlighted.png");
+}
+
+.back-header-btn:hover img {
+  content: url("/lobby/back_icon_highlighted.png");
+}
+
+/* Add a slight scale effect for juice */
+.icon-btn img {
+  transition: transform 0.1s ease-in-out;
+}
+
+.icon-btn:hover img {
+  transform: scale(1.1);
+}
+
 /* Rules Note */
 .rules-note {
   position: absolute;
-  top: 100px; /* Increased from 40px to move it below the header buttons */
-  right: 20px; /* Slightly adjusted for better alignment */
+  top: 50px; /* Increased from 40px to move it below the header buttons */
+  right: 40px; /* Slightly adjusted for better alignment */
   background-color: var(--sticky-pink);
   padding: 15px;
   width: 200px;
@@ -103,13 +124,12 @@ body {
 /* Player Layout */
 .player-grid {
   display: grid;
-  /* Automatically fits as many columns as possible, minimum 120px wide */
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
-  gap: 0px;
-  margin-top: 15vh; /* Use vh for responsive vertical spacing */
-  padding: 0 10%;   /* Use percentage for responsive horizontal spacing */
-  width: 70%;
-  justify-items: center;
+  grid-template-columns: repeat(8, minmax(100px, 150px));
+  gap: 40px 20px; /* Vertical and horizontal spacing */
+  margin: 0 auto;
+  justify-content: center;
+  align-content: center;
+  width: auto; /* Let it shrink-wrap its contents */
 }
 
 .plus-icon {
@@ -172,10 +192,10 @@ body {
 
 .crown-img {
   position: absolute;
-  top: -30px; /* Adjust based on your asset size */
+  top: -75px; /* Adjust based on your asset size */
   left: 50%;
   transform: translateX(-50%);
-  width: 45px;
+  width: 150px;
   z-index: 20; /* Ensure it stays above everything */
   pointer-events: none; /* Prevents it from blocking clicks to the character */
 }
@@ -213,12 +233,26 @@ body {
   color: #999;
 }
 
-/* Footer Actions */
+.lobby-content {
+  flex: 1; 
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* This centers the grid vertically */
+  align-items: center;     /* This centers the grid horizontally */
+  position: relative;
+  overflow: visible; 
+}
+
 .lobby-footer {
-  margin-top: auto;
-  padding-bottom: 20px;
-  align-self: flex-end;
-  text-align: right;
+  margin-top: auto; /* Pushes footer to the bottom of the flex container */
+  padding: 20px 60px; /* Added more padding from the bottom edge */
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; 
+  z-index: 10; /* Keep it above the notebook lines */
 }
 
 .ready-count {
@@ -227,7 +261,8 @@ body {
   margin-bottom: 5px;
 }
 
-.start-btn, #submitBtn{
+.start-btn,
+#submitBtn {
   background-color: var(--btn-green);
   border: none;
   padding: 10px 30px;
@@ -647,14 +682,14 @@ body {
   padding: 20px;
 }
 
-    #settingsMenu .customization-body #timerContainer,
-    #settingsMenu .customization-body #volumeContainer {
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /*Center content vertically inside*/
-        align-items: center; /*Center content horizontally */
-        flex-grow: 1; /* Makes them expand equally to fill available space */
-    }
+#settingsMenu .customization-body #timerContainer,
+#settingsMenu .customization-body #volumeContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /*Center content vertically inside*/
+  align-items: center; /*Center content horizontally */
+  flex-grow: 1; /* Makes them expand equally to fill available space */
+}
 
 #timerContainer label,
 #volumeContainer label {
@@ -691,22 +726,21 @@ body {
 }
 
 #game-container {
-    width: 100vw; /* 100% of viewport width */
-    height: 100vh; /* 100% of viewport height */
-    z-index: 1;
-
+  width: 100vw; /* 100% of viewport width */
+  height: 100vh; /* 100% of viewport height */
+  z-index: 1;
 }
 
 #ui-layer {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    z-index: 100;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
 }
 
-#promptInput{
-    width: 100px;
-    height: 40px;
+#promptInput {
+  width: 100px;
+  height: 40px;
 }
