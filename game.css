@@ -1,0 +1,19 @@
+.main-container {
+  width: 100vw; /* Full Viewport Width */
+  height: 100vh; /* Full Viewport Height */
+  margin: 0;
+  border-radius: 0; /* Optional: remove rounded corners for full-screen look */
+  box-shadow: none; /* Optional: remove shadow when full-screen */
+
+  background-color: var(--paper-white);
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 79px,
+      var(--margin-red) 79px,
+      var(--margin-red) 81px,
+      transparent 81px
+    ),
+    linear-gradient(var(--line-blue) 0.1em, transparent 0.1em);
+  background-size: 100% 40px;
+}

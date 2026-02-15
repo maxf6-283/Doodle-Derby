@@ -25,36 +25,34 @@ body {
   align-items: center;
 }
 
-.notebook-container {
+.back_btn {
+  width: 85px;
+  height: 90px;
+  position: absolute;
+  top: 20px;
+  left: 55px;
+  cursor: pointer;
+}
+
+.lobby-container {
   width: 100vw; /* Full Viewport Width */
   height: 100vh; /* Full Viewport Height */
   margin: 0;
   border-radius: 0; /* Optional: remove rounded corners for full-screen look */
   box-shadow: none; /* Optional: remove shadow when full-screen */
-
-  background-color: var(--paper-white);
-  background-image:
-    linear-gradient(
-      90deg,
-      transparent 79px,
-      var(--margin-red) 79px,
-      var(--margin-red) 81px,
-      transparent 81px
-    ),
-    linear-gradient(var(--line-blue) 0.1em, transparent 0.1em);
   background-size: 100% 40px;
   position: relative;
   padding: 40px; /* Adjust padding for full-screen comfort */
   display: flex;
   flex-direction: column;
   box-sizing: border-box; /* Ensures padding doesn't add to width/height */
+  justify-content: space-between;
 }
 /* Header */
 .lobby-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 40px;
 }
 
 .lobby-header h1 {
@@ -69,11 +67,32 @@ body {
   cursor: pointer;
 }
 
+/* Specific overrides if you want to use the data-hover attribute approach */
+#settings-btn:hover img {
+  content: url("/lobby/settings_icon_highlighted.png");
+}
+#exit-btn:hover img {
+  content: url("/lobby/back_icon_highlighted.png");
+}
+
+.back-header-btn:hover img {
+  content: url("/lobby/back_icon_highlighted.png");
+}
+
+/* Add a slight scale effect for juice */
+.icon-btn img {
+  transition: transform 0.1s ease-in-out;
+}
+
+.icon-btn:hover img {
+  transform: scale(1.1);
+}
+
 /* Rules Note */
 .rules-note {
   position: absolute;
-  top: 100px; /* Increased from 40px to move it below the header buttons */
-  right: 20px; /* Slightly adjusted for better alignment */
+  top: 50px; /* Increased from 40px to move it below the header buttons */
+  right: 40px; /* Slightly adjusted for better alignment */
   background-color: var(--sticky-pink);
   padding: 15px;
   width: 200px;
@@ -93,12 +112,13 @@ body {
 
 /* Player Layout */
 .player-grid {
-  display: flex;
-  flex-wrap: wrap; /* Allows players to wrap to a second row if there are many */
-  gap: 30px;
-  margin-top: 200px;
-  padding-left: 100px;
-  flex-grow: 1; /* Pushes the footer to the bottom */
+  display: grid;
+  grid-template-columns: repeat(8, minmax(100px, 150px));
+  gap: 40px 20px; /* Vertical and horizontal spacing */
+  margin: 0 auto;
+  justify-content: center;
+  align-content: center;
+  width: auto; /* Let it shrink-wrap its contents */
 }
 
 .plus-icon {
@@ -136,13 +156,14 @@ body {
   outline: none;
 }
 
-.player-slot {
-  width: 80px;
-  position: relative; /* CRITICAL: Required for the absolute crown and ready-tag to align */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+.stick-man {
+  position: relative;
+  width: 100px; /* Match your player-slot width */
+  height: 100px;
+  border: 2px solid #000;
+  border-radius: 10px;
+  background: white;
+  overflow: visible; /* Allows accessories to pop out */
 }
 
 .player-slot p {
@@ -151,26 +172,36 @@ body {
   white-space: nowrap;
   height: 1.2em; /* Keep name tags at a consistent height */
 }
+.player-slot {
+  position: relative; /* Add this so the crown knows where to anchor */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .crown-img {
   position: absolute;
-  top: -35px; /* Sits perfectly above the stick-man box */
+  top: -75px; /* Adjust based on your asset size */
   left: 50%;
   transform: translateX(-50%);
-  width: 45px;
-  z-index: 10;
+  width: 150px;
+  z-index: 20; /* Ensure it stays above everything */
+  pointer-events: none; /* Prevents it from blocking clicks to the character */
 }
 
 /* Ready Tag */
 .ready-tag {
   position: absolute;
-  bottom: 30px;
-  left: -15px;
+  top: 75px;
+  right: 75px;
   background: var(--sticky-yellow);
-  font-size: 10px;
-  padding: 5px;
-  transform: rotate(-15deg);
+  font-size: 12px;
+  padding: 5px 10px;
+  transform: rotate(15deg);
   font-weight: bold;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 25;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .crown {
@@ -191,12 +222,26 @@ body {
   color: #999;
 }
 
-/* Footer Actions */
+.lobby-content {
+  flex: 1; 
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* This centers the grid vertically */
+  align-items: center;     /* This centers the grid horizontally */
+  position: relative;
+  overflow: visible; 
+}
+
 .lobby-footer {
-  margin-top: auto;
-  padding-bottom: 20px;
-  align-self: flex-end;
-  text-align: right;
+  margin-top: auto; /* Pushes footer to the bottom of the flex container */
+  padding: 20px 60px; /* Added more padding from the bottom edge */
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; 
+  z-index: 10; /* Keep it above the notebook lines */
 }
 
 .ready-count {
@@ -205,7 +250,8 @@ body {
   margin-bottom: 5px;
 }
 
-.start-btn {
+.start-btn,
+#submitBtn {
   background-color: var(--btn-green);
   border: none;
   padding: 10px 30px;
@@ -245,7 +291,6 @@ body {
   opacity: 0.6; /* Makes them look slightly faded/inactive */
 }
 
-.stick-man,
 .empty-card {
   width: 80px;
   height: 80px; /* Forces both boxes to be the exact same size */
@@ -630,8 +675,8 @@ body {
 #settingsMenu .customization-body #volumeContainer {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Center content vertically inside */
-  align-items: center; /* Center content horizontally */
+  justify-content: center; /*Center content vertically inside*/
+  align-items: center; /*Center content horizontally */
   flex-grow: 1; /* Makes them expand equally to fill available space */
 }
 
@@ -667,4 +712,24 @@ body {
   width: 100%;
   height: 1rem;
   cursor: pointer;
+}
+
+#game-container {
+  width: 100vw; /* 100% of viewport width */
+  height: 100vh; /* 100% of viewport height */
+  z-index: 1;
+}
+
+#ui-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+}
+
+#promptInput {
+  width: 100px;
+  height: 40px;
 }
