@@ -24,9 +24,10 @@ export function routerNavigate(relativePath: string) {
     currentPage.onEnd();
   }
 
-  app.innerHTML = "";
-
   currentPage = pages.get(relativePath) as Page;
+  if (relativePath === "/") {
+    history.replaceState(null, "", "/");
+  }
   currentPage.render(app);
 
   // Think about history later!
