@@ -9,10 +9,6 @@ export default defineConfig({
       input: {
         main: "index.html",
         game: "game.html",
-        lobby: "lobby.html",
-        canvas: "canvas.html",
-        "pick-words": "pick-words.html",
-        waiting: "waiting.html",
       },
     },
   },
