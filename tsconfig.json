@@ -12,4 +12,5 @@
     "noEmit": true
   },
   "include": ["**/*.ts", "gameplay_page.tsx", "pick-words.tsx"]
+
 }
