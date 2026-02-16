@@ -11,6 +11,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["**/*.ts", "gameplay_page.tsx", "pick-words.tsx"]
+  "include": ["**/*.ts", "gameplay_page.tsx", "pick-words.tsx", "lobby.tsx"]
 
 }
