@@ -1,17 +1,13 @@
-const code_textbox = document.getElementById("join-code") as HTMLInputElement
-const join_button = document.getElementById("join-button") as HTMLButtonElement
+import { LobbyPage } from "./lobby"
+import { PickWordsPage } from "./pick-words"
+import { GameplayPage } from "./gameplay_page";
+import { LandingPage } from "./landing_page";
 
-export function joinLobby() {
-  const code = code_textbox.value
+import { routerNavigate, addPage } from "./tiny_router";
 
-  if (code.length == 4) {
-    window.location.href = "/game.html#r=R" + code
-  } else {
-    alert("Invalid code");
-  }
-}
+addPage("/", LandingPage);
+addPage("/lobby", LobbyPage);
+addPage("/pick-words", PickWordsPage);
+addPage("/game", GameplayPage);
 
-join_button.addEventListener("click", joinLobby)
-code_textbox.addEventListener("keydown", (ev) => {
-  if (ev.key == "Enter") joinLobby()
-})
+routerNavigate("/");
