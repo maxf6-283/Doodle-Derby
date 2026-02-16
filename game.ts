@@ -27,7 +27,6 @@ addPage("/pick-words", PickWordsPage);
 addPage("/waiting", WaitingPage);
 addPage("/game", GameplayPage);
 
-
 const gameStarted = getState("game-started");
 if (gameStarted) {
   routerNavigate("/pick-words");
