@@ -8,10 +8,13 @@ import {
   RPC,
   PlayerState
 } from "playroomkit";
+
 import { Page } from "./page";
 import { routerNavigate } from "./tiny_router";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { render } from "solid-js/web";
+
+import "./lobby.css"
 
 const CHARACTER_PATHS = [
   "/characters/bear_icon.png",
