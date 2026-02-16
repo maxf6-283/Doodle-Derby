@@ -6,11 +6,8 @@ import {
   setState,
   getState,
   RPC,
-  PlayerState,
-  onPlayerJoin,
-  onDisconnect,
+  PlayerState
 } from "playroomkit";
-import Konva from "konva";
 import { Page } from "./page";
 import { routerNavigate } from "./tiny_router";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
@@ -81,6 +78,10 @@ function Lobby() {
 
     RPC.register("refresh_lobby_ui", async () => refreshLobby());
 
+    RPC.register("start-game", async () => {
+      routerNavigate("/pick-words");
+    });
+
     // Ensure host is set on mount
     if (isHost()) {
       setState("hostId", myPlayer().id);
@@ -105,7 +106,7 @@ function Lobby() {
     const pList = players();
     if (pList.every((p) => p.getState("isReady")) && pList.length >= 3) {
       setState("game-started", true, true);
-      routerNavigate("/pick-words"); //
+      RPC.call("start-game", {}, RPC.Mode.ALL);
     } else {
       alert("Need 3+ players and everyone must be ready!");
     }
@@ -202,7 +203,7 @@ function Lobby() {
 }
 
 interface PlayerCardProps {
-  player: any; // Ideally use PlayerState from playroomkit if available
+  player: PlayerState; // Ideally use PlayerState from playroomkit if available
   onCustomize: () => void;
 }
 
