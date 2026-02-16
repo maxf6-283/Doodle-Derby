@@ -54,6 +54,7 @@ function mount() {
   const playerGrid = document.getElementById("player-grid") as HTMLDivElement;
   const code_span = document.getElementById("code-span") as HTMLSpanElement;
   const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
+  const backBtn = document.getElementById("back-btn") as HTMLButtonElement;
   const readyCount = document.getElementById("ready-count") as HTMLDivElement;
   const readyBtn = document.getElementById("ready-btn") as HTMLButtonElement;
   const settingsBtn = document.getElementById(
@@ -111,6 +112,10 @@ function mount() {
   /////////////////////////// SETTINGS MENU ////////////////////////////////
   settingsBtn.addEventListener("click", () => {
     settingsMenu.style.display = "flex";
+  });
+
+  backBtn.addEventListener("click", () => {
+    window.location.href = "/";
   });
 
   const DEFAULT_SECS = 30;
