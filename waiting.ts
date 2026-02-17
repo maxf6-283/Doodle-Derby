@@ -1,7 +1,7 @@
 import { getParticipants, myPlayer, getRoomCode, getState } from "playroomkit";
 
-import { Page } from "./page";
-import { routerNavigate } from "./tiny_router";
+import { Page } from "./api/page";
+import { routerNavigate } from "./api/tiny_router";
 
 const MAX_WORDS = 10
 const PICK_TIME = 30

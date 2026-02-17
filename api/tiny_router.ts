@@ -1,4 +1,3 @@
-
 import { Page } from "./page"
 
 let currentPage: Page | null = null

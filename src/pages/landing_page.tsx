@@ -1,7 +1,7 @@
 import { render } from "solid-js/web"
-import { Page } from "./page"
+import { Page } from "../../api/page"
 import { createSignal } from "solid-js";
-import { routerNavigate } from "./tiny_router";
+import { routerNavigate } from "../../api/tiny_router";
 
 function joinLobby(code: string) {
   if (code.length == 4) {

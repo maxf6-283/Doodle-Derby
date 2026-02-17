@@ -8,12 +8,12 @@ import {
   PlayerState
 } from "playroomkit";
 
-import { Page } from "./page"
-import { routerNavigate } from "./tiny_router";
+import { Page } from "../../api/page"
+import { routerNavigate } from "../../api/tiny_router";
 import { render } from "solid-js/web";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 
-import "./pick-words.css"
+import "../../style/pick-words.css"
 
 const MAX_WORDS = 10;
 
