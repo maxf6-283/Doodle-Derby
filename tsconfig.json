@@ -13,10 +13,10 @@
   },
   "include": [
     "**/*.ts", 
-    "src/pages/gameplay_page.tsx", 
-    "src/pages/pick_words_page.tsx", 
-    "src/pages/lobby.tsx", 
-    "src/pages/landing_page.tsx"
+    "pages/gameplay_page.tsx", 
+    "pages/pick_words_page.tsx", 
+    "pages/lobby.tsx", 
+    "pages/landing_page.tsx"
   ]
 
 }
