@@ -11,12 +11,12 @@ import {
   onDisconnect
 } from "playroomkit";
 
-import { Page } from "./page";
-import { routerNavigate } from "./tiny_router";
+import { Page } from "../../api/page";
+import { routerNavigate } from "../../api/tiny_router";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { render } from "solid-js/web";
 
-import "./lobby.css"
+import "../../style/lobby.css"
 
 const DEFAULT_TIMER = 30;
 const MIN_TIMER = 15;

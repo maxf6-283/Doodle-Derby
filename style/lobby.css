@@ -9,8 +9,6 @@
   --btn-green: #9df9bc;
 }
 
-
-
 html,
 body {
   height: 100%;
@@ -71,14 +69,14 @@ body {
 
 /* Specific overrides if you want to use the data-hover attribute approach */
 #settings-btn:hover img {
-  content: url("/lobby/settings_icon_highlighted.png");
+  content: url("../lobby/settings_icon_highlighted.png");
 }
 #exit-btn:hover img {
-  content: url("/lobby/back_icon_highlighted.png");
+  content: url("../lobby/back_icon_highlighted.png");
 }
 
 .back-header-btn:hover img {
-  content: url("/lobby/back_icon_highlighted.png");
+  content: url("../lobby/back_icon_highlighted.png");
 }
 
 /* Add a slight scale effect for juice */

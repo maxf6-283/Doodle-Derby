@@ -1,11 +1,13 @@
-import { Page } from "./page";
+import { Page } from "../../api/page";
 import { render } from "solid-js/web"
 import { createSignal, onMount, onCleanup } from "solid-js";
 
 import { getParticipants, PlayerState, me, isHost, RPC, getState, setState } from "playroomkit";
 
 import konva from "konva";
-import { PaintCanvas } from "./api/draw/painting"
+import { PaintCanvas } from "../../api/draw/painting"
+
+import "../../style/game.css"
 
 // Functions here are throwaways and only serve as substitutes
 const randInt = (length: number) => {
