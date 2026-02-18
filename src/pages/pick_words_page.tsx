@@ -77,7 +77,6 @@ function PlayerCards() {
             ].filter(a => a);
 
             const words_complete = wordsCompleted;
-            console.log("rerender brah");
             const progressPercent = (words_complete / MAX_WORDS) * 100;
 
             const card = document.createElement("div");
@@ -120,7 +119,6 @@ function PlayerCards() {
 function syncState(words: string[]) {
   myPlayer().setState("words", [...words]);
   myPlayer().setState("words_complete", words.length);
-  console.log(myPlayer().getState("words_complete") ?? "can't find brah");
 }
 
 function SubmitWord(props: { words: string[], pushWord: (word: string) => void }) {

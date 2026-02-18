@@ -16,12 +16,16 @@ import { routerNavigate } from "../../api/tiny_router";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { render } from "solid-js/web";
 
+import { getRandomName } from "../../api/random_name";
+
 import "../../style/lobby.css";
 
 const DEFAULT_TIMER = 30;
 const MIN_TIMER = 15;
 const MAX_TIMER = 180;
 const TIME_INCREMENT = 15;
+
+const MAX_NAME_LENGTH = 16;
 
 const CHARACTER_PATHS = [
   "/characters/bear_icon.png",
@@ -78,6 +82,10 @@ export const LobbyPage: Page = {
     onDisconnect((ev) => {
       //alert(`Kicked from room: ${ev.reason}`);
       routerNavigate("/");
+    });
+
+    await getRandomName(MAX_NAME_LENGTH).then((name) => {
+      myPlayer().setState("name", name);
     });
 
     this.onEnd = render(() => <Lobby />, root);
@@ -459,7 +467,7 @@ function CustomizeModal(props: CustomizeModalProps) {
               value={name()}
               onInput={(e) => updateName(e.currentTarget.value)}
               placeholder="YOUR NAME"
-              maxlength="16"
+              maxlength={MAX_NAME_LENGTH}
             />
           </div>
 
