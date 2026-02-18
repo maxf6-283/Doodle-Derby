@@ -223,14 +223,14 @@ body {
 }
 
 .lobby-content {
-  flex: 1; 
+  flex: 1;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   justify-content: center; /* This centers the grid vertically */
-  align-items: center;     /* This centers the grid horizontally */
+  align-items: center; /* This centers the grid horizontally */
   position: relative;
-  overflow: visible; 
+  overflow: visible;
 }
 
 .lobby-footer {
@@ -240,7 +240,7 @@ body {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: flex-end; 
+  align-items: flex-end;
   z-index: 10; /* Keep it above the notebook lines */
 }
 
@@ -801,4 +801,47 @@ body {
   align-items: center;
   gap: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.lobby-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #f0f0f0; /* Matches your lobby background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.spinning-sheep {
+  width: 120px;
+  height: auto;
+  animation: sheep-spin 2s linear infinite;
+}
+
+.loading-text {
+  font-family:
+    "Comic Sans MS", "Chalkboard SE", cursive; /* Matches game style */
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: bold;
+}
+
+@keyframes sheep-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

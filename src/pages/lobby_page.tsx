@@ -8,7 +8,7 @@ import {
   RPC,
   PlayerState,
   insertCoin,
-  onDisconnect
+  onDisconnect,
 } from "playroomkit";
 
 import { Page } from "../../api/page";
@@ -16,7 +16,7 @@ import { routerNavigate } from "../../api/tiny_router";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { render } from "solid-js/web";
 
-import "../../style/lobby.css"
+import "../../style/lobby.css";
 
 const DEFAULT_TIMER = 30;
 const MIN_TIMER = 15;
@@ -60,15 +60,14 @@ export const refreshLobby = () => setLobbyTicket((t) => t + 1);
 
 export const LobbyPage: Page = {
   async render(root: HTMLElement) {
-
     // TODO: If restarting the game with entire lobby
     //       from previous game, we shouldn't call insertCoin
     //       again.
     try {
-      await insertCoin({
-        gameId: process.env.GAME_ID,
-        skipLobby: true,
-      });
+      // await insertCoin({
+      //   gameId: process.env.GAME_ID,
+      //   skipLobby: true,
+      // });
       window.location.href = "/#r=R" + getRoomCode();
     } catch {
       // we have been kicked
@@ -77,7 +76,7 @@ export const LobbyPage: Page = {
     }
 
     onDisconnect((ev) => {
-      alert(`Kicked from room: ${ev.reason}`);
+      //alert(`Kicked from room: ${ev.reason}`);
       routerNavigate("/");
     });
 
@@ -87,6 +86,8 @@ export const LobbyPage: Page = {
 
 function Lobby() {
   // Local state for UI visibility
+  const [isLoading, setIsLoading] = createSignal(true);
+
   const [isCustomizeOpen, setIsCustomizeOpen] = createSignal(false);
   const [isSettingsOpen, setIsSettingsOpen] = createSignal(false);
   const [currentTimer, setCurrentTimer] = createSignal(DEFAULT_TIMER);
@@ -96,7 +97,7 @@ function Lobby() {
     if (isKickOpen()) {
       setIsKick(null);
     }
-  }
+  };
 
   onMount(() => {
     const interval = setInterval(() => {
@@ -105,12 +106,41 @@ function Lobby() {
       setLobbyTicket((t) => t + 1);
     }, 1000);
 
+    const hostCheck = setInterval(() => {
+      if (isHost() && !getState("hostId")) {
+        setState("hostId", myPlayer().id, true); // true for reliable state
+        clearInterval(hostCheck);
+      }
+    }, 100);
+
     const settingsSync = setInterval(() => {
       setCurrentTimer(getState("timer-seconds") ?? DEFAULT_TIMER);
     }, 100);
 
     const me = myPlayer();
-    if (!me.getState("character")) {
+    const initSequence = async () => {
+      // Wait for connection and room code
+      while (!getRoomCode()) await new Promise((r) => setTimeout(r, 100));
+
+      // Initialize character if missing before showing UI
+      if (!me.getState("character")) {
+        const randomChar =
+          CHARACTER_PATHS[Math.floor(Math.random() * CHARACTER_PATHS.length)];
+        me.setState("character", randomChar, true);
+      }
+
+      // Ensure host ID is established globally
+      if (isHost() && !getState("hostId")) {
+        setState("hostId", me.id, true);
+      }
+
+      // Small delay to allow state to propagate
+      setTimeout(() => setIsLoading(false), 800);
+    };
+
+    initSequence();
+
+    if (me.getState("character") === undefined && !me.getState("character")) {
       const randomChar =
         CHARACTER_PATHS[Math.floor(Math.random() * CHARACTER_PATHS.length)];
       me.setState("character", randomChar);
@@ -129,8 +159,9 @@ function Lobby() {
     }
 
     onCleanup(() => {
-      clearInterval(interval)
+      clearInterval(interval);
       clearInterval(settingsSync);
+      clearInterval(hostCheck);
     });
   });
 
@@ -157,116 +188,135 @@ function Lobby() {
   };
 
   return (
-    <div id="mainLobby-container" class="lobby-container">
-      {/* Header */}
-      <header class="lobby-header">
-        <IconButton
-          id="exit-btn"
-          defaultImg="/lobby/back_icon.png"
-          hoverImg="/lobby/back_icon_highlighted.png"
-          altText="Back"
-          onClick={() => {
-            myPlayer().leaveRoom();
-            routerNavigate("/");
-          }}
-        />
-        <h1>
-          Code: <span id="code-span">{getRoomCode() ?? "Error"}</span>
-        </h1>
-        <IconButton
-          id="settings-btn"
-          defaultImg="/lobby/settings_icon.png"
-          hoverImg="/lobby/settings_icon_highlighted.png"
-          altText="Settings"
-          onClick={() => {
-            resetKickButton();
-            setIsSettingsOpen(true);
-          }}
-        />
-      </header>
+    <Show
+      when={!isLoading()}
+      fallback={
+        <div class="lobby-loading-overlay">
+          <div class="loading-content">
+            <img
+              src="/landing-page/sheep_loading.png"
+              class="spinning-sheep"
+              alt="Loading..."
+            />
+            <p class="loading-text">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <div id="mainLobby-container" class="lobby-container">
+        {/* Header */}
+        <header class="lobby-header">
+          <IconButton
+            id="exit-btn"
+            defaultImg="/lobby/back_icon.png"
+            hoverImg="/lobby/back_icon_highlighted.png"
+            altText="Back"
+            onClick={() => {
+              myPlayer().leaveRoom();
+              routerNavigate("/");
+            }}
+          />
+          <h1>
+            Code: <span id="code-span">{getRoomCode() ?? "Error"}</span>
+          </h1>
+          <IconButton
+            id="settings-btn"
+            defaultImg="/lobby/settings_icon.png"
+            hoverImg="/lobby/settings_icon_highlighted.png"
+            altText="Settings"
+            onClick={() => {
+              resetKickButton();
+              setIsSettingsOpen(true);
+            }}
+          />
+        </header>
 
-      {/* Main Content */}
-      <main class="lobby-content">
-        <aside class="sticky-note rules-note">
-          <h3>RULES:</h3>
-          <ul>
-            <li>Number of Rounds: 3</li>
-            <li>
-              Time Limit:{" "}
+        {/* Main Content */}
+        <main class="lobby-content">
+          <aside class="sticky-note rules-note">
+            <h3>RULES:</h3>
+            <ul>
+              <li>Number of Rounds: 3</li>
+              <li>
+                Time Limit:{" "}
+                {(() => {
+                  lobbyTicket(); // Listen for changes
+                  return currentTimer();
+                })()}
+                s
+              </li>
+            </ul>
+          </aside>
+
+          <div class="player-grid">
+            <For each={players()}>
+              {(player) => {
+                return (
+                  <div>
+                    <PlayerCard
+                      player={player}
+                      onKick={() => {
+                        if (player.id != getState("hostId")) {
+                          setIsKick((prevPlayer) => {
+                            if (prevPlayer?.id === player.id) return null;
+                            return player;
+                          });
+                        }
+                      }}
+                      onCustomize={() => {
+                        resetKickButton();
+                        setIsCustomizeOpen(true);
+                      }}
+                    />
+                    <Show when={isHost() && player.id === isKickOpen()?.id}>
+                      <KickButton player={player} />
+                    </Show>
+                  </div>
+                );
+              }}
+            </For>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer class="lobby-footer">
+          <div class="ready-count">
+            {players().filter((p) => p.getState("isReady")).length}/
+            {players().length} READY
+          </div>
+          <div class="button-group">
+            <button
+              class="ready-btn"
+              onClick={() => {
+                toggleReady();
+              }}
+            >
               {(() => {
                 lobbyTicket(); // Listen for changes
-                return currentTimer();
+                return myPlayer().getState("isReady") ? "UNREADY" : "READY";
               })()}
-              s
-            </li>
-          </ul>
-        </aside>
-
-        <div class="player-grid">
-          <For each={players()}>
-            {(player) => {
-              return (
-                <div>
-                  <PlayerCard
-                    player={player}
-                    onKick={() => {
-                      if (player.id != getState("hostId")) {
-                        setIsKick(prevPlayer => {
-                          if (prevPlayer?.id === player.id) return null;
-                          return player;
-                        })
-                      }
-                    }}
-                    onCustomize={() => {
-                      resetKickButton();
-                      setIsCustomizeOpen(true);
-                    }}
-                  />
-                  <Show when={isHost() && player.id === isKickOpen()?.id}>
-                    <KickButton player={player} />
-                  </Show>
-                </div>
-              );
-            }}
-          </For>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer class="lobby-footer">
-        <div class="ready-count">
-          {players().filter((p) => p.getState("isReady")).length}/
-          {players().length} READY
-        </div>
-        <div class="button-group">
-          <button
-            class="ready-btn"
-            onClick={() => {
-              toggleReady();
-            }}
-          >
-            {(() => {
-              lobbyTicket(); // Listen for changes
-              return myPlayer().getState("isReady") ? "UNREADY" : "READY";
-            })()}
-          </button>
-
-          <Show when={isHost()}>
-            <button class="start-btn" onClick={handleStart}>
-              START &gt;&gt;
             </button>
-          </Show>
-        </div>
-      </footer>
 
-      {/* Modals */}
-      <Show when={isCustomizeOpen()}>
-        <CustomizeModal onClose={() => setIsCustomizeOpen(false)} />
-      </Show>
-      <Show when={isSettingsOpen()}>
-        <SettingsModal timerSeconds={currentTimer()} onClose={() => setIsSettingsOpen(false)} />
-      </Show>
-    </div>
+            <Show when={isHost()}>
+              <button class="start-btn" onClick={handleStart}>
+                START &gt;&gt;
+              </button>
+            </Show>
+          </div>
+        </footer>
+
+        {/* Modals */}
+        <Show when={isCustomizeOpen()}>
+          <CustomizeModal onClose={() => setIsCustomizeOpen(false)} />
+        </Show>
+        <Show when={isSettingsOpen()}>
+          <SettingsModal
+            timerSeconds={currentTimer()}
+            onClose={() => setIsSettingsOpen(false)}
+          />
+        </Show>
+      </div>
+    </Show>
   );
 }
 
@@ -290,6 +340,10 @@ function PlayerCard(props: PlayerCardProps) {
     lobbyTicket();
     return props.player.getState("isReady");
   };
+  const isHostPlayer = () => {
+    lobbyTicket();
+    return props.player.id === getState("hostId");
+  };
 
   const clickPlayerButton = () => {
     if (isMe()) {
@@ -299,18 +353,15 @@ function PlayerCard(props: PlayerCardProps) {
     if (isHost()) {
       props.onKick();
     }
-  }
+  };
 
   return (
     <div class="player-slot">
-      <Show when={props.player.id === getState("hostId")}>
+      <Show when={isHostPlayer()}>
         <img src="/lobby/crown.png" class="crown-img" alt="Host Crown" />
       </Show>
 
-      <button
-        class="player-button"
-        onClick={() => clickPlayerButton()}
-      >
+      <button class="player-button" onClick={() => clickPlayerButton()}>
         <div class="stick-man">
           <img src={char()} style="width:100%; height:100%;" />
           <For each={[0, 1, 2]}>
@@ -514,17 +565,21 @@ function KickButton(props: { player: PlayerState }) {
       }}
       style={{
         display: "block",
-      }}>
+      }}
+    >
       Kick
     </button>
   );
 }
 
-function SettingsModal(props: { timerSeconds: number, onClose: () => void }) {
+function SettingsModal(props: { timerSeconds: number; onClose: () => void }) {
   const updateTime = (amt: number) => {
     if (!isHost()) return;
     const current = getState("timer-seconds") ?? 30;
-    setState("timer-seconds", Math.max(MIN_TIMER, Math.min(MAX_TIMER, current + amt)));
+    setState(
+      "timer-seconds",
+      Math.max(MIN_TIMER, Math.min(MAX_TIMER, current + amt)),
+    );
     RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
   };
 
@@ -543,10 +598,8 @@ function SettingsModal(props: { timerSeconds: number, onClose: () => void }) {
               <button onClick={() => updateTime(TIME_INCREMENT)}>&gt;</button>
             </div>
           </div>
-
-          //TODO: VOLUME SHOULD BECOME A SIGNAL THAT IS UPDATED
-          //      BASED ON MULTIPLAYER STATE!
-
+          //TODO: VOLUME SHOULD BECOME A SIGNAL THAT IS UPDATED // BASED ON
+          MULTIPLAYER STATE!
           <div id="volumeContainer">
             <label>Volume</label>
             <input type="range" id="volumeSlider" min="0" max="100" />
