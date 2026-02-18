@@ -84,9 +84,7 @@ export const LobbyPage: Page = {
       routerNavigate("/");
     });
 
-    await getRandomName(MAX_NAME_LENGTH).then((name) => {
-      myPlayer().setState("name", name);
-    });
+    
 
     this.onEnd = render(() => <Lobby />, root);
   },
@@ -135,6 +133,10 @@ function Lobby() {
         const randomChar =
           CHARACTER_PATHS[Math.floor(Math.random() * CHARACTER_PATHS.length)];
         me.setState("character", randomChar, true);
+      }
+      if (!me.getState("name")) {
+        const randomName = await getRandomName(MAX_NAME_LENGTH)
+        me.setState("name", randomName);
       }
 
       // Ensure host ID is established globally
