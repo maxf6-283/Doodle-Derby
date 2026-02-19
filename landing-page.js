@@ -79,3 +79,122 @@ function spawnDoodle() {
     sheepPool.push(doodle);
   }, randomDuration * 1000);
 }
+
+function _buildOverlay() {
+  const overlay = document.createElement("div");
+  overlay.className = "dd-overlay";
+  return overlay;
+}
+
+function _buildModal() {
+  const modal = document.createElement("div");
+  modal.className = "dd-modal";
+  return modal;
+}
+
+function _close(overlay, modal, resolve, value) {
+  overlay.classList.add("closing");
+  modal.classList.add("closing");
+  setTimeout(() => { overlay.remove(); resolve(value); }, 150);
+}
+
+function ddAlert(titleOrMsg, message) {
+  const title = message !== undefined ? titleOrMsg : null;
+  const msg   = message !== undefined ? message : titleOrMsg;
+  return new Promise((resolve) => {
+    const overlay = _buildOverlay();
+    const modal   = _buildModal();
+    if (title) {
+      const h = document.createElement("p");
+      h.className = "dd-modal-title";
+      h.textContent = title;
+      modal.appendChild(h);
+    }
+    const p = document.createElement("p");
+    p.className = "dd-modal-message";
+    p.textContent = msg;
+    modal.appendChild(p);
+    const btnRow = document.createElement("div");
+    btnRow.className = "dd-modal-buttons";
+    const ok = document.createElement("button");
+    ok.className = "dd-btn primary";
+    ok.textContent = "OK";
+    ok.addEventListener("click", () => _close(overlay, modal, resolve, undefined));
+    btnRow.appendChild(ok);
+    modal.appendChild(btnRow);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) _close(overlay, modal, resolve, undefined);
+    });
+    ok.focus();
+  });
+}
+
+function ddPrompt(label, placeholder = "") {
+  return new Promise((resolve) => {
+    const overlay = _buildOverlay();
+    const modal   = _buildModal();
+    const p = document.createElement("p");
+    p.className = "dd-modal-message";
+    p.textContent = label;
+    modal.appendChild(p);
+    const input = document.createElement("input");
+    input.className = "dd-modal-input";
+    input.type = "text";
+    input.placeholder = placeholder || "type here...";
+    modal.appendChild(input);
+    const btnRow = document.createElement("div");
+    btnRow.className = "dd-modal-buttons";
+    const cancel = document.createElement("button");
+    cancel.className = "dd-btn";
+    cancel.textContent = "Cancel";
+    cancel.addEventListener("click", () => _close(overlay, modal, resolve, null));
+    const ok = document.createElement("button");
+    ok.className = "dd-btn primary";
+    ok.textContent = "OK";
+    ok.addEventListener("click", () => {
+      const val = input.value.trim();
+      _close(overlay, modal, resolve, val || null);
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") ok.click();
+      if (e.key === "Escape") cancel.click();
+    });
+    btnRow.appendChild(cancel);
+    btnRow.appendChild(ok);
+    modal.appendChild(btnRow);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) _close(overlay, modal, resolve, null);
+    });
+    setTimeout(() => input.focus(), 100);
+  });
+}
+
+// Wire up buttons to use the new modals
+document.getElementById("joinBtn").addEventListener("click", async () => {
+  const code = await ddPrompt("Enter Game Code:", "e.g. ABC123");
+  if (!code) return;
+  const baseUrl = window.location.origin + "/lobby.html";
+  window.location.replace(`${baseUrl}#r=${code}`);
+});
+
+document.getElementById("creditsLink").addEventListener("click", () => {
+  ddAlert("Credits!!", 
+    "Artists: Allie, Jay, Marissa, and Bella "+
+    "programmers: Neel, Seven, Zidane, Isha, Allie and... " + 
+    " audio: Jay and... " + 
+    "designers: Zidane and Emily"
+  );
+});
+
+document.getElementById("howToPlayLink").addEventListener("click", () => {
+  ddAlert("How to Play", "Each players submits 5-10 word prompts. At the start of"+ 
+    "each round, two artists are randomly selected and given a prompt to draw. " + 
+    "The rest of the players have a set time limit to guess both artists prompts. " +
+     "The artist with the most correct guesses in the time limit wins the round!" +
+     " The player who guesses the fastest gains the most points!! Have fun doodlers!!"
+  );
+});

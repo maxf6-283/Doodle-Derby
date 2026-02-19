@@ -19,10 +19,10 @@
     <div class="footer-nav">
       <div>
         <span class="version-text">Version 0.0.0</span>
-        <span class="footer-link" onclick="alert('Credits coming soon!')"
+        <span class="footer-link" id="creditsLink"
           >credits</span
         >
-        <span class="footer-link" onclick="alert('How to play: Draw fast!')"
+        <span class="footer-link" id="howToPlayLink"
           >how to play</span
         >
       </div>
@@ -45,7 +45,7 @@
           />
         </button>
 
-        <button class="image-button" id="joinBtn" onclick="joinGame()">
+        <button class="image-button" id="joinBtn">
           <img
             src="/landing-page/join_button_flat.png"
             alt="Join Lobby"
@@ -59,15 +59,6 @@
         </button>
       </div>
     </div>
-
-    <script>
-      function joinGame() {
-        const code = prompt("Enter Game Code:");
-        if (!code) return;
-        const baseUrl = window.location.origin + "/lobby.html";
-        window.location.replace(`${baseUrl}#r=${code}`);
-      }
-    </script>
     <script src="landing-page.js"></script>
   </body>
 </html>
