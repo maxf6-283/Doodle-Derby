@@ -6,7 +6,9 @@
   },
   "dependencies": {
     "playroomkit": "^0.0.95",
-    "rundev": "^0.0.0"
+    "rundev": "^0.0.0",
+    "solid-js": "^1.9.11",
+    "vite-plugin-solid": "^2.11.10"
   },
   "devDependencies": {
     "vite": "^7.3.1"
