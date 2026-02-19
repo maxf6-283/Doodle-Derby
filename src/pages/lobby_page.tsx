@@ -119,6 +119,15 @@ function Lobby() {
       }
     }, 100);
 
+      if(isHost()) {
+      Object.values(getParticipants()).forEach((player) => {
+        player.setState('score', 0);
+        if (player.getState("isArtist")) {
+            player.setState('rightGuesses', 0);
+        }
+      })
+    }
+
     const settingsSync = setInterval(() => {
       setCurrentTimer(getState("timer-seconds") ?? DEFAULT_TIMER);
     }, 100);
