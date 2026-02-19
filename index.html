@@ -4,61 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Doodle Derby</title>
-    <link rel="stylesheet" href="landing-page.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.png" />
-    
   </head>
   <body>
-    <div class="game-wrapper">
-      <button class="logo-button">
-        <img src="/landing-page/logo.png" alt="Apple Doodle" class="logo-img" />
-        <div class="logo-shadow"></div>
-      </button>
-    </div>
-
-    <div class="footer-nav">
-      <div>
-        <span class="version-text">Version 0.0.0</span>
-        <span class="footer-link" id="creditsLink"
-          >credits</span
-        >
-        <span class="footer-link" id="howToPlayLink"
-          >how to play</span
-        >
-      </div>
-
-      <div class="button-container">
-        <button
-          class="image-button"
-          id="createBtn"
-          onclick="window.location.href = 'lobby.html'"
-        >
-          <img
-            src="/landing-page/create_button_flat.png"
-            alt="Create Lobby"
-            class="btn-idle"
-          />
-          <img
-            src="/landing-page/create_button_hover.png"
-            alt="Create Lobby Hover"
-            class="btn-hover"
-          />
-        </button>
-
-        <button class="image-button" id="joinBtn">
-          <img
-            src="/landing-page/join_button_flat.png"
-            alt="Join Lobby"
-            class="btn-idle"
-          />
-          <img
-            src="/landing-page/join_button_hover.png"
-            alt="Join Lobby Hover"
-            class="btn-hover"
-          />
-        </button>
-      </div>
-    </div>
-    <script src="landing-page.js"></script>
+    <div id="root"></div>
+    <script type="module" src="index.jsx"></script>
   </body>
 </html>
