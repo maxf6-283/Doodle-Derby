@@ -7,7 +7,6 @@ import {
   getState,
   RPC,
   PlayerState,
-  insertCoin,
   onDisconnect,
 } from "playroomkit";
 
@@ -64,28 +63,12 @@ export const refreshLobby = () => setLobbyTicket((t) => t + 1);
 
 export const LobbyPage: Page = {
   async render(root: HTMLElement) {
-    // TODO: If restarting the game with entire lobby
-    //       from previous game, we shouldn't call insertCoin
-    //       again.
-    try {
-      // await insertCoin({
-      //   gameId: process.env.GAME_ID,
-      //   skipLobby: true,
-      // });
-      window.location.href = "/#r=R" + getRoomCode();
-    } catch {
-      // we have been kicked
-      alert("Permission denied - you have been kicked");
-      routerNavigate("/");
-    }
-
-    onDisconnect((ev) => {
-      //alert(`Kicked from room: ${ev.reason}`);
+    onDisconnect(ev => {
+      if (ev.reason === "PLAYER_KICKED") {
+        alert("You have been kicked by the host.");
+      }
       routerNavigate("/");
     });
-
-    
-
     this.onEnd = render(() => <Lobby />, root);
   },
 };
@@ -160,7 +143,11 @@ function Lobby() {
     RPC.register("refresh_lobby_ui", async () => refreshLobby());
 
     RPC.register("start-game", async () => {
-      routerNavigate("/pick-words");
+      // This is temporary for switching
+      // to gameplay page directly
+
+      // routerNavigate("/pick-words");
+      routerNavigate("/game");
     });
 
     // Ensure host is set on mount
