@@ -55,12 +55,18 @@ function paintActionDefault(): PaintAction {
   };
 }
 
+enum PaintMode {
+  DRAW,
+  ERASE,
+  FILL
+}
+
 export class PaintCanvas {
   private image: Konva.Image
   private layer: Konva.Layer
   private context: CanvasRenderingContext2D
 
-  private _isErasing: boolean
+  private _paintMode: PaintMode = PaintMode.DRAW;
   private currentBrush: Brush
 
   private undoBuffer: PaintAction[]
@@ -100,8 +106,6 @@ export class PaintCanvas {
     this.context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
     this.currentBrush = brush;
-
-    this._isErasing = false;
 
     this.undoBuffer = [];
     this.redoBuffer = [];
@@ -145,7 +149,7 @@ export class PaintCanvas {
 
       if (segment.length == 0) return;
 
-      let newBoundingBox = this.drawPoint(segment, brush, this.isErasing, imageData);
+      let newBoundingBox = this.drawPoint(segment, brush, imageData);
       if (newBoundingBox == null) return;
       if (currentBoundingBox == null) {
         currentBoundingBox = { ...newBoundingBox };
@@ -243,7 +247,7 @@ export class PaintCanvas {
 
       isPainting = true;
 
-      currentType = this.isErasing ?
+      currentType = this.paintMode == PaintMode.ERASE ?
         PaintActionType.Erase :
         PaintActionType.Draw;
 
@@ -295,12 +299,8 @@ export class PaintCanvas {
     return imageData;
   }
 
-  get isErasing() {
-    return this._isErasing;
-  }
-
-  setErasing(isErasing: boolean) {
-    this._isErasing = isErasing;
+  get paintMode() {
+    return this._paintMode;
   }
 
   get brushColor() {
@@ -412,7 +412,6 @@ export class PaintCanvas {
   private drawPoint(
     points: [number, number][],
     brush: Brush,
-    isErasing: boolean,
     image: ImageData
   ): BoundingBox | null {
     if (points.length == 0) {
@@ -420,7 +419,7 @@ export class PaintCanvas {
       return null;
     }
 
-    let color = isErasing ? "#ffffff" : brush.color;
+    let color = this.paintMode == PaintMode.ERASE ? "#ffffff" : brush.color;
 
     let radius = brush.strokeWidth;
 
