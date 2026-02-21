@@ -4,8 +4,7 @@ import { createSignal, onMount, onCleanup } from "solid-js";
 
 import { getParticipants, PlayerState, me, isHost, RPC, getState, setState } from "playroomkit";
 
-import konva from "konva";
-import { PaintCanvas } from "../../api/draw/painting"
+import { ArtistCanvasComponent } from "../../api/draw/artist_canvas_component";
 
 import "../../style/game.css"
 
@@ -13,6 +12,7 @@ import "../../style/game.css"
 const randInt = (length: number) => {
   return Math.floor(Math.random() * length);
 }
+
 function pickPrompts() {
   let firstArtistIndex = -1;
   let secondArtistIndex = -1;
@@ -94,63 +94,6 @@ const DrawPage = () => {
   let color_button: HTMLInputElement | undefined;
 
   onMount(() => {
-    let stage = new konva.Stage({
-      container,
-      width: 600,
-      height: 600
-    });
-
-    if (canvas == null) return;
-
-    canvas.width = stage.width();
-    canvas.height = stage.height();
-
-    let paint = new PaintCanvas(
-      canvas,
-      { x: 0, y: 0 },
-      stage,
-      { color: "#000000", strokeWidth: 5 }
-    );
-
-    function changeBrushSize(size: number) {
-      paint.setBrushStrokeWidth(size);
-    }
-
-    function changeColor(color: string) {
-      console.log("In change colour ", color);
-      paint.setBrushColor(color);
-    }
-
-    intervalId = setInterval(() => {
-      const url = canvas.toDataURL();
-      RPC.call("canvasChange", { data: url }, RPC.Mode.OTHERS);
-    }, 300);
-
-    small_button?.addEventListener('click', () => changeBrushSize(5));
-    med_button?.addEventListener('click', () => changeBrushSize(20));
-    large_button?.addEventListener('click', () => changeBrushSize(30));
-    color_button?.addEventListener('input', () => changeColor(color_button.value));
-
-
-    window.addEventListener("keydown", ev => {
-      if (ev.key == "e") {
-        paint.setErasing(!paint.isErasing);
-      }
-
-      if (ev.key == "u") {
-        paint.undo();
-      }
-
-      if (ev.key == "r") {
-        paint.redo();
-      }
-
-      if (ev.key == "f") {
-        let x = stage.pointerPos?.x as number;
-        let y = stage.pointerPos?.y as number;
-        paint.fill(Math.floor(x), Math.floor(y), paint.brushColor);
-      }
-    });
   });
 
   let prompt: string = me().getState('prompt');
@@ -266,109 +209,17 @@ function DrawImages(props: { drawCanvases: Map<string, string> }) {
     </ul>);
 }
 
-// THIS IS VERY BAD REMOVE THIS AS SOON AS POSSIBLE
-let disposeSolid: (() => void) | null = null;
-
-function actualRender(root: HTMLElement) {
-  const currentPlayer = me();
-  const Dummy = () => {
-
-    let isArtist: boolean = currentPlayer.getState("isArtist") ?? false;
-    const [drawCanvases, setDrawCanvases] = createSignal(new Map<string, string>())
-
-    RPC.register('canvasChange', async (payload, player) => {
-      let name = player.getState('name') ?? "";
-      if (name === "") {
-        console.error("Hey someone's name doesn't exist");
-      }
-      const guessersSize = Object.values(getParticipants()).length - 2;
-      if (getState('playersGuessed') == guessersSize) {
-        return;
-      }
-      setDrawCanvases(previous => {
-        const newMap = new Map(previous);
-        newMap.set(name, payload.data);
-        return newMap;
-      });
-    });
-
-    onCleanup(() => {
-      clearInterval(intervalId);
-      setDrawCanvases(new Map<string, string>());
-    });
-
-    if (isArtist) {
-      console.log(`my only prompt: ${currentPlayer.getState('prompt')}`);
-      let myName: string = me().getState('name') ?? "";
-
-      return (
-        <div style={{ display: "flex", "gap": "3rem" }}>
-          <DrawImages drawCanvases={
-            new Map()
-          } />
-          <DrawPage />
-        </div>
-      );
-    }
-
-    return (
-      <div style={{ display: "flex", "flex-direction": "column", gap: "24px" }}>
-        <DrawImages drawCanvases={drawCanvases()} />
-        <SpectatorPage />
-      </div>
-    )
-  };
-
-  disposeSolid = render(() => (<Dummy />), root);
+function GameplayPageMain() {
+  return (
+    <div>
+      <h1>This is the Gameplay Page</h1>
+      <ArtistCanvasComponent />
+    </div>
+  );
 }
-
-//
 
 export const GameplayPage: Page = {
   render(root: HTMLElement) {
-    RPC.register('actualRender', async () => actualRender(root));
-    RPC.register('playerGuessed', async () => {
-      if (!isHost()) return;
-      setState('playersGuessed', getState('playersGuessed') + 1);
-      const guessersSize = Object.values(getParticipants()).length - 2;
-      if (getState('playersGuessed') == guessersSize) {
-        RPC.call('startNewLoop', {}, RPC.Mode.HOST);
-      }
-    });
-    RPC.register('dumpRender', async () => {
-      if (disposeSolid == null) {
-        console.error("this shouldn't be null!!!");
-        return;
-      }
-      console.log('solid disposed. start new loop');
-      disposeSolid();
-      actualRender(root);
-    });
-    RPC.register('startNewLoop', async () => {
-      if (isHost()) {
-        console.log('called loop');
-        pickRandomArtists();
-        pickPrompts();
-        setState('playersGuessed', 0);
-        RPC.call('dumpRender', {}, RPC.Mode.ALL);
-      }
-    });
-
-    if (isHost()) {
-      const participants: PlayerState[] = Object.values(getParticipants());
-      let size = participants.length;
-      let availablePlayers: number[] = [];
-      for (let i = 0; i < size; i++) {
-        availablePlayers.push(i);
-      }
-
-      setState('playersGuessed', 0);
-      setState("availablePlayers", availablePlayers);
-
-      pickRandomArtists();
-      pickPrompts();
-      RPC.call('actualRender', {}, RPC.Mode.OTHERS);
-      actualRender(root);
-    }
+    render(() => (<GameplayPageMain />), root);
   }
 }
