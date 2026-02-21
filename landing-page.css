@@ -12,7 +12,6 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* Recreates the lined notebook paper look */
   background-color: var(--bg-blue);
   background-image: linear-gradient(
     rgba(152, 197, 214, 0.5) 0.1em,
@@ -59,7 +58,7 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Reduced gap since images likely have whitespace */
+  gap: 10px; 
   transform: rotate(3deg);
 }
 
@@ -72,18 +71,17 @@ body {
   transition: transform 0.1s;
 }
 
-/* Control the size of your button images here */
+
 .image-button img {
   width: 250px;
   height: auto;
   display: block;
 }
-/* Hover Logic: Hide the hover image by default */
+
 .image-button .btn-hover {
   display: none;
 }
 
-/* Show hover image and hide idle image on hover */
 .image-button:hover .btn-idle {
   display: none;
 }
@@ -92,7 +90,7 @@ body {
   display: block;
 }
 
-/* Slight scale effect for extra juice */
+
 .image-button:hover {
   transform: scale(1.05);
 }
@@ -103,19 +101,19 @@ body {
 
 .footer-nav {
   position: absolute;
-  bottom: 20px; /* More breathing room */
+  bottom: 20px; 
   left: 30px;
   right: 30px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  font-size: 22px; /* Slightly larger for the cursive font */
+  font-size: 22px;
   font-family: "WinterDrawFont", cursive;
-  color: #222;
-  pointer-events: none; /* Allows clicks to pass through empty space */
+  color: #000000;
+  pointer-events: none; 
 }
 .footer-nav > div {
-  pointer-events: auto; /* Re-enable clicks for the links */
+  pointer-events: auto; 
   display: flex;
   gap: 25px;
   align-items: center;
@@ -127,7 +125,7 @@ body {
   transition: color 0.2s ease;
 }
 
-/* The "Underline" effect */
+
 .footer-link::after {
   content: "";
   position: absolute;
@@ -137,7 +135,6 @@ body {
   left: 0;
   background-color: #000;
   transition: width 0.1s ease-in;
-  /* Makes the line look slightly "shaky" like a doodle */
   border-radius: 50%;
 }
 
@@ -146,7 +143,7 @@ body {
 }
 
 .footer-link:hover {
-  color: #333; /* Subtle shift on hover */
+  color: #333;
   transform: scale(1.05);
 }
 .footer-link:active {
@@ -172,7 +169,6 @@ body {
   outline: none;
   position: relative;
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  /* Ensures the logo stays in front of its shadow */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,7 +182,7 @@ body {
   transition:
     transform 0.1s ease,
     filter 0.1s ease;
-  /* Gives it a slightly "inked" look */
+
   filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.1));
 }
 .logo-button:hover .logo-img {
@@ -194,15 +190,13 @@ body {
   filter: drop-shadow(6px 8px 0px rgba(0, 0, 0, 0.15));
 }
 .logo-button:active .logo-img {
-  /* Push the logo "down" into the paper */
   transform: scale(0.92) translateY(4px);
-  /* Flatten the shadow as it gets closer to the page */
   filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.2));
 }
 
 .moving-sheep {
   position: absolute;
-  right: -200px; /* Start off-screen to the right */
+  right: -200px;
   pointer-events: none;
   z-index: -1;
 }
@@ -211,7 +205,6 @@ body {
     transform: translateX(0);
   }
   to {
-    /* Moves the element across the width of the screen */
     transform: translateX(-120vw);
   }
 }
@@ -219,7 +212,7 @@ body {
 .dd-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -241,53 +234,39 @@ body {
 }
 
 .dd-modal {
-  background-color: #f2f2f2;
-  background-image: linear-gradient(
-    rgba(152, 197, 214, 0.5) 0.1em,
-    transparent 0.1em
-  );
-  background-size: 100% 40px;
-  border: 2px solid #222;
-  border-radius: 4px;
-  padding: 36px 40px 28px;
-  min-width: 300px;
-  max-width: 420px;
+  background-color: #fef08a;
+  border: none;
+  border-radius: 2px;
+  padding: 32px 32px 24px 32px;
+  min-width: 280px;
+  max-width: 380px;
   width: 90%;
   font-family: "WinterDrawFont", cursive;
   position: relative;
-  box-shadow: 4px 6px 0px rgba(0,0,0,0.12);
-  transform: rotate(-1.5deg) scale(0.85);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+  box-shadow:
+    4px 4px 0px rgb(0, 0, 0),
+    8px 8px 0px rgba(0,0,0,0);
+  transform: rotate(1.5deg) scale(0.85);
   animation: modalIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .dd-modal::before {
   content: "";
   position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%) rotate(2deg);
-  width: 60px;
-  height: 22px;
-  background: rgba(255, 202, 218, 0.75);
-  border: 1px solid rgba(0,0,0,0.15);
-  border-radius: 2px;
-  box-shadow: inset 0 0 6px rgba(255,255,255,0.5);
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: #ca9;
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  opacity: 0.4;
 }
 
-.dd-modal::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 48px;
-  bottom: 0;
-  width: 1.5px;
-  background: rgba(255, 140, 160, 0.6);
-  pointer-events: none;
-}
 
 @keyframes modalIn {
-  from { transform: rotate(-1.5deg) scale(0.85); opacity: 0; }
-  to   { transform: rotate(-1.5deg) scale(1);    opacity: 1; }
+  from { transform: rotate(1.5deg) scale(0.85); opacity: 0; }
+  to   { transform: rotate(1.5deg) scale(1);    opacity: 1; }
 }
 
 .dd-modal.closing {
@@ -295,71 +274,67 @@ body {
 }
 
 @keyframes modalOut {
-  from { transform: rotate(-1.5deg) scale(1);   opacity: 1; }
-  to   { transform: rotate(-1.5deg) scale(0.9); opacity: 0; }
+  from { transform: rotate(1.5deg) scale(1);   opacity: 1; }
+  to   { transform: rotate(1.5deg) scale(0.9); opacity: 0; }
 }
 
 .dd-modal-title {
-  font-size: 28px;
-  margin: 0 0 16px;
-  color: #222;
-  padding-left: 56px;
-  line-height: 40px;
+  font-size: 26px;
+  margin: 0 0 12px;
+  color: #000000;
+  line-height: 32px;
 }
 
 .dd-modal-message {
-  font-size: 20px;
-  color: #333;
-  margin: 0 0 24px;
-  padding-left: 56px;
-  line-height: 40px;
+  font-size: 19px;
+  color: #000000;
+  margin: 0 0 20px;
+  line-height: 32px;
 }
 
 .dd-modal-input {
   display: block;
-  width: calc(100% - 56px);
-  margin-left: 56px;
-  margin-bottom: 24px;
-  padding: 6px 10px;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 4px 0;
   font-family: "WinterDrawFont", cursive;
-  font-size: 22px;
+  font-size: 20px;
   border: none;
-  border-bottom: 2px dashed #888;
+  border-bottom: 2px dashed rgba(0,0,0,0);
   background: transparent;
   outline: none;
-  color: #222;
+  color: #333;
   box-sizing: border-box;
 }
 
 .dd-modal-input:focus {
-  border-bottom-color: #222;
+  border-bottom-color: rgba(0,0,0,0.6);
 }
 
 .dd-modal-input::placeholder {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 .dd-modal-buttons {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: flex-end;
-  padding-left: 56px;
 }
 
 .dd-btn {
   font-family: "WinterDrawFont", cursive;
-  font-size: 20px;
+  font-size: 19px;
   background: none;
-  border: 2px solid #222;
-  border-radius: 3px;
-  padding: 4px 20px;
+  border: 2px solid rgba(0,0,0,0);
+  border-radius: 2px;
+  padding: 3px 18px;
   cursor: pointer;
   transition: transform 0.1s, background 0.1s;
-  color: #222;
+  color: #000000;
 }
 
 .dd-btn:hover {
-  background: rgba(0,0,0,0.07);
+  background: rgba(0,0,0,0);
   transform: scale(1.04);
 }
 
@@ -368,10 +343,11 @@ body {
 }
 
 .dd-btn.primary {
-  background: #222;
-  color: #f2f2f2;
+  background: rgba(0,0,0,0);
+  border-color: rgba(0,0,0,0);
+  color: #222;
 }
 
 .dd-btn.primary:hover {
-  background: #444;
+  background: rgba(0,0,0,0);
 }

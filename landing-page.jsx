@@ -68,20 +68,21 @@ export default function LandingPage() {
 
   function handleCredits() {
     ddAlert("Credits!!",
-      "Artists: Allie, Jay, Marissa, and Bella\n" +
-      "Programmers: Neel, Seven, Zidane, Isha, Allie\n" +
+      "Artists: Allie, Jay, Marissa, Bella\n" +
+      "Programmers: Neel, Seven, Zidane, Isha, Jack, Adrian\n" +
       "Audio: Jay\n" +
-      "Designers: Zidane and Emily"
+      "Designers: Emily",
+      "group_photo.png"
     );
   }
 
   function handleHowToPlay() {
     ddAlert("How to Play",
-      "Each player submits 5-10 word prompts.\n" +
-      "At the start of each round, two artists are randomly selected and given a prompt to draw.\n" +
-      "The rest of the players have a set time limit to guess both artists' prompts.\n" +
-      "The artist with the most correct guesses wins the round!\n" +
-      "The player who guesses the fastest gains the most points!! Have fun doodlers!!"
+      "Each player submits 5-10 word prompts." +
+      " At the start of each round, two artists are randomly selected and given a prompt to draw." +
+      " The rest of the players have a set time limit to guess both artists' prompts." +
+      " The artist with the most correct guesses wins the round!" +
+      " The player who guesses the fastest gains the most points!! Have fun doodlers!!"
     );
   }
 
@@ -142,6 +143,14 @@ function AlertModal(props) {
             {(line, i) => <>{line}{i() < lines().length - 1 && <br />}</>}
           </For>
         </p>
+        <show when={props.imgSrc}>
+          <img src={props.imgSrc} style ={{
+            display: "block",
+            margin: "10px auto",
+            "max-width": "380px",
+            height: "auto",
+          }} />
+        </show>
         <div class="dd-modal-buttons">
           <button class="dd-btn primary" onClick={close}>OK</button>
         </div>
@@ -171,10 +180,10 @@ function PromptModal(props) {
   );
 }
 
-function ddAlert(titleOrMsg, message) {
+function ddAlert(titleOrMsg, message, imgSrc = null) {
   const title = message !== undefined ? titleOrMsg : null;
   const msg = message !== undefined ? message : titleOrMsg;
-  return mountModal(AlertModal, { title, message: msg });
+  return mountModal(AlertModal, { title, message: msg, imgSrc });
 }
 
 function ddPrompt(label, placeholder = "") {
