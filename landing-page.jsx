@@ -134,6 +134,7 @@ function AlertModal(props) {
   const lines = () => props.message.split("\n");
   return (
     <div class={`dd-overlay${closing() ? " closing" : ""}`} onClick={(e) => e.target === e.currentTarget && close()}>
+      <div class="dd-modal-wrapper">
       <div class={`dd-modal${closing() ? " closing" : ""}`}>
         <Show when={props.title}>
           <p class="dd-modal-title">{props.title}</p>
@@ -153,6 +154,7 @@ function AlertModal(props) {
         </show>
         <div class="dd-modal-buttons">
           <button class="dd-btn primary" onClick={close}>OK</button>
+          </div>
         </div>
       </div>
     </div>
