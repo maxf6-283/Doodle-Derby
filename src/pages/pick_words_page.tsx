@@ -5,109 +5,112 @@ import {
   RPC,
   setState,
   getState,
-  PlayerState
+  PlayerState,
 } from "playroomkit";
 
-import { Page } from "../../api/page"
+import { Page } from "../../api/page";
 import { routerNavigate } from "../../api/tiny_router";
 import { render } from "solid-js/web";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 
-import "../../style/pick-words.css"
+import "../../style/pick-words.css";
 
-const MAX_WORDS = 10;
+const MAX_WORDS = 1;
 
 // Even though you can get the words completed
-// through the player state, we must store a changing 
+// through the player state, we must store a changing
 // value in order to trigger a rerender of the component,
-// because we end up storing the same player references 
+// because we end up storing the same player references
 // every interval
 interface PlayerStateWordInfo {
-  player: PlayerState,
-  wordsCompleted: number
+  player: PlayerState;
+  wordsCompleted: number;
 }
 
 function PlayerCards() {
   const [playersList, setPlayersList] = createSignal<PlayerStateWordInfo[]>([]);
   onMount(() => {
-    const interval = setInterval(
-      () => {
-        const players = Object.values(getParticipants());
-        setPlayersList(previousPair => {
-          let newPair = players.map((player) => {
-            let playerTuple: PlayerStateWordInfo = {
-              player,
-              wordsCompleted: player.getState('words_complete') ?? 0
-            }
-            return playerTuple;
-          });
-
-          if (newPair.length != previousPair.length) {
-            return newPair;
-          }
-
-          // If new pair matches old pair, then return old pair.
-          // We don't want to trigger any rerenders.
-          const same = previousPair.every(
-            (player, i) =>
-              player.wordsCompleted === newPair[i].wordsCompleted,
-            newPair
-          );
-
-          return same ? previousPair : newPair;
+    const interval = setInterval(() => {
+      const players = Object.values(getParticipants());
+      setPlayersList((previousPair) => {
+        let newPair = players.map((player) => {
+          let playerTuple: PlayerStateWordInfo = {
+            player,
+            wordsCompleted: player.getState("words_complete") ?? 0,
+          };
+          return playerTuple;
         });
-      },
-      250
-    );
+
+        if (newPair.length != previousPair.length) {
+          return newPair;
+        }
+
+        // If new pair matches old pair, then return old pair.
+        // We don't want to trigger any rerenders.
+        const same = previousPair.every(
+          (player, i) => player.wordsCompleted === newPair[i].wordsCompleted,
+          newPair,
+        );
+
+        return same ? previousPair : newPair;
+      });
+    }, 250);
     onCleanup(() => clearInterval(interval));
   });
-
 
   return (
     <div class="players-progress-list" id="players-progress-list">
       <For each={playersList()} fallback={<h1>Loading players...</h1>}>
-        {
-          ({ player, wordsCompleted }) => {
-            const name = player.getState("name") || "Guest";
-            const characterImg = player.getState("character");
-            const accessories: string[] = [
-              player.getState("acc_0"),
-              player.getState("acc_1"),
-              player.getState("acc_2")
-            ].filter(a => a);
+        {({ player, wordsCompleted }) => {
+          const name = player.getState("name") || "Guest";
+          const characterImg = player.getState("character");
+          const accessories: string[] = [
+            player.getState("acc_0"),
+            player.getState("acc_1"),
+            player.getState("acc_2"),
+          ].filter((a) => a);
 
-            const words_complete = wordsCompleted;
-            const progressPercent = (words_complete / MAX_WORDS) * 100;
+          const words_complete = wordsCompleted;
+          const progressPercent = (words_complete / MAX_WORDS) * 100;
 
-            const card = document.createElement("div");
-            card.className = "player-progress-card";
+          const card = document.createElement("div");
+          card.className = "player-progress-card";
 
-            return (
-              <div class="player-progress-card">
-                <span class="player-name-label"> {name} {player.id === myPlayer().id ? "(You)" : ""} </span>
-                <div class="player-icon-wrapper">
-                  <div class="mini-stick-man">
-                    {characterImg ? <img src={`${characterImg}`} class="base-char" /> : "ツ"}
-                    <For each={accessories}>
-                      {
-                        (acc) => {
-                          acc = acc.replace("/accessories/", "/accessories-equip/");
-                          return <img src={acc} class="acc-layer" />
-                        }
-                      }
-                    </For>
-                  </div>
-                </div>
-                <div class="progress-container-vertical">
-                  <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style={`width: ${progressPercent}%`}></div>
-                  </div>
-                  <span class="progress-text">{words_complete}/{MAX_WORDS}</span>
+          return (
+            <div class="player-progress-card">
+              <span class="player-name-label">
+                {" "}
+                {name} {player.id === myPlayer().id ? "(You)" : ""}{" "}
+              </span>
+              <div class="player-icon-wrapper">
+                <div class="mini-stick-man">
+                  {characterImg ? (
+                    <img src={`${characterImg}`} class="base-char" />
+                  ) : (
+                    "ツ"
+                  )}
+                  <For each={accessories}>
+                    {(acc) => {
+                      acc = acc.replace("/accessories/", "/accessories-equip/");
+                      return <img src={acc} class="acc-layer" />;
+                    }}
+                  </For>
                 </div>
               </div>
-            );
-          }
-        }
+              <div class="progress-container-vertical">
+                <div class="progress-bar-bg">
+                  <div
+                    class="progress-bar-fill"
+                    style={`width: ${progressPercent}%`}
+                  ></div>
+                </div>
+                <span class="progress-text">
+                  {words_complete}/{MAX_WORDS}
+                </span>
+              </div>
+            </div>
+          );
+        }}
       </For>
     </div>
   );
@@ -121,7 +124,10 @@ function syncState(words: string[]) {
   myPlayer().setState("words_complete", words.length);
 }
 
-function SubmitWord(props: { words: string[], pushWord: (word: string) => void }) {
+function SubmitWord(props: {
+  words: string[];
+  pushWord: (word: string) => void;
+}) {
   const [wordInput, setWordInput] = createSignal("");
   const [invalidInput, setInvalidInput] = createSignal(false);
 
@@ -131,10 +137,10 @@ function SubmitWord(props: { words: string[], pushWord: (word: string) => void }
       props.pushWord(new_word);
       setWordInput("");
     } else {
-      setInvalidInput(invalid => invalid = true);
-      setTimeout(() => setInvalidInput(invalid => invalid = false), 300);
+      setInvalidInput((invalid) => (invalid = true));
+      setTimeout(() => setInvalidInput((invalid) => (invalid = false)), 300);
     }
-  }
+  };
 
   const onUpdateWord = (newWord: string) => {
     setWordInput(newWord);
@@ -153,28 +159,32 @@ function SubmitWord(props: { words: string[], pushWord: (word: string) => void }
           onInput={(element) => onUpdateWord(element.currentTarget.value)}
         />
 
-        <button id="add-word-btn" onClick={_ => submitWord()}><b>SUBMIT</b></button>
+        <button id="add-word-btn" onClick={(_) => submitWord()}>
+          <b>SUBMIT</b>
+        </button>
       </div>
     </div>
   );
 }
 
-function WordsList(props: { words: string[], deleteWord: (word: number) => void }) {
+function WordsList(props: {
+  words: string[];
+  deleteWord: (word: number) => void;
+}) {
   return (
     <div class="word-list-container" id="word-list">
       <For each={props.words}>
-        {(word, index) =>
-        (
+        {(word, index) => (
           <div class="word-item">
-            <span>
-              {word}
-            </span>
-            <button class="delete-btn" onClick={_ => props.deleteWord(index())}>
+            <span>{word}</span>
+            <button
+              class="delete-btn"
+              onClick={(_) => props.deleteWord(index())}
+            >
               &times;
             </button>
           </div>
-        )
-        }
+        )}
       </For>
     </div>
   );
@@ -184,26 +194,25 @@ function WaitingPage(props: { readyToStart: boolean }) {
   let [host, _] = createSignal(isHost());
 
   const onStart = () => {
-    if (host() && !(getState('drawing-transition') ?? false)) {
+    if (host() && !(getState("drawing-transition") ?? false)) {
       RPC.call("players-start-game", {}, RPC.Mode.OTHERS);
       routerNavigate("/game");
-      setState('drawing-transition', true);
+      setState("drawing-transition", true);
     }
   };
 
   return (
     <>
       <div id="waiting-screen" class="waiting-screen" style="flex">
-        <h1 class="waiting-label" id="waiting-status-text" >
+        <h1 class="waiting-label" id="waiting-status-text">
           {
-            // For more complex conditions, we should 
+            // For more complex conditions, we should
             // avoid ternary bs
-            !props.readyToStart || !host() ?
-              !props.readyToStart ?
-                "Waiting for other players..." :
-                "Waiting for the Host to start..."
-              :
-              "Start Doodling!"
+            !props.readyToStart || !host()
+              ? !props.readyToStart
+                ? "Waiting for other players..."
+                : "Waiting for the Host to start..."
+              : "Start Doodling!"
           }
         </h1>
         <PlayerCards />
@@ -213,7 +222,7 @@ function WaitingPage(props: { readyToStart: boolean }) {
         id="start-game-btn"
         class="continue-btn"
         style={!props.readyToStart || !host() ? "display: none;" : "block"}
-        onClick={_ => onStart()}
+        onClick={(_) => onStart()}
       >
         START DOODLING!
       </button>
@@ -240,7 +249,9 @@ function PickWordsMain() {
 
     RPC.register("player-picked-words", async (_payload, _player) => {
       const players = Object.values(getParticipants());
-      const allFinished = players.every(p => p.getState("picked_words") === true);
+      const allFinished = players.every(
+        (p) => p.getState("picked_words") === true,
+      );
 
       if (allFinished) {
         // Tell everyone (including the host themselves) that we are ready
@@ -250,17 +261,17 @@ function PickWordsMain() {
   });
 
   const deleteWord = (index: number) => {
-    setWordsList(words => {
+    setWordsList((words) => {
       words.splice(index, 1);
       return [...words];
     });
     syncState(wordsList());
-  }
+  };
 
   const pushWord = (word: string) => {
-    setWordsList(words => [...words, word]);
+    setWordsList((words) => [...words, word]);
     syncState(wordsList());
-  }
+  };
 
   const continueToWaiting = () => {
     setIsWaiting(true);
@@ -269,24 +280,27 @@ function PickWordsMain() {
   };
 
   return (
-    <Show when={!isWaiting()} fallback={<WaitingPage readyToStart={allPlayersReady()} />}>
+    <Show
+      when={!isWaiting()}
+      fallback={<WaitingPage readyToStart={allPlayersReady()} />}
+    >
       <div class="pick-words-container">
         <WordsList words={wordsList()} deleteWord={deleteWord} />
-        <h1 class="input-label"><strong>WRITE ANYTHING...</strong></h1>
+        <h1 class="input-label">
+          <strong>WRITE ANYTHING...</strong>
+        </h1>
         <SubmitWord words={wordsList()} pushWord={pushWord} />
       </div>
-
-      // If this is greater than MAX_WORDS
-      // something is wrong.
+      // If this is greater than MAX_WORDS // something is wrong.
       <button
         id="continue-btn"
         class="continue-btn"
         style={
-          wordsList().length >= MAX_WORDS ?
-            wordsList().length.toString() :
-            "display: none"
+          wordsList().length >= MAX_WORDS
+            ? wordsList().length.toString()
+            : "display: none"
         }
-        onClick={_ => continueToWaiting()}
+        onClick={(_) => continueToWaiting()}
       >
         CONTINUE
       </button>
@@ -296,6 +310,6 @@ function PickWordsMain() {
 
 export const PickWordsPage: Page = {
   async render(root: HTMLElement) {
-    this.onEnd = render(() => (<PickWordsMain />), root);
+    this.onEnd = render(() => <PickWordsMain />, root);
   },
-}
+};
