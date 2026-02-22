@@ -121,26 +121,42 @@ function SelectPrompts(props: { onPromptsPicked: () => void }) {
   );
 }
 
-function ArtistPage() {
+function ArtistPage(props: { otherArtist: PlayerState }) {
   return (
     <>
-      <ArtistCanvasComponent />
+      <ArtistCanvasComponent prompt={me().getState('prompt')} />
+      <div style={{ position: 'relative' }}>
+        <div style={{ position: 'absolute', top: "60%", left: "60%", width: '100%', height: '100%', "pointer-events": 'none', "z-index": 0 }}>
+          <SpectatorCanvas artist={props.otherArtist} />
+        </div>
+        <div style={{ position: 'relative', "z-index": 1 }}>
+          <ArtistCanvasComponent prompt={me().getState('prompt')} />
+        </div>
+      </div>
     </>
   );
 }
 
-function SpectatorPage(props: { artistList: string[] }) {
+function SpectatorPage(props: { artistList: PlayerState[] }) {
   let [text, setText] = createSignal("");
   let [display, setDisplay] = createSignal("");
   let [isDisabled, setIsDisabled] = createSignal(false);
   let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
+  let [prompts, setPrompts] = createSignal<string[]>([]);
+
+  onMount(() => {
+    setPrompts([
+      props.artistList[0].getState("prompt"),
+      props.artistList[1].getState("prompt")
+    ]);
+  });
 
   return (
     <>
       <div style={{ display: 'flex', gap: '1rem' }}>
         <For each={props.artistList}>
           {item => (
-            <SpectatorCanvas artistId={item} />
+            <SpectatorCanvas artist={item} />
           )}
         </For>
       </div>
@@ -157,23 +173,24 @@ function SpectatorPage(props: { artistList: string[] }) {
 };
 
 function Gameplay() {
-  let [artists, setArtists] = createSignal<string[]>([]);
+  let [artists, setArtists] = createSignal<PlayerState[]>([]);
   let [isArtist, setIsArtist] = createSignal(false);
 
   onMount(() => {
     console.log("bruh");
     let participants = Object.values(getParticipants());
     participants = participants.filter(player => player.getState("isArtist"));
-    setArtists(participants.map(player => player.id));
     if (me().getState("isArtist")) {
+      participants = participants.filter(player => player.id !== me().id);
       setIsArtist(true);
     }
+    setArtists(participants);
   });
 
   return (
     <>
       <Show when={isArtist()} fallback={<SpectatorPage artistList={artists()} />}>
-        <ArtistPage />
+        <ArtistPage otherArtist={artists()[0]} />
       </Show>
     </>
   );
