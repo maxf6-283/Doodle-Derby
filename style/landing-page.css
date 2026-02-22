@@ -6,8 +6,17 @@
 
 /* REACTIONS */
 
+.reac-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+}
+
 .reac-img {
-  width: 50px;
+  width: 60px;
   height: auto;
   position: relative;
   z-index: 2;
@@ -16,11 +25,11 @@
     filter 0.1s ease;
 }
 .reac-button:hover .reac-img {
-  transform: scale(1.02);
+  transform: scale(1.05);
 }
 .reac-button:active .reac-img {
   /* Push the logo "down" into the paper */
-  transform: scale(0.92) translateY(4px);
+  transform: scale(0.86) translateY(4px);
 }
 
 .reac-container {
