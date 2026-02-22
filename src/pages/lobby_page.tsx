@@ -88,6 +88,8 @@ function Lobby() {
       setIsKick(null);
     }
   };
+  
+  
 
   onMount(() => {
     const interval = setInterval(() => {
@@ -185,6 +187,35 @@ function Lobby() {
       alert("Need 3+ players and everyone must be ready!");
     }
   };
+
+  /* BEGIN REACTIONS */
+
+  if (getState("reactionPressed") === undefined || !getState("reactionPressed")){
+    setState("reactionPressed", "");
+  }
+
+  const newReaction = (path: string) => {
+    const reaction = document.createElement("img");
+    reaction.src = path;
+    reaction.classList.add("reac-element");
+    Object.assign(reaction.style, {
+      width: `50px`,
+      animation: `moveUp 2s ease-out`,
+      zIndex: `4`,
+    });
+
+    document.body.appendChild(reaction);
+    setTimeout(() => reaction.remove(), 2000);
+    RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
+  }
+
+  if (getState("reactionPressed") != ""){
+    console.log("yay!");
+    newReaction(getState("reactionPressed"));
+    setState("reactionPressed", "");
+  }
+
+  /* END REACTIONS */
 
   return (
     <Show
@@ -284,6 +315,31 @@ function Lobby() {
               }}
             </For>
           </div>
+
+          {/* Reactions */}
+
+          <div class="reac-container">
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/cool.png"); }}>
+              <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
+            </button>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/ellipsis.png"); }}>
+              <img src="/reactions/ellipsis.png" class="reac-img" alt="Ellipsis"/>
+            </button>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/laugh.png"); }}>
+              <img src="/reactions/laugh.png" class="reac-img" alt="Laugh"/>
+            </button>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/question.png"); }}>
+              <img src="/reactions/question.png" class="reac-img" alt="Question"/>
+            </button>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/sad.png"); }}>
+              <img src="/reactions/sad.png" class="reac-img" alt="Sad"/>
+            </button>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/tomato.png"); }}>
+              <img src="/reactions/tomato.png" class="reac-img" alt="Tomato"/>
+            </button>
+          </div>
+
+
         </main>
 
         {/* Footer */}
