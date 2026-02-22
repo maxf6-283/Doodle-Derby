@@ -40,6 +40,8 @@ function LandingMain() {
   const eventDuration = 10;
 
 
+  /* BEGIN REACTIONS */
+
   const newReaction = (path: string) => {
     const reaction = document.createElement("img");
     reaction.src = path;
@@ -53,6 +55,8 @@ function LandingMain() {
     document.body.appendChild(reaction);
     setTimeout(() => reaction.remove(), 2000);
   }
+
+  /* END REACTIONS */
 
   const spawnSheep = () => {
     const doodle = document.createElement("img");
@@ -106,26 +110,22 @@ function LandingMain() {
       {/* Reactions */}
 
     <div class="reac-container">
-      <button class="reac-button"
-        onClick={() => {
-              newReaction("/reactions/cool.png");
-              console.log("works!");
-            }}>
+      <button class="reac-button" onClick={() => { newReaction("/reactions/cool.png"); }}>
         <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
       </button>
-      <button class="reac-button">
+      <button class="reac-button" onClick={() => { newReaction("/reactions/ellipsis.png"); }}>
         <img src="/reactions/ellipsis.png" class="reac-img" alt="Ellipsis"/>
       </button>
-      <button class="reac-button">
+      <button class="reac-button" onClick={() => { newReaction("/reactions/laugh.png"); }}>
         <img src="/reactions/laugh.png" class="reac-img" alt="Laugh"/>
       </button>
-      <button class="reac-button">
+      <button class="reac-button" onClick={() => { newReaction("/reactions/question.png"); }}>
         <img src="/reactions/question.png" class="reac-img" alt="Question"/>
       </button>
-      <button class="reac-button">
+      <button class="reac-button" onClick={() => { newReaction("/reactions/sad.png"); }}>
         <img src="/reactions/sad.png" class="reac-img" alt="Sad"/>
       </button>
-      <button class="reac-button">
+      <button class="reac-button" onClick={() => { newReaction("/reactions/tomato.png"); }}>
         <img src="/reactions/tomato.png" class="reac-img" alt="Tomato"/>
       </button>
     </div>
