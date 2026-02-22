@@ -53,12 +53,12 @@
 
 .button-container {
   position: absolute;
-  bottom: 40px;
-  right: 40px;
+  bottom: 50px;
+  right: 5px;
   display: flex;
-  flex-direction: column;
-  align-self: flex-end;
-  gap: 10px; /* Reduced gap since images likely have whitespace */
+  flex-direction: row;
+  align-self: center;
+  gap: 0px; /* Reduced gap since images likely have whitespace */
   transform: rotate(3deg);
 }
 
@@ -73,7 +73,7 @@
 
 /* Control the size of your button images here */
 .image-button img {
-  width: 250px;
+  width: 200px;
   height: auto;
   display: block;
 }
@@ -108,7 +108,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  font-size: 22px; /* Slightly larger for the cursive font */
+  font-size: 16px; /* Slightly larger for the cursive font */
   font-family: "WinterDrawFont", cursive;
   color: #222;
   pointer-events: none; /* Allows clicks to pass through empty space */
@@ -178,14 +178,13 @@
 }
 
 .logo-img {
-  width: 300px;
+  width: 150px;
   height: auto;
   position: relative;
   z-index: 2;
   transition:
     transform 0.1s ease,
     filter 0.1s ease;
-
 }
 .logo-button:hover .logo-img {
   transform: scale(1.02);
@@ -222,7 +221,7 @@
   background: transparent;
   border: 2px dashed #000;
   font-family: "WinterDrawFont", cursive;
-  font-size: 24px;  
+  font-size: 24px;
   text-align: center;
   width: 150px;
   padding: 10;
@@ -231,13 +230,66 @@
   animation: slideUp 0.2s ease-out;
 }
 
+@media screen and (min-width: 800px) {
+  .logo-img {
+    width: 300px;
+    height: auto;
+    position: relative;
+    z-index: 2;
+    transition:
+      transform 0.1s ease,
+      filter 0.1s ease;
+  }
+  .button-container {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    align-self: flex-end;
+    gap: 10px; /* Reduced gap since images likely have whitespace */
+    transform: rotate(3deg);
+  }
+  .image-button img {
+    width: 250px;
+    height: auto;
+    display: block;
+  }
+
+.footer-nav {
+  position: absolute;
+  bottom: 20px; /* More breathing room */
+  left: 30px;
+  right: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 22px; /* Slightly larger for the cursive font */
+  font-family: "WinterDrawFont", cursive;
+  color: #222;
+  pointer-events: none; /* Allows clicks to pass through empty space */
+}
+  
+}
+
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Ensure the keyframe from your JS is in the CSS */
 @keyframes moveLeft {
-  from { transform: translateX(0); }
-  to { transform: translateX(-120vw); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-120vw);
+  }
 }
+
