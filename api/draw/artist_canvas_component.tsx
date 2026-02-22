@@ -3,6 +3,8 @@ import 'solid-js/web';
 import konva from "konva";
 import { onCleanup, createSignal, createEffect, onMount } from 'solid-js';
 
+import { PlayerState } from 'playroomkit';
+
 import {
   PaintMode,
   PaintCanvas,
@@ -191,7 +193,7 @@ function DrawCanvas(props: { prompt: string }) {
   );
 }
 
-export function SpectatorCanvas(props: { artistId: string }) {
+export function SpectatorCanvas(props: { artist: PlayerState }) {
   let containerRef: HTMLDivElement | undefined;
 
   let [width] = createSignal(600);
@@ -208,33 +210,33 @@ export function SpectatorCanvas(props: { artistId: string }) {
     }
 
     RPC.register("onStrokeBegin", async (payload: NetworkStrokePayload, player) => {
-      if (player.id !== props.artistId) return;
+      if (player.id !== props.artist.id) return;
       paintCanvas.clientStartRecordStroke();
       paintCanvas.drawPointsClient(payload.points, payload.currentBrush, payload.paintMode);
     });
 
     RPC.register("onStrokeMove", async (payload: NetworkStrokePayload, player) => {
-      if (player.id !== props.artistId) return;
+      if (player.id !== props.artist.id) return;
       paintCanvas.drawPointsClient(payload.points, payload.currentBrush, payload.paintMode);
     });
 
     RPC.register("onStrokeEnd", async (payload: BoundingBox, player) => {
-      if (player.id !== props.artistId) return;
+      if (player.id !== props.artist.id) return;
       paintCanvas.registerUndoClient(payload)
     });
 
     RPC.register("onFill", async (payload: NetworkFillPayload, player) => {
-      if (player.id !== props.artistId) return;
+      if (player.id !== props.artist.id) return;
       paintCanvas.fill(payload.x, payload.y, payload.color);
     });
 
     RPC.register("onUndo", async (_, player) => {
-      if (player.id !== props.artistId) return;
+      if (player.id !== props.artist.id) return;
       paintCanvas.undo();
     });
 
     RPC.register("onRedo", async (_, player) => {
-      if (player.id !== props.artistId) return;
+      if (player.id !== props.artist.id) return;
       paintCanvas.redo();
     });
 
@@ -261,20 +263,17 @@ export function SpectatorCanvas(props: { artistId: string }) {
 
   return (
     <>
-      <h1>
-        Spectating Host
-      </h1>
+      <h1> {props.artist.getState('name')} </h1>
       <div ref={containerRef} id='container-spectator'>
       </div>
     </>
   );
 }
 
-export function ArtistCanvasComponent() {
+export function ArtistCanvasComponent(props: { prompt: string }) {
   return (
     <div class="artist-canvas-component">
-      <h1>Artist Canvas Component</h1>
-      <DrawCanvas prompt={"Donkey"} />
+      <DrawCanvas prompt={props.prompt} />
     </div>
   );
 }
