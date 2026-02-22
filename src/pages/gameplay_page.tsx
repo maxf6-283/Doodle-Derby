@@ -1,10 +1,10 @@
 import { Page } from "../../api/page";
 import { render } from "solid-js/web"
-import { createSignal, onMount, onCleanup } from "solid-js";
+import { createSignal, onMount, Show } from "solid-js";
 
-import { getParticipants, PlayerState, me, isHost, RPC, getState, setState } from "playroomkit";
+import { getParticipants, PlayerState, me, RPC, getState, setState, isHost } from "playroomkit";
 
-import { ArtistCanvasComponent } from "../../api/draw/artist_canvas_component";
+import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/artist_canvas_component";
 
 import "../../style/game.css"
 
@@ -210,10 +210,29 @@ function DrawImages(props: { drawCanvases: Map<string, string> }) {
 }
 
 function GameplayPageMain() {
+  let [hostId, setHostId] = createSignal("");
+  onMount(() => {
+    RPC.register("setHostId", async (payload: string, _) => {
+      console.log(payload, "set");
+      setHostId(payload);
+    });
+    if (isHost()) {
+      RPC.call("setHostId", me().id, RPC.Mode.ALL);
+    }
+  });
+
   return (
     <div>
       <h1>This is the Gameplay Page</h1>
       <ArtistCanvasComponent />
+
+      <Show when={!isHost()}>
+        <div style={{ display: 'flex', "justify-content": 'flex-end' }}>
+          <div style={{ "margin-right": '4%' }}>
+            <SpectatorCanvas artistId={hostId()} />
+          </div>
+        </div>
+      </Show>
     </div>
   );
 }
