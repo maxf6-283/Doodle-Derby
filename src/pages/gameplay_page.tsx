@@ -2,7 +2,7 @@ import { Page } from "../../api/page";
 import { render, For } from "solid-js/web"
 import { createSignal, onMount, Show } from "solid-js";
 
-import { getParticipants, PlayerState, me, RPC, getState, setState, isHost } from "playroomkit";
+import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroomkit";
 
 import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/artist_canvas_component";
 
