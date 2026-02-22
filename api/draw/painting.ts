@@ -15,7 +15,7 @@ export enum PaintActionType {
   Fill
 }
 
-type BoundingBox = {
+export interface BoundingBox {
   min: [number, number],
   max: [number, number]
 }
@@ -55,12 +55,42 @@ function paintActionDefault(): PaintAction {
   };
 }
 
+export enum PaintMode {
+  DRAW,
+  ERASE,
+  FILL
+}
+
+export type NetworkedFillCallback = (x: number, y: number, color: string) => void;
+export type NetworkedStrokeCallback = (points: [number, number][], currentBrush: Brush, paintMode: PaintMode) => void;
+
+export interface NetworkFillPayload {
+  x: number,
+  y: number,
+  color: string
+};
+
+export interface NetworkStrokePayload {
+  points: [number, number][],
+  currentBrush: Brush,
+  paintMode: PaintMode
+};
+
+export interface NetworkPaintCallbacks {
+  onFill: NetworkedFillCallback,
+  onStrokeBegin: (payload: NetworkStrokePayload) => void,
+  onStrokeMove: NetworkedStrokeCallback,
+  onStrokeEnd: (boundingBox: BoundingBox) => void,
+  onUndo: () => void,
+  onRedo: () => void
+}
+
 export class PaintCanvas {
   private image: Konva.Image
   private layer: Konva.Layer
   private context: CanvasRenderingContext2D
 
-  private _isErasing: boolean
+  private _paintMode: PaintMode = PaintMode.DRAW;
   private currentBrush: Brush
 
   private undoBuffer: PaintAction[]
@@ -79,13 +109,18 @@ export class PaintCanvas {
   // Track if undo or redo was used
   private hasReverted: boolean = false;
 
+  private networkCallbacks: NetworkPaintCallbacks | null = null;
+
+  private previousClientImageData: ImageData | null = null;
+
   // Initializes internals of PaintCanvas and sets up
   // callbacks for drawing.
   constructor(
     canvas: HTMLCanvasElement,
     pos: Konva.Vector2d,
     stage: Konva.Stage,
-    brush: Brush
+    brush: Brush,
+    isSpectator: boolean = false
   ) {
     this.image = new Konva.Image({
       image: canvas,
@@ -101,11 +136,22 @@ export class PaintCanvas {
 
     this.currentBrush = brush;
 
-    this._isErasing = false;
-
     this.undoBuffer = [];
     this.redoBuffer = [];
 
+    if (!isSpectator) {
+      this.registerImageCallbacks(stage);
+    }
+
+    stage.add(this.layer);
+
+    this.canvasWidth = this.layer.getWidth() as number;
+    this.canvasHeight = this.layer.getHeight() as number;
+
+    this.clear();
+  }
+
+  private registerImageCallbacks(stage: Konva.Stage) {
     let currentType: PaintActionType = PaintActionType.Draw;
 
     let isPainting = false;
@@ -133,6 +179,7 @@ export class PaintCanvas {
       if (this.pointsBuffer.length > this.requiredPoints) {
         let segment = this.getSegmentPoints(this.pointsBuffer);
         if (segment.length == 0) return;
+        this.networkCallbacks?.onStrokeMove(segment, this.currentBrush, this.paintMode);
         submitDraw();
         this.pointsBuffer.shift();
       }
@@ -145,7 +192,8 @@ export class PaintCanvas {
 
       if (segment.length == 0) return;
 
-      let newBoundingBox = this.drawPoint(segment, brush, this.isErasing, imageData);
+      let newBoundingBox = this.drawPoint(segment, this.currentBrush, this.paintMode, imageData);
+
       if (newBoundingBox == null) return;
       if (currentBoundingBox == null) {
         currentBoundingBox = { ...newBoundingBox };
@@ -159,10 +207,17 @@ export class PaintCanvas {
     };
 
     const finish = () => {
+      if (this.paintMode == PaintMode.FILL) {
+        return;
+      }
+
       if (currentBoundingBox == null) {
         console.error("no bounding box created!");
         return;
       }
+
+      this.networkCallbacks?.onStrokeEnd(currentBoundingBox);
+
       if (previousImageData == null) {
         console.error("previous image data is NULL!");
         return;
@@ -222,7 +277,10 @@ export class PaintCanvas {
       finish();
     });
 
-    this.image.on('mousedown', () => {
+    this.image.on('mousedown', ev => {
+      // Only left clicks are processed
+      if (ev.evt.button != 0) return;
+
       if (imageData == null ||
         this.hasFilled ||
         this.hasReverted
@@ -231,6 +289,30 @@ export class PaintCanvas {
         this.hasFilled = false;
         this.hasReverted = false;
       }
+
+      if (this.paintMode == PaintMode.FILL) {
+        let currentMousePos = stage.pointerPos as Vector2d;
+        let pos: [number, number] = [
+          currentMousePos.x - this.layer.getPosition().x,
+          currentMousePos.y - this.layer.getPosition().y
+        ];
+
+        this.fill(pos[0], pos[1], this.currentBrush.color);
+        this.networkCallbacks?.onFill(pos[0], pos[1], this.currentBrush.color);
+        return;
+      }
+
+      let currentMousePos = stage.pointerPos as Vector2d;
+      let pos: [number, number] = [
+        currentMousePos.x - this.layer.getPosition().x,
+        currentMousePos.y - this.layer.getPosition().y
+      ];
+
+      this.networkCallbacks?.onStrokeBegin({
+        points: [pos],
+        currentBrush: this.currentBrush,
+        paintMode: this.paintMode
+      });
 
       previousImageData = this.context.getImageData(
         0,
@@ -243,7 +325,7 @@ export class PaintCanvas {
 
       isPainting = true;
 
-      currentType = this.isErasing ?
+      currentType = this.paintMode == PaintMode.ERASE ?
         PaintActionType.Erase :
         PaintActionType.Draw;
 
@@ -256,17 +338,82 @@ export class PaintCanvas {
       if (!isPainting || imageData == null) return;
       draw(imageData);
     });
-
-    stage.add(this.layer);
-
-    this.canvasWidth = this.layer.getWidth() as number;
-    this.canvasHeight = this.layer.getHeight() as number;
-
-    this.clear();
   }
 
-  public getPixelBuffer(): ArrayBuffer {
-    return this.getImageData().data.buffer;
+  public setNetworkCallbacks(callbacks: NetworkPaintCallbacks) {
+    this.networkCallbacks = {
+      onStrokeBegin: callbacks.onStrokeBegin,
+      onStrokeMove: callbacks.onStrokeMove,
+      onStrokeEnd: callbacks.onStrokeEnd,
+      onFill: callbacks.onFill,
+      onUndo: callbacks.onUndo,
+      onRedo: callbacks.onRedo
+    }
+  }
+
+  public drawPointsClient(points: [number, number][], brush: Brush, paintMode: PaintMode) {
+    let imageData = this.getImageData();
+
+    if (points.length == 0) return;
+
+    this.drawPoint(points, brush, paintMode, imageData);
+    this.context.putImageData(imageData, 0, 0);
+    this.layer.batchDraw();
+  }
+
+  public clientStartRecordStroke() {
+    this.previousClientImageData = this.context.getImageData(
+      0,
+      0,
+      this.canvasWidth,
+      this.canvasHeight
+    );
+  }
+
+  public registerUndoClient(boundingBox: BoundingBox) {
+    let startX = Math.floor(boundingBox.min[0]);
+    let startY = Math.floor(boundingBox.min[1]);
+    let endX = Math.floor(boundingBox.max[0]);
+    let endY = Math.floor(boundingBox.max[1]);
+
+    let width = endX - startX;
+    let height = endY - startY;
+
+    if (this.previousClientImageData == null) {
+      console.warn("Never registered previous pixel data of client");
+      return;
+    }
+
+    let previousImage = this.getImageSlice(
+      this.previousClientImageData,
+      startX,
+      startY,
+      width,
+      height
+    );
+
+    let afterImage = this.context.getImageData(
+      startX,
+      startY,
+      width,
+      height
+    );
+
+    let paintAction = paintActionDefault();
+
+    paintAction.strokes = {
+      afterImage,
+      beforeImage: previousImage,
+      boundingBox: { ...boundingBox }
+    };
+
+    this.undoBuffer.push({
+      ...paintAction
+    });
+  }
+
+  public setPaintMode(mode: PaintMode) {
+    this._paintMode = mode;
   }
 
   private getImageData() {
@@ -295,12 +442,8 @@ export class PaintCanvas {
     return imageData;
   }
 
-  get isErasing() {
-    return this._isErasing;
-  }
-
-  setErasing(isErasing: boolean) {
-    this._isErasing = isErasing;
+  get paintMode() {
+    return this._paintMode;
   }
 
   get brushColor() {
@@ -412,7 +555,7 @@ export class PaintCanvas {
   private drawPoint(
     points: [number, number][],
     brush: Brush,
-    isErasing: boolean,
+    paintMode: PaintMode,
     image: ImageData
   ): BoundingBox | null {
     if (points.length == 0) {
@@ -420,7 +563,7 @@ export class PaintCanvas {
       return null;
     }
 
-    let color = isErasing ? "#ffffff" : brush.color;
+    let color = paintMode == PaintMode.ERASE ? "#ffffff" : brush.color;
 
     let radius = brush.strokeWidth;
 
@@ -505,6 +648,8 @@ export class PaintCanvas {
     if (this.undoBuffer.length == 0)
       return;
 
+    this.networkCallbacks?.onUndo();
+
     let lastAction = this.undoBuffer.pop() as PaintAction;
     this.redoBuffer.push(lastAction);
 
@@ -516,6 +661,8 @@ export class PaintCanvas {
   redo() {
     if (this.redoBuffer.length == 0)
       return;
+
+    this.networkCallbacks?.onRedo();
 
     let lastAction = this.redoBuffer.pop() as PaintAction;
     this.undoBuffer.push(lastAction);
@@ -562,7 +709,7 @@ export class PaintCanvas {
 
     const newColorRGB = this.hexToRGB(newColor);
 
-    let oldColorRGB = getPixelColor(x, y);
+    let oldColorRGB = getPixelColor(Math.floor(x), Math.floor(y));
     if (isSameColor(newColorRGB, oldColorRGB, 0)) {
       return;
     }

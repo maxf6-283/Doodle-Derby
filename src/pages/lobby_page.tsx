@@ -7,7 +7,6 @@ import {
   getState,
   RPC,
   PlayerState,
-  insertCoin,
   onDisconnect,
 } from "playroomkit";
 
@@ -64,27 +63,12 @@ export const refreshLobby = () => setLobbyTicket((t) => t + 1);
 
 export const LobbyPage: Page = {
   async render(root: HTMLElement) {
-    // TODO: If restarting the game with entire lobby
-    //       from previous game, we shouldn't call insertCoin
-    //       again.
-    try {
-      // await insertCoin({
-      //   gameId: process.env.GAME_ID,
-      //   skipLobby: true,
-      // });
-      window.location.href = "/#r=R" + getRoomCode();
-    } catch {
-      // we have been kicked
-      alert("Permission denied - you have been kicked");
-      routerNavigate("/");
-    }
-
-    onDisconnect((ev) => {
-      //alert(`Kicked from room: ${ev.reason}`);
+    onDisconnect(ev => {
+      if (ev.reason === "PLAYER_KICKED") {
+        alert("You have been kicked by the host.");
+      }
       routerNavigate("/");
     });
-
-    
 
     this.onEnd = render(() => <Lobby />, root);
   },
@@ -124,6 +108,7 @@ function Lobby() {
         player.setState('score', 0);
         if (player.getState("isArtist")) {
             player.setState('rightGuesses', 0);
+            console.log("right guesses set to zero");
         }
       })
     }
@@ -144,7 +129,7 @@ function Lobby() {
         me.setState("character", randomChar, true);
       }
       if (!me.getState("name")) {
-        const randomName = await getRandomName(MAX_NAME_LENGTH)
+        const randomName = await getRandomName(MAX_NAME_LENGTH);
         me.setState("name", randomName);
       }
 
@@ -170,6 +155,11 @@ function Lobby() {
 
     RPC.register("start-game", async () => {
       routerNavigate("/pick-words");
+
+      // Uncomment to switch
+      // to gameplay page directly
+
+      // routerNavigate("/game");
     });
 
     // Ensure host is set on mount
@@ -270,16 +260,17 @@ function Lobby() {
           <div class="player-grid">
             <For each={players()}>
               {(player) => {
+                const [isKick, setIsKick] = createSignal(false);
                 return (
-                  <div>
+                  <div
+                    class="player-slot"
+                    style={{ position: "relative" }}
+                  >
                     <PlayerCard
                       player={player}
                       onKick={() => {
-                        if (player.id != getState("hostId")) {
-                          setIsKick((prevPlayer) => {
-                            if (prevPlayer?.id === player.id) return null;
-                            return player;
-                          });
+                        if (player.id !== getState("hostId")) {
+                          setIsKick(!isKick());
                         }
                       }}
                       onCustomize={() => {
@@ -287,8 +278,16 @@ function Lobby() {
                         setIsCustomizeOpen(true);
                       }}
                     />
-                    <Show when={isHost() && player.id === isKickOpen()?.id}>
-                      <KickButton player={player} />
+                    <Show when={isHost() && player.id !== myPlayer().id}>
+                      <button
+                        class="kick-btn"
+                        onClick={() => {
+                          player.kick();
+                          
+                        }}
+                      >
+                        ×
+                      </button>
                     </Show>
                   </div>
                 );
@@ -574,22 +573,7 @@ function CustomizeModal(props: CustomizeModalProps) {
   );
 }
 
-//TODO: STYLE THIS W/ CSS MAGIC!!!
-function KickButton(props: { player: PlayerState }) {
-  return (
-    <button
-      id="kick-btn"
-      onclick={() => {
-        props.player.kick();
-      }}
-      style={{
-        display: "block",
-      }}
-    >
-      Kick
-    </button>
-  );
-}
+
 
 function SettingsModal(props: { timerSeconds: number; onClose: () => void }) {
   const updateTime = (amt: number) => {

@@ -17,7 +17,8 @@
     "src/pages/pick_words_page.tsx", 
     "src/pages/lobby_page.tsx", 
     "src/pages/landing_page.tsx",
-    "src/pages/guess_comp.tsx"
+    "src/pages/guess_comp.tsx",
+    "api/draw/artist_canvas_component.tsx"
   ]
 
 }

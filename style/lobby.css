@@ -85,7 +85,7 @@ body {
 }
 
 .icon-btn:hover img {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 /* Rules Note */
@@ -139,20 +139,28 @@ body {
 
   /* Create an invisible border of the target thickness */
   border: 2px solid transparent;
-  transition: none;
+  outline : none;
+  box-shadow: none;
 
-  /* Ensure it wraps the inner stick-man perfectly */
   width: fit-content;
   height: fit-content;
+  transition: border-color 0.2s ease;
 }
 
 .player-button:hover {
+  border-color: var(--sticky-purple);
+}
+.player-button:focus {
+  outline : none;
+}
+
+.stick-man:hover {
   /* Visuals appear on hover by changing the border color */
-  border-color: #1a1a1a;
+  border-color: var(--sticky-purple);
 }
 
 /* Optional: remove default focus outline if you prefer the custom border */
-.player-button:focus {
+.stick-man:focus {
   outline: none;
 }
 
@@ -844,4 +852,60 @@ body {
   to {
     transform: rotate(360deg);
   }
+}
+
+.kick-sticky-note {
+  position: absolute; /* Appears on top of the player being kicked */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--sticky-yellow);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  transform: rotate(-2deg); /* Aesthetic sticky note tilt */
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.kick-content p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--sticky-black);
+  margin: 0;
+  pointer-events: none; /* Let the click pass to the parent div */
+}
+
+/* Style for the 'X' button that triggers the modal */
+.kick-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--margin-red);
+  border: 2px solid var(--sticky-black);
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 0.2s ease
+}
+.player-slot:hover .kick-btn {
+  opacity: 1;
+}
+
+/* X Button Hover Effects */
+.kick-btn:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.kick-btn:active {
+  transform: scale(0.9);
 }
