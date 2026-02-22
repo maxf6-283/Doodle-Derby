@@ -91,7 +91,11 @@ function LandingMain() {
       {/* Reactions */}
 
     <div class="reac-container">
-      <button class="reac-button">
+      <button class="reac-button"
+        onClick={() => {
+              const sound = new Audio("/audio/bark.mp3");
+              sound.play();
+            }}>
         <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
       </button>
       <button class="reac-button">
