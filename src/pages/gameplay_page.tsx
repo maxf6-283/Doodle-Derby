@@ -224,13 +224,13 @@ function GameplayPageMain() {
   return (
     <div>
       <h1>This is the Gameplay Page</h1>
-      <ArtistCanvasComponent />
+      <Show when={isHost()}>
+        <ArtistCanvasComponent />
+      </Show>
 
       <Show when={!isHost()}>
-        <div style={{ display: 'flex', "justify-content": 'flex-end' }}>
-          <div style={{ "margin-right": '4%' }}>
-            <SpectatorCanvas artistId={hostId()} />
-          </div>
+        <div style={{ display: 'flex', "justify-content": 'center', "align-items": 'center', width: '100%', height: '100%' }}>
+          <SpectatorCanvas artistId={hostId()} />
         </div>
       </Show>
     </div>
