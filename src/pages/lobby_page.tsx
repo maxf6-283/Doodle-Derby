@@ -143,11 +143,12 @@ function Lobby() {
     RPC.register("refresh_lobby_ui", async () => refreshLobby());
 
     RPC.register("start-game", async () => {
-      // This is temporary for switching
+      routerNavigate("/pick-words");
+
+      // Uncomment to switch
       // to gameplay page directly
 
-      // routerNavigate("/pick-words");
-      routerNavigate("/game");
+      // routerNavigate("/game");
     });
 
     // Ensure host is set on mount
