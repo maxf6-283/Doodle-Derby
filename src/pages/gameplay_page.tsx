@@ -1,429 +1,292 @@
 import { Page } from "../../api/page";
-import { render } from "solid-js/web"
-import { createSignal, onMount, onCleanup } from "solid-js";
+import { render, For } from "solid-js/web"
+import { createSignal, onMount, Show } from "solid-js";
 
-import { getParticipants, PlayerState, me, isHost, RPC, getState, setState, usePlayersState, myPlayer } from "playroomkit";
+import { getParticipants, PlayerState, me, RPC, getState, setState, usePlayersState, myPlayer, isHost } from "playroomkit";
 
-import konva from "konva";
-import { PaintCanvas } from "../../api/draw/painting"
+import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/artist_canvas_component";
 
-import "../../style/game.css"
+import "../../style/game.css";
 
 // Functions here are throwaways and only serve as substitutes
 const randInt = (length: number) => {
   return Math.floor(Math.random() * length);
-}
+};
+
 function pickPrompts() {
-  let firstArtistIndex = -1;
-  let secondArtistIndex = -1;
   let participants = Object.values(getParticipants());
-  participants.forEach((player, index) => {
-    if (player.getState("isArtist") && firstArtistIndex < 0) {
-      firstArtistIndex = index;
-    } else if (player.getState("isArtist") && secondArtistIndex < 0) {
-      secondArtistIndex = index;
+  let allWords: string[] = [];
+
+  // Consolidate all words from all players
+  participants.forEach((p) => {
+    const words = p.getState("words") || [];
+    allWords = [...allWords, ...words];
+  });
+
+  // Shuffle the pool
+  allWords.sort(() => Math.random() - 0.5);
+
+  participants.forEach((player) => {
+    if (player.getState("isArtist")) {
+      // Pick 2 unique words for this artist from the pool
+      const choices = allWords.splice(0, 2);
+      // Give the artist their choices via state
+      player.setState("promptChoices", choices, true);
+      // Clear any previous selection
+      player.setState("prompt", "");
     }
   });
 
-  if (firstArtistIndex == secondArtistIndex || firstArtistIndex < 0 || secondArtistIndex < 0) {
-    alert("Something went terribly wrong with picking prompts for artists!");
-    return;
-  }
-
-  let firstWords: string[] = participants[firstArtistIndex].getState("words");
-  let secondWords: string[] = participants[secondArtistIndex].getState("words");
-
-  participants[secondArtistIndex].setState('prompt', firstWords[randInt(firstWords.length)].toLowerCase());
-  participants[firstArtistIndex].setState('prompt', secondWords[randInt(secondWords.length)].toLowerCase());
-
-  let promptList: string[] = [];
-  promptList.push(participants[secondArtistIndex].getState('prompt'));
-  promptList.push(participants[firstArtistIndex].getState('prompt'));
-
-  setState('promptList', promptList);
+  // Update remaining global pool if needed for other logic
+  setState("globalWordPool", allWords);
 }
 
 function pickRandomArtists() {
-  let availablePlayers: number[] = getState("availablePlayers");
-
-  if (availablePlayers.length == 0) {
-    alert("Game is done! Refresh and restart to play again >:)");
-    return;
-  }
-
-  //Picking the first artist
-  let random = randInt(availablePlayers.length);
-  let firstArtistIndex: number = availablePlayers[random];
-  availablePlayers.splice(random, 1);
   let participants = Object.values(getParticipants());
+  let currentArtistPool = participants.filter(player => {
+    if (player.getState("hasChosen") == null) {
+      player.setState("hasChosen", false);
+    }
 
-  //Picking the second artist
-  let secondArtistIndex: number;
-  if (availablePlayers.length == 0) {
-    let secondRandom = firstArtistIndex;
+    player.setState("isArtist", false);
+
+    return !player.getState("hasChosen");
+  }
+  );
+  let firstIndex = randInt(currentArtistPool.length);
+  let secondIndex = firstIndex;
+  if (currentArtistPool.length == 1) {
+    let secondIndex = randInt(participants.length);
+    while (participants[secondIndex].id === currentArtistPool[firstIndex].id) {
+      secondIndex = randInt(participants.length);
+    }
+  } else {
     do {
-      secondRandom = randInt(participants.length);
-    } while (secondRandom == firstArtistIndex);
-    secondArtistIndex = secondRandom;
-  }
-  else {
-    random = randInt(availablePlayers.length);
-    secondArtistIndex = availablePlayers[random];
-    availablePlayers.splice(random, 1);
+      secondIndex = randInt(currentArtistPool.length);
+    } while (secondIndex == firstIndex);
   }
 
-  setState('availablePlayers', availablePlayers);
+  currentArtistPool[firstIndex].setState("isArtist", true);
+  currentArtistPool[firstIndex].setState("hasChosen", true);
 
-  participants.forEach((player: PlayerState) => {
-    player.setState("isArtist", false)
-  });
-  participants[firstArtistIndex].setState("isArtist", true);
-  participants[secondArtistIndex].setState("isArtist", true);
+  if (currentArtistPool.length == 1) {
+    participants[secondIndex].setState("isArtist", true);
+    participants[secondIndex].setState("hasChosen", true);
+  } else {
+    currentArtistPool[secondIndex].setState("isArtist", true);
+    currentArtistPool[secondIndex].setState("hasChosen", true);
+  }
 }
 
-// This is very hacky! Let's change this as soon as possible!!!
-
-let intervalId: NodeJS.Timeout
-
-const DrawPage = () => {
-  let container: HTMLDivElement | undefined;
-  let canvas: HTMLCanvasElement | undefined;
-  let small_button: HTMLInputElement | undefined;
-  let med_button: HTMLInputElement | undefined;
-  let large_button: HTMLInputElement | undefined;
-  let color_button: HTMLInputElement | undefined;
+function SelectPrompts(props: { onPromptsPicked: () => void }) {
+  let [isArtist, setIsArtist] = createSignal(false);
+  let [numPromptsPicked, setNumPromptsPicked] = createSignal(0);
 
   onMount(() => {
-    let stage = new konva.Stage({
-      container,
-      width: 600,
-      height: 600
+    setIsArtist(false);
+
+    RPC.register("randomArtistsPicked", async () => {
+      setIsArtist(me().getState("isArtist"));
     });
 
-    if (canvas == null) return;
-
-    canvas.width = stage.width();
-    canvas.height = stage.height();
-
-    let paint = new PaintCanvas(
-      canvas,
-      { x: 0, y: 0 },
-      stage,
-      { color: "#000000", strokeWidth: 5 }
-    );
-
-    function changeBrushSize(size: number) {
-      paint.setBrushStrokeWidth(size);
-    }
-
-    function changeColor(color: string) {
-      console.log("In change colour ", color);
-      paint.setBrushColor(color);
-    }
-
-    intervalId = setInterval(() => {
-      const url = canvas.toDataURL();
-      RPC.call("canvasChange", { data: url }, RPC.Mode.OTHERS);
-    }, 300);
-
-    small_button?.addEventListener('click', () => changeBrushSize(5));
-    med_button?.addEventListener('click', () => changeBrushSize(20));
-    large_button?.addEventListener('click', () => changeBrushSize(30));
-    color_button?.addEventListener('input', () => changeColor(color_button.value));
-
-
-    window.addEventListener("keydown", ev => {
-      if (ev.key == "e") {
-        paint.setErasing(!paint.isErasing);
-      }
-
-      if (ev.key == "u") {
-        paint.undo();
-      }
-
-      if (ev.key == "r") {
-        paint.redo();
-      }
-
-      if (ev.key == "f") {
-        let x = stage.pointerPos?.x as number;
-        let y = stage.pointerPos?.y as number;
-        paint.fill(Math.floor(x), Math.floor(y), paint.brushColor);
-      }
-    });
-  });
-
-  let prompt: string = me().getState('prompt');
-
-  return (
-    <>
-      <h1 style={{ position: "fixed", right: "200px" }}>
-        {prompt.toUpperCase()}
-      </h1>
-      <div ref={container} id='container'>
-        <canvas ref={canvas} />
-      </div>
-      <div class="sidebar" id="sidebar">
-        <input type="button" ref={small_button} value="Small" />
-        <input type="button" ref={med_button} value="Medium" />
-        <input type="button" ref={large_button} value="Large" />
-        <input type="color" ref={color_button} />
-      </div>
-      <style>
-        {`
-        .sidebar {
-          position: fixed;
-        left: 5%;
-        background-color: #666666;
-        padding: 5px;
-        }
-
-        .sidebar button {
-          display: block;
-        margin: 3px;
-        }
-
-        #container {
-          border: solid 2px red;
-        position: fixed;
-        left: 25%;
-        right: auto;
-        top: 0;
-        }
-      `}
-      </style>
-    </>
-  );
-}
-
-const SpectatorPage = () => {
-  let [text, setText] = createSignal("");
-  let [display, setDisplay] = createSignal("");
-  let [isDisabled, setIsDisabled] = createSignal(false);
-  let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
-
-  let promptSet: string[] = getState("promptList");
-  console.log(promptSet);
-  console.log(promptSet.keys());
-
-  // let guessCounter = 0;
-  let correctGuesses = 0;
-
-  const guessChecker = () => {
-    if (guessedWords().find((word) => word === text().toLowerCase())) {
-      setDisplay(text() + " alr checked bruh");
-    } else if (promptSet.find(word => word === text().toLowerCase())) {
-      correctGuesses++;
-      if (correctGuesses == 2) {
-        RPC.call('playerGuessed', {}, RPC.Mode.HOST);
-      }
-      setGuessedWords((wordList: string[]) => {
-        wordList.push(text().toLowerCase())
-        return wordList;
-      });
-      //find artist
-      let firstArtistIndex = -1;
-      let secondArtistIndex = -1;
-      let participants = Object.values(getParticipants());
-      participants.forEach((player, index) => {
-        if (player.getState("isArtist") && firstArtistIndex < 0) {
-          firstArtistIndex = index;
-        } else if (player.getState("isArtist") && secondArtistIndex < 0) {
-          secondArtistIndex = index;
-        }
-      });
-
-      //Update artist right guesses to decide how many points guesser recieves
-      const promptOneTrue = text() === promptSet[0] ? firstArtistIndex : secondArtistIndex;
-      // if (promptOneTrue) {
-      //   const rGuess = participants[firstArtistIndex].getState('rightGuesses');
-      //   guess = rGuess;
-      //   participants[firstArtistIndex].setState('rightGuesses', rGuess + 1);
-      // }
-      // else {
-      //   const rGuess = participants[secondArtistIndex].getState('rightGuesses');
-      //   guess = rGuess;
-      //   participants[secondArtistIndex].setState('rightGuesses', rGuess + 1);
-      // }
-      const rGuess = participants[promptOneTrue].getState('rightGuesses');
-      let guess = rGuess;
-      console.log("Before guesses: " + participants[promptOneTrue].getState('rightGuesses'));
-      participants[promptOneTrue].setState('rightGuesses', rGuess + 1);
-
-      //add score for first guess
-      let addition = 0;
-      if(guess == 0) {
-        const currentScore = participants[promptOneTrue].getState('score');
-        participants[promptOneTrue].setState('score', currentScore +2);
-        addition = 5;
-        
-      }
-      else if (guess == 1) {
-        addition = 3;
-        const currentScore = participants[promptOneTrue].getState('score');
-        participants[promptOneTrue].setState('score', currentScore +1);
-      }
-      else {
-        addition = 1;
-        const currentScore = participants[promptOneTrue].getState('score');
-        participants[promptOneTrue].setState('score', currentScore +1);
-      }
-
-      console.log("Number of guesses:" + participants[promptOneTrue].getState('rightGuesses'));
-      console.log("Player score: " + myPlayer().getState('score'));
-      console.log("Artist score: " +participants[promptOneTrue].getState('score'));
-
-      const currentScore = myPlayer().getState('score');
-      myPlayer().setState('score', currentScore + addition);
-      setDisplay(text() + " is correct!");
-
-    }
-    if (correctGuesses >= 2) {
-      setIsDisabled(true);
-    }
-  }
-
-
-  return (
-    <>
-      <div>
-        <h2>{display()}</h2>
-      </div>
-      <input disabled={isDisabled()} type="text" onChange={(c) => setText(text => text = c.currentTarget.value)} />
-      <button onClick={guessChecker}>Submit</button>
-    </>
-  );
-}
-
-function DrawImages(props: { drawCanvases: Map<string, string> }) {
-  return (
-    <ul style={{ display: "flex", gap: "16px", padding: 0, "list-style": "none" }}>
-      {
-        Array.from(props.drawCanvases.entries()).map(([name, data]) =>
-        (
-          <li style={{ display: "flex", "align-items": "center", "flex-direction": "column" }}>
-            <span>{name}</span>
-            <img
-              src={data}
-              style={
-                {
-                  width: "120px",
-                  height: "120px",
-                  "object-fit": "contain",
-                  border: "1px solid #ccc"
-                }
-              }
-            />
-          </li>
-        )
-        )
-      }
-    </ul>);
-}
-
-// THIS IS VERY BAD REMOVE THIS AS SOON AS POSSIBLE
-let disposeSolid: (() => void) | null = null;
-
-function actualRender(root: HTMLElement) {
-  const currentPlayer = me();
-  const Dummy = () => {
-
-    let isArtist: boolean = currentPlayer.getState("isArtist") ?? false;
-    const [drawCanvases, setDrawCanvases] = createSignal(new Map<string, string>())
-
-    RPC.register('canvasChange', async (payload, player) => {
-      let name = player.getState('name') ?? "";
-      if (name === "") {
-        console.error("Hey someone's name doesn't exist");
-      }
-      const guessersSize = Object.values(getParticipants()).length - 2;
-      if (getState('playersGuessed') == guessersSize) {
-        return;
-      }
-      setDrawCanvases(previous => {
-        const newMap = new Map(previous);
-        newMap.set(name, payload.data);
-        return newMap;
-      });
-    });
-
-    onCleanup(() => {
-      clearInterval(intervalId);
-      setDrawCanvases(new Map<string, string>());
-    });
-
-    if (isArtist) {
-      console.log(`my only prompt: ${currentPlayer.getState('prompt')}`);
-      let myName: string = me().getState('name') ?? "";
-
-      return (
-        <div style={{ display: "flex", "gap": "3rem" }}>
-          <DrawImages drawCanvases={
-            new Map()
-          } />
-          <DrawPage />
-        </div>
-      );
-    }
-
-    return (
-      <div style={{ display: "flex", "flex-direction": "column", gap: "24px" }}>
-        <DrawImages drawCanvases={drawCanvases()} />
-        <SpectatorPage />
-      </div>
-    )
-  };
-
-  disposeSolid = render(() => (<Dummy />), root);
-}
-
-//
-
-export const GameplayPage: Page = {
-  render(root: HTMLElement) {
-    RPC.register('actualRender', async () => actualRender(root));
-    RPC.register('playerGuessed', async () => {
-      if (!isHost()) return;
-      setState('playersGuessed', getState('playersGuessed') + 1);
-      const guessersSize = Object.values(getParticipants()).length - 2;
-      if (getState('playersGuessed') == guessersSize) {
-        RPC.call('startNewLoop', {}, RPC.Mode.HOST);
-      }
-    });
-    RPC.register('dumpRender', async () => {
-      if (disposeSolid == null) {
-        console.error("this shouldn't be null!!!");
-        return;
-      }
-      console.log('solid disposed. start new loop');
-      disposeSolid();
-      actualRender(root);
-    });
-    RPC.register('startNewLoop', async () => {
-      if (isHost()) {
-        console.log('called loop');
-        pickRandomArtists();
-        pickPrompts();
-        setState('playersGuessed', 0);
-        RPC.call('dumpRender', {}, RPC.Mode.ALL);
+    RPC.register("pickedPrompt", async () => {
+      setNumPromptsPicked(n => n + 1);
+      if (numPromptsPicked() >= 2) {
+        setNumPromptsPicked(0);
+        props.onPromptsPicked();
       }
     });
 
     if (isHost()) {
-      const participants: PlayerState[] = Object.values(getParticipants());
-      let size = participants.length;
-      let availablePlayers: number[] = [];
-      for (let i = 0; i < size; i++) {
-        availablePlayers.push(i);
-      }
+      let participants: PlayerState[] = Object.values(getParticipants());
 
-      setState('playersGuessed', 0);
-      setState("availablePlayers", availablePlayers);
+      participants.forEach(player => {
+        player.setState("hasChosen", false);
+        player.setState("isArtist", false);
+      });
 
       pickRandomArtists();
       pickPrompts();
-      RPC.call('actualRender', {}, RPC.Mode.OTHERS);
-      actualRender(root);
+
+      RPC.call("randomArtistsPicked", {}, RPC.Mode.ALL);
     }
+  });
+
+  return (
+    <>
+      <Show when={isArtist()} fallback={<h1>Waiting for artists to pick prompt!</h1>}>
+        <RandomWordSelection onSelected={() => RPC.call("pickedPrompt", {}, RPC.Mode.ALL)} />
+      </Show>
+    </>
+  );
+}
+
+function ArtistPage(props: { otherArtist: PlayerState }) {
+  return (
+    <>
+      <ArtistCanvasComponent prompt={me().getState('prompt')} />
+      <div style={{ position: 'relative' }}>
+        <div style={{ position: 'absolute', top: "60%", left: "60%", width: '100%', height: '100%', "pointer-events": 'none', "z-index": 0 }}>
+          <SpectatorCanvas artist={props.otherArtist} />
+        </div>
+        <div style={{ position: 'relative', "z-index": 1 }}>
+          <ArtistCanvasComponent prompt={me().getState('prompt')} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function SpectatorPage(props: { artistList: PlayerState[] }) {
+  let [text, setText] = createSignal("");
+  let [display, setDisplay] = createSignal("");
+  let [isDisabled, setIsDisabled] = createSignal(false);
+  let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
+  let [prompts, setPrompts] = createSignal<string[]>([]);
+
+  onMount(() => {
+    setPrompts([
+      props.artistList[0].getState("prompt"),
+      props.artistList[1].getState("prompt")
+    ]);
+  });
+
+  return (
+    <>
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <For each={props.artistList}>
+          {item => (
+            <SpectatorCanvas artist={item} />
+          )}
+        </For>
+      </div>
+      <div>
+        <h2>{display()}</h2>
+      </div>
+      <input
+        disabled={isDisabled()}
+        type="text"
+        onChange={(c) => setText((text) => (text = c.currentTarget.value))}
+      />
+    </>
+  );
+};
+
+function Gameplay() {
+  let [artists, setArtists] = createSignal<PlayerState[]>([]);
+  let [isArtist, setIsArtist] = createSignal(false);
+
+  onMount(() => {
+    console.log("bruh");
+    let participants = Object.values(getParticipants());
+    participants = participants.filter(player => player.getState("isArtist"));
+    if (me().getState("isArtist")) {
+      participants = participants.filter(player => player.id !== me().id);
+      setIsArtist(true);
+    }
+    setArtists(participants);
+  });
+
+  return (
+    <>
+      <Show when={isArtist()} fallback={<SpectatorPage artistList={artists()} />}>
+        <ArtistPage otherArtist={artists()[0]} />
+      </Show>
+    </>
+  );
+}
+
+function GameplayPageMain() {
+  let [gameStarted, setIsGameStarted] = createSignal(false);
+
+  return (
+    <Show when={!gameStarted()} fallback={<Gameplay />}>
+      <SelectPrompts onPromptsPicked={() => setIsGameStarted(true)} />
+    </Show>
+  );
+}
+
+export const GameplayPage: Page = {
+  render(root: HTMLElement) {
+    this.onEnd = render(() => <GameplayPageMain />, root);
   }
+};
+
+export function RandomWordSelection(props: {
+  onSelected: (word: string) => void;
+}) {
+  const [choices] = createSignal<string[]>(
+    me().getState("promptChoices") || [],
+  );
+  const [selected, setSelected] = createSignal<string | null>(null);
+
+  const handleSelect = (word: string) => {
+    setSelected(word);
+    // Set the official prompt on the player state
+    me().setState("prompt", word, true);
+    props.onSelected(word);
+  };
+
+  return (
+    <Show when={!selected()} fallback={<h1> Waiting for other Artist... </h1>}>
+      <div class="selection-overlay">
+        <div class="selection-card">
+          <h2>CHOOSE YOUR PROMPT</h2>
+          <div class="choices-container">
+            <For each={choices()}>
+              {(word) => (
+                <button
+                  class="word-choice-btn"
+                  onClick={() => handleSelect(word)}
+                >
+                  {word.toUpperCase()}
+                </button>
+              )}
+            </For>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        .selection-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(0,0,0,0.85);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        .selection-card {
+          background: white;
+          padding: 2rem;
+          border-radius: 15px;
+          text-align: center;
+          border: 4px solid #333;
+        }
+        .choices-container {
+          display: flex;
+          gap: 20px;
+          margin-top: 20px;
+          justify-content: center;
+        }
+        .word-choice-btn {
+          padding: 15px 30px;
+          font-size: 1.5rem;
+          cursor: pointer;
+          background: #ffcf00;
+          border: 3px solid black;
+          font-weight: bold;
+          transition: transform 0.1s;
+        }
+        .word-choice-btn:hover {
+          transform: scale(1.05);
+          background: #ffe054;
+        }
+      `}</style>
+    </Show>
+  );
 }

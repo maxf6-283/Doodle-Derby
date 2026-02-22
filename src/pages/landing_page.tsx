@@ -8,20 +8,19 @@ import { insertCoin, isHost, myPlayer } from "playroomkit";
 async function joinLobby(code: string) {
   if (code.length == 4) {
     try {
-      console.log("before insert coin");
       await insertCoin({
         gameId: process.env.GAME_ID,
         roomCode: code,
         skipLobby: true,
       });
-     
+
       if (isHost()) {
         // Leave the accidental new room
         myPlayer().leaveRoom();
         alert("Lobby not found. Please check the code.");
         return;
       }
-      console.log("hello");
+
       routerNavigate("/lobby");
       window.location.href = "/#r=R" + code;
     } catch (error) {
