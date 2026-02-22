@@ -2,6 +2,7 @@ import Konva from "konva";
 
 import { CurveInterpolator } from "curve-interpolator";
 import { Vector2d } from "konva/lib/types";
+import { isPrimary } from "node:cluster";
 
 export interface Brush {
   // Hex (RGB) -- Ex: #FFFFFF
@@ -16,8 +17,8 @@ export enum PaintActionType {
 }
 
 export interface BoundingBox {
-  min: [number, number],
-  max: [number, number]
+  min: [number, number];
+  max: [number, number];
 }
 
 function boundingBoxDefault(): BoundingBox {
@@ -58,52 +59,60 @@ function paintActionDefault(): PaintAction {
 export enum PaintMode {
   DRAW,
   ERASE,
-  FILL
+  FILL,
 }
 
-export type NetworkedFillCallback = (x: number, y: number, color: string) => void;
-export type NetworkedStrokeCallback = (points: [number, number][], currentBrush: Brush, paintMode: PaintMode) => void;
-
-export interface NetworkFillPayload {
+export type NetworkedFillCallback = (
   x: number,
   y: number,
-  color: string
-};
-
-export interface NetworkStrokePayload {
+  color: string,
+) => void;
+export type NetworkedStrokeCallback = (
   points: [number, number][],
   currentBrush: Brush,
-  paintMode: PaintMode
-};
+  paintMode: PaintMode,
+) => void;
+
+export interface NetworkFillPayload {
+  x: number;
+  y: number;
+  color: string;
+}
+
+export interface NetworkStrokePayload {
+  points: [number, number][];
+  currentBrush: Brush;
+  paintMode: PaintMode;
+}
 
 export interface NetworkPaintCallbacks {
-  onFill: NetworkedFillCallback,
-  onStrokeBegin: (payload: NetworkStrokePayload) => void,
-  onStrokeMove: NetworkedStrokeCallback,
-  onStrokeEnd: (boundingBox: BoundingBox) => void,
-  onUndo: () => void,
-  onRedo: () => void
+  onFill: NetworkedFillCallback;
+  onStrokeBegin: (payload: NetworkStrokePayload) => void;
+  onStrokeMove: NetworkedStrokeCallback;
+  onStrokeEnd: (boundingBox: BoundingBox) => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 export interface NetworkFillPayload {
-  x: number,
-  y: number,
-  color: string
-};
+  x: number;
+  y: number;
+  color: string;
+}
 
 export interface NetworkStrokePayload {
-  points: [number, number][],
-  currentBrush: Brush,
-  paintMode: PaintMode
-};
+  points: [number, number][];
+  currentBrush: Brush;
+  paintMode: PaintMode;
+}
 
 export interface NetworkPaintCallbacks {
-  onFill: NetworkedFillCallback,
-  onStrokeBegin: (payload: NetworkStrokePayload) => void,
-  onStrokeMove: NetworkedStrokeCallback,
-  onStrokeEnd: (boundingBox: BoundingBox) => void,
-  onUndo: () => void,
-  onRedo: () => void
+  onFill: NetworkedFillCallback;
+  onStrokeBegin: (payload: NetworkStrokePayload) => void;
+  onStrokeMove: NetworkedStrokeCallback;
+  onStrokeEnd: (boundingBox: BoundingBox) => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 export class PaintCanvas {
@@ -112,7 +121,7 @@ export class PaintCanvas {
   private context: CanvasRenderingContext2D;
 
   private _paintMode: PaintMode = PaintMode.DRAW;
-  private currentBrush: Brush
+  private currentBrush: Brush;
 
   private undoBuffer: PaintAction[];
   private redoBuffer: PaintAction[];
@@ -174,6 +183,7 @@ export class PaintCanvas {
 
   private registerImageCallbacks(stage: Konva.Stage) {
     let currentType: PaintActionType = PaintActionType.Draw;
+    let isPainting = false;
 
     let imageData: ImageData | null = null;
     let previousImageData: ImageData | null = null;
@@ -199,7 +209,11 @@ export class PaintCanvas {
       if (this.pointsBuffer.length > this.requiredPoints) {
         let segment = this.getSegmentPoints(this.pointsBuffer);
         if (segment.length == 0) return;
-        this.networkCallbacks?.onStrokeMove(segment, this.currentBrush, this.paintMode);
+        this.networkCallbacks?.onStrokeMove(
+          segment,
+          this.currentBrush,
+          this.paintMode,
+        );
         submitDraw();
         this.pointsBuffer.shift();
       }
@@ -212,7 +226,12 @@ export class PaintCanvas {
 
       if (segment.length == 0) return;
 
-      let newBoundingBox = this.drawPoint(segment, this.currentBrush, this.paintMode, imageData);
+      let newBoundingBox = this.drawPoint(
+        segment,
+        this.currentBrush,
+        this.paintMode,
+        imageData,
+      );
 
       if (newBoundingBox == null) return;
       if (currentBoundingBox == null) {
@@ -274,7 +293,7 @@ export class PaintCanvas {
       submitDraw();
 
       let afterImage = this.context.getImageData(startX, startY, width, height);
-
+      isPainting = false;
 
       let paintAction = paintActionDefault();
 
@@ -297,19 +316,17 @@ export class PaintCanvas {
     });
 
     this.image.on("mouseleave", () => {
+      if (!isPainting) return;
       if (imageData == null) return;
       draw(imageData);
       finish();
     });
 
-    this.image.on('mousedown', ev => {
+    this.image.on("mousedown", (ev) => {
       // Only left clicks are processed
       if (ev.evt.button != 0) return;
 
-      if (imageData == null ||
-        this.hasFilled ||
-        this.hasReverted
-      ) {
+      if (imageData == null || this.hasFilled || this.hasReverted) {
         imageData = this.getImageData();
         this.hasFilled = false;
         this.hasReverted = false;
@@ -319,7 +336,7 @@ export class PaintCanvas {
         let currentMousePos = stage.pointerPos as Vector2d;
         let pos: [number, number] = [
           currentMousePos.x - this.layer.getPosition().x,
-          currentMousePos.y - this.layer.getPosition().y
+          currentMousePos.y - this.layer.getPosition().y,
         ];
 
         this.fill(pos[0], pos[1], this.currentBrush.color);
@@ -330,13 +347,13 @@ export class PaintCanvas {
       let currentMousePos = stage.pointerPos as Vector2d;
       let pos: [number, number] = [
         currentMousePos.x - this.layer.getPosition().x,
-        currentMousePos.y - this.layer.getPosition().y
+        currentMousePos.y - this.layer.getPosition().y,
       ];
 
       this.networkCallbacks?.onStrokeBegin({
         points: [pos],
         currentBrush: this.currentBrush,
-        paintMode: this.paintMode
+        paintMode: this.paintMode,
       });
 
       previousImageData = this.context.getImageData(
@@ -347,11 +364,12 @@ export class PaintCanvas {
       );
 
       currentBoundingBox = null;
+      isPainting = true;
 
-
-      currentType = this._paintMode == PaintMode.ERASE ?
-        PaintActionType.Erase :
-        PaintActionType.Draw;
+      currentType =
+        this._paintMode == PaintMode.ERASE
+          ? PaintActionType.Erase
+          : PaintActionType.Draw;
 
       this.redoBuffer = [];
 
@@ -359,7 +377,7 @@ export class PaintCanvas {
     });
 
     this.image.on("mousemove", () => {
-      if (imageData == null) return;
+      if (!isPainting || imageData == null) return;
       draw(imageData);
     });
   }
@@ -371,11 +389,15 @@ export class PaintCanvas {
       onStrokeEnd: callbacks.onStrokeEnd,
       onFill: callbacks.onFill,
       onUndo: callbacks.onUndo,
-      onRedo: callbacks.onRedo
-    }
+      onRedo: callbacks.onRedo,
+    };
   }
 
-  public drawPointsClient(points: [number, number][], brush: Brush, paintMode: PaintMode) {
+  public drawPointsClient(
+    points: [number, number][],
+    brush: Brush,
+    paintMode: PaintMode,
+  ) {
     let imageData = this.getImageData();
 
     if (points.length == 0) return;
@@ -390,7 +412,7 @@ export class PaintCanvas {
       0,
       0,
       this.canvasWidth,
-      this.canvasHeight
+      this.canvasHeight,
     );
   }
 
@@ -413,26 +435,21 @@ export class PaintCanvas {
       startX,
       startY,
       width,
-      height
+      height,
     );
 
-    let afterImage = this.context.getImageData(
-      startX,
-      startY,
-      width,
-      height
-    );
+    let afterImage = this.context.getImageData(startX, startY, width, height);
 
     let paintAction = paintActionDefault();
 
     paintAction.strokes = {
       afterImage,
       beforeImage: previousImage,
-      boundingBox: { ...boundingBox }
+      boundingBox: { ...boundingBox },
     };
 
     this.undoBuffer.push({
-      ...paintAction
+      ...paintAction,
     });
   }
 
@@ -592,7 +609,7 @@ export class PaintCanvas {
     points: [number, number][],
     brush: Brush,
     paintMode: PaintMode,
-    image: ImageData
+    image: ImageData,
   ): BoundingBox | null {
     if (points.length == 0) {
       console.warn("Trying to draw point with 0 points?");
