@@ -1,9 +1,11 @@
 import { render } from "solid-js/web";
 import { Page } from "../../api/page";
-import { createSignal, Show } from "solid-js";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { routerNavigate } from "../../api/tiny_router";
 import "../../style/landing-page.css";
 import { insertCoin, isHost, myPlayer } from "playroomkit";
+import { AudioManager } from "../components/AudioManager";
+import { MuteButton } from "../components/MuteButton";
 
 async function joinLobby(code: string) {
   if (code.length == 4) {
@@ -14,7 +16,7 @@ async function joinLobby(code: string) {
         roomCode: code,
         skipLobby: true,
       });
-     
+
       if (isHost()) {
         // Leave the accidental new room
         myPlayer().leaveRoom();
@@ -76,8 +78,41 @@ function LandingMain() {
       setShowJoinInput(true);
     }
   };
+
+  const [bgMusicLoop, setBgMusicLoop] = createSignal<HTMLAudioElement | null>(
+    null,
+  );
+
+  function playBgMusic() {
+    if (bgMusicLoop() != null) {
+      AudioManager.stopLoop(bgMusicLoop());
+    }
+    setBgMusicLoop(AudioManager.playLoop("/audio/DDPT2.2.mp3"));
+  }
+
+  onMount(() => {
+    if (!AudioManager.isMuted()) {
+      setBgMusicLoop(AudioManager.playLoop("/audio/DDPT2.2.mp3"));
+    }
+  });
+  onCleanup(() => {
+    if (bgMusicLoop() != null) {
+      AudioManager.stopLoop(bgMusicLoop());
+    }
+  });
   return (
     <div class="landing-page-body">
+      <div style={{ position: "absolute", top: "10px", right: "10px" }}>
+        <MuteButton
+          onClick={() => {
+            if (!AudioManager.isMuted()) playBgMusic();
+            else {
+              AudioManager.stopLoop(bgMusicLoop());
+              setBgMusicLoop(null);
+            }
+          }}
+        />
+      </div>
       {/* Main Logo Section */}
       <div class="game-wrapper">
         <button class="logo-button" onClick={handleLogoClick}>
