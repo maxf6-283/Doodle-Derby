@@ -1,6 +1,7 @@
 import { Page } from "../../api/page";
 import { render, For } from "solid-js/web"
 import { createSignal, onMount, Show } from "solid-js";
+import { ChatGuesser } from "./guess_comp";
 
 import { getParticipants, PlayerState, me, RPC, getState, setState, usePlayersState, myPlayer, isHost } from "playroomkit";
 
@@ -107,8 +108,14 @@ function SelectPrompts(props: { onPromptsPicked: () => void }) {
 
       pickRandomArtists();
       pickPrompts();
-
+      participants.forEach(player => {
+        player.setState('score', 0);
+        if(player.getState("isArtist")) {
+          player.setState('rightGuesses', 0);
+        }
+      });
       RPC.call("randomArtistsPicked", {}, RPC.Mode.ALL);
+      
     }
   });
 
@@ -159,19 +166,7 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
           )}
         </For>
       </div>
-      <div style = {{
-        height: "20vh",
-        "overflow": "auto",
-        "display": "flex",
-        "flex-direction": "column-reverse"
-      }}>
-        {displayChat()}
-      </div>
-      <input
-        disabled={isDisabled()}
-        type="text"
-        onChange={(c) => setText((text) => (text = c.currentTarget.value))}
-      />
+      <ChatGuesser promptList={prompts()} />
     </>
   );
 };
