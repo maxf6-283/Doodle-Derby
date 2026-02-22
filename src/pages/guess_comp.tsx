@@ -25,7 +25,7 @@ export const ChatGuesser = (props: { promptList: string[] }) => {
     if (props.promptList.find(word => word === text().toLowerCase())) {
       correctGuesses++;
       if (correctGuesses == 2) {
-        submitMessage("guessed both word!");
+        submitMessage("guessed both words!");
         setIsDisabled(true);
         RPC.call('playerGuessed', {}, RPC.Mode.HOST);
         return;
@@ -123,12 +123,15 @@ export const ChatGuesser = (props: { promptList: string[] }) => {
       <div style = {{
         height: "20vh",
         "overflow": "auto",
-        "display": "flex",
-        "flex-direction": "column-reverse"
       }}>
         {displayChat()}
       </div>
-      <input disabled={isDisabled()} type="text" onChange={(c) => setText(prevText => prevText = c.currentTarget.value)} />
+      <input
+        disabled={isDisabled()}
+        value={text()}
+        type="text"
+        onChange={(c) => setText(prevText => prevText = c.currentTarget.value)}
+        onkeydown={(ev) => ev.key === "Enter" && guessChecker()}/>
       <button onClick={guessChecker}>Submit</button>
     </>
   );
