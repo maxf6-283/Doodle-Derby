@@ -39,6 +39,17 @@ function LandingMain() {
   const logoClickEvent = 20;
   const eventDuration = 10;
 
+
+  const newReaction = (path: string) => {
+    const reaction = document.createElement("img");
+    reaction.src = path;
+    reaction.classList.add("reac-element");
+    Object.assign(reaction.style, {
+      width: `50px`,
+      animation: `moveUp 2s ease-out`,
+    })
+  }
+
   const spawnSheep = () => {
     const doodle = document.createElement("img");
     doodle.src = "/landing-page/sheep_loading.png";
@@ -93,9 +104,8 @@ function LandingMain() {
     <div class="reac-container">
       <button class="reac-button"
         onClick={() => {
-              const sound = new Audio("/audio/bark.mp3");
-              sound.play();
-              console.log("Play sound");
+              newReaction("/reactions/cool.png");
+              console.log("works!");
             }}>
         <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
       </button>
