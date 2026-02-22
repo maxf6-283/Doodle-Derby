@@ -87,6 +87,9 @@ body {
 .icon-btn:hover img {
   transform: scale(1.05);
 }
+.icon-btn:active img {
+  transform: scale(0.95);
+}
 
 /* Rules Note */
 .rules-note {
@@ -139,7 +142,7 @@ body {
 
   /* Create an invisible border of the target thickness */
   border: 2px solid transparent;
-  outline : none;
+  outline: none;
   box-shadow: none;
 
   width: fit-content;
@@ -151,12 +154,17 @@ body {
   border-color: var(--sticky-purple);
 }
 .player-button:focus {
-  outline : none;
+  outline: none;
 }
 
 .stick-man:hover {
   /* Visuals appear on hover by changing the border color */
   border-color: var(--sticky-purple);
+  transform: scale(1.05);
+}
+
+.stick-man:active {
+  transform: scale(0.95);
 }
 
 /* Optional: remove default focus outline if you prefer the custom border */
@@ -172,6 +180,7 @@ body {
   border-radius: 10px;
   background: white;
   overflow: visible; /* Allows accessories to pop out */
+  transition: transform 0.1s ease;
 }
 
 .player-slot p {
@@ -200,8 +209,8 @@ body {
 /* Ready Tag */
 .ready-tag {
   position: absolute;
-  top: 75px;
-  right: 75px;
+  top: 65px;
+  right: 30px;
   background: var(--sticky-yellow);
   font-size: 12px;
   padding: 5px 10px;
@@ -483,7 +492,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: transform 0.1s ease;
+}
+
+.accessory-slot:hover {
+  transform: scale(1.05);
+}
+.accessory-slot:active {
+  transform: scale(0.95);
 }
 
 .preview-section {
@@ -586,10 +602,6 @@ body {
   z-index: 5;
 } /* Item (held) */
 
-.accessory-slot:hover {
-  background: white;
-}
-
 .slot-label {
   position: absolute;
   top: -22px;
@@ -604,8 +616,6 @@ body {
 
 /* Picker Pop-up styles */
 .picker-popup {
-  position: absolute;
-  transform: rotate(-1deg);
   width: 320px;
   background: var(--sticky-yellow);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -652,73 +662,6 @@ body {
   max-height: 80%;
 }
 
-#settingsMenu .modal-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 40px 20px 20px 20px;
-}
-
-#settingsMenu .modal-content .close {
-  align-self: flex-end;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-#settingsMenu .customization-body {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  justify-content: space-evenly;
-  gap: 20px;
-  padding: 20px;
-}
-
-#settingsMenu .customization-body #timerContainer,
-#settingsMenu .customization-body #volumeContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /*Center content vertically inside*/
-  align-items: center; /*Center content horizontally */
-  flex-grow: 1; /* Makes them expand equally to fill available space */
-}
-
-#timerContainer label,
-#volumeContainer label {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 15px;
-}
-
-#custom-timer-display {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-#custom-timer-display button {
-  width: 60px; /* bigger buttons */
-  height: 60px;
-  font-size: 28px;
-  cursor: pointer;
-  border-radius: 8px;
-  border: 2px solid #000;
-}
-
-#timerDuration {
-  font-size: 2rem;
-  min-width: 60px;
-  text-align: center;
-}
-
-#volumeSlider {
-  width: 100%;
-  height: 1rem;
-  cursor: pointer;
-}
 
 #game-container {
   width: 100vw; /* 100% of viewport width */
@@ -894,7 +837,7 @@ body {
   font-weight: bold;
   z-index: 15;
   opacity: 0;
-  transition: opacity 0.2s ease
+  transition: opacity 0.2s ease;
 }
 .player-slot:hover .kick-btn {
   opacity: 1;
