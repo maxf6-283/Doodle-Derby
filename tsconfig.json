@@ -16,7 +16,8 @@
     "src/pages/gameplay_page.tsx", 
     "src/pages/pick_words_page.tsx", 
     "src/pages/lobby_page.tsx", 
-    "src/pages/landing_page.tsx"
+    "src/pages/landing_page.tsx",
+    "src/pages/guess_comp.tsx"
   ]
 
 }

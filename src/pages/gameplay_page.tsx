@@ -2,7 +2,7 @@ import { Page } from "../../api/page";
 import { render } from "solid-js/web"
 import { createSignal, onMount, onCleanup } from "solid-js";
 
-import { getParticipants, PlayerState, me, isHost, RPC, getState, setState, usePlayersState, usePlayersList, myPlayer } from "playroomkit";
+import { getParticipants, PlayerState, me, isHost, RPC, getState, setState, usePlayersState, usePlayersList, myPlayer, myPlayer } from "playroomkit";
 
 import konva from "konva";
 import { PaintCanvas } from "../../api/draw/painting"
@@ -198,89 +198,78 @@ const DrawPage = () => {
 
 const SpectatorPage = () => {
   let [text, setText] = createSignal("");
-  let [display, setDisplay] = createSignal("");
   let [isDisabled, setIsDisabled] = createSignal(false);
   let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
 
+  let [globalMessages, setGlobalMessages] = createSignal(new Array<string>());
+  setState('chats', guessedWords());
+
+  let intervalId: NodeJS.Timeout;
+
   let promptSet: string[] = getState("promptList");
-  console.log(promptSet);
-  console.log(promptSet.keys());
 
   // let guessCounter = 0;
   let correctGuesses = 0;
 
+  onMount(() => {
+    intervalId = setInterval(() => {setGlobalMessages(getState('chats'));}, 300);
+  });
+
   const guessChecker = () => {
-    if (guessedWords().find((word) => word === text().toLowerCase())) {
-      setDisplay(text() + " alr checked bruh");
-    } else if (promptSet.find(word => word === text().toLowerCase())) {
+    if (promptSet.find(word => word === text().toLowerCase())) {
       correctGuesses++;
       if (correctGuesses == 2) {
+        submitMessage("guessed both word!");
+        setIsDisabled(true);
         RPC.call('playerGuessed', {}, RPC.Mode.HOST);
+        return;
       }
-      setGuessedWords((wordList: string[]) => {
-        wordList.push(text().toLowerCase())
-        return wordList;
-      });
-      //find artist
-      let firstArtistIndex = -1;
-      let secondArtistIndex = -1;
-      let participants = Object.values(getParticipants());
-      participants.forEach((player, index) => {
-        if (player.getState("isArtist") && firstArtistIndex < 0) {
-          firstArtistIndex = index;
-        } else if (player.getState("isArtist") && secondArtistIndex < 0) {
-          secondArtistIndex = index;
-        }
-      });
-
-      //Update artist right guesses to decide how many points guesser recieves
-      const promptOneTrue = text() === promptSet[0] ? firstArtistIndex : secondArtistIndex;
-      // if (promptOneTrue) {
-      //   const rGuess = participants[firstArtistIndex].getState('rightGuesses');
-      //   guess = rGuess;
-      //   participants[firstArtistIndex].setState('rightGuesses', rGuess + 1);
-      // }
-      // else {
-      //   const rGuess = participants[secondArtistIndex].getState('rightGuesses');
-      //   guess = rGuess;
-      //   participants[secondArtistIndex].setState('rightGuesses', rGuess + 1);
-      // }
-      const rGuess = participants[promptOneTrue].getState('rightGuesses');
-      let guess = rGuess;
-      participants[promptOneTrue].setState('rightGuesses', rGuess + 1);
-
-      //add score for first guess
-      let addition = 0;
-      if(guess == 0) {
-        const currentScore = participants[promptOneTrue].getState('score');
-        participants[promptOneTrue].setState('score', currentScore +2);
-        addition = 5;
-      }
-      else if (guess == 1) {
-        addition = 3;
-        const currentScore = participants[promptOneTrue].getState('score');
-        participants[promptOneTrue].setState('score', currentScore +1);
-      }
-      else {
-        addition = 1;
-        const currentScore = participants[promptOneTrue].getState('score');
-        participants[promptOneTrue].setState('score', currentScore +1);
-      }
-      const currentScore = myPlayer().getState('score');
-      myPlayer().setState('score', currentScore + addition);
-      setDisplay(text() + " is correct!");
-
-    }
-    if (correctGuesses >= 2) {
-      setIsDisabled(true);
-    }
+      submitMessage("guessed a word!");
+    } else { submitMessage(text()); }
+    setGuessedWords((wordList: string[]) => {
+      wordList.push(text().toLowerCase())
+      return wordList;
+    });
   }
 
+  function displayChat() {
+		if (globalMessages == null) return;
+		return globalMessages().map((message) => {
+			return (<p>{message}</p>);
+		}
+		);
+  }
+
+  function appendMessage(newMessage: string) {
+		function newMessages() {
+			if (newMessage.trim().length == 0) return globalMessages;
+			return [...globalMessages(), newMessage];
+		}
+
+		setGlobalMessages(newMessages());
+    setState('chats', globalMessages());
+	}
+
+	function submitMessage(currentMessage: string) {
+		setText("");
+		if (currentMessage.trim().length == 0) return;
+    console.log(currentMessage);
+		appendMessage(`${myPlayer().getState('name')}: ${currentMessage}`); /* { message: `${currentName}: ${currentMessage}`, owner: currentName } */
+	}
+
+  onCleanup(() => {
+    clearInterval(intervalId);
+  });
 
   return (
     <>
-      <div>
-        <h2>{display()}</h2>
+      <div style = {{
+        height: "20vh",
+        "overflow": "auto",
+        "display": "flex",
+        "flex-direction": "column-reverse"
+      }}>
+        {displayChat()}
       </div>
       <input disabled={isDisabled()} type="text" onChange={(c) => setText(text => text = c.currentTarget.value)} />
       <button onClick={guessChecker}>Submit</button>
