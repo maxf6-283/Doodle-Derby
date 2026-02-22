@@ -7,6 +7,7 @@ import { getParticipants, PlayerState, me, RPC, getState, setState, isHost } fro
 import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/artist_canvas_component";
 
 import "../../style/game.css";
+import { AudioManager } from "../components/AudioManager";
 
 // Functions here are throwaways and only serve as substitutes
 const randInt = (length: number) => {

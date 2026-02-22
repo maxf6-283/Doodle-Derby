@@ -10,8 +10,9 @@
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
+
   position: relative;
   /* Re-applying notebook paper look from the original body style */
   background-color: var(--bg-blue);
@@ -52,7 +53,6 @@
 }
 
 .button-container {
-  position: absolute;
   bottom: 50px;
   right: 5px;
   display: flex;
@@ -165,6 +165,7 @@
 
 .logo-button {
   background: none;
+
   border: none;
   padding: 0;
   cursor: pointer;
@@ -178,8 +179,9 @@
 }
 
 .logo-img {
-  width: 150px;
+  width: 200px;
   height: auto;
+
   position: relative;
   z-index: 2;
   transition:
@@ -256,20 +258,19 @@
     display: block;
   }
 
-.footer-nav {
-  position: absolute;
-  bottom: 20px; /* More breathing room */
-  left: 30px;
-  right: 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  font-size: 22px; /* Slightly larger for the cursive font */
-  font-family: "WinterDrawFont", cursive;
-  color: #222;
-  pointer-events: none; /* Allows clicks to pass through empty space */
-}
-  
+  .footer-nav {
+    position: absolute;
+    bottom: 20px; /* More breathing room */
+    left: 30px;
+    right: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 22px; /* Slightly larger for the cursive font */
+    font-family: "WinterDrawFont", cursive;
+    color: #222;
+    pointer-events: none; /* Allows clicks to pass through empty space */
+  }
 }
 
 @keyframes slideUp {
@@ -292,4 +293,3 @@
     transform: translateX(-120vw);
   }
 }
-
