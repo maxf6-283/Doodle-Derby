@@ -69,6 +69,7 @@ export const LobbyPage: Page = {
       }
       routerNavigate("/");
     });
+
     this.onEnd = render(() => <Lobby />, root);
   },
 };
@@ -118,7 +119,7 @@ function Lobby() {
         me.setState("character", randomChar, true);
       }
       if (!me.getState("name")) {
-        const randomName = await getRandomName(MAX_NAME_LENGTH)
+        const randomName = await getRandomName(MAX_NAME_LENGTH);
         me.setState("name", randomName);
       }
 
@@ -249,16 +250,17 @@ function Lobby() {
           <div class="player-grid">
             <For each={players()}>
               {(player) => {
+                const [isKick, setIsKick] = createSignal(false);
                 return (
-                  <div>
+                  <div
+                    class="player-slot"
+                    style={{ position: "relative" }}
+                  >
                     <PlayerCard
                       player={player}
                       onKick={() => {
-                        if (player.id != getState("hostId")) {
-                          setIsKick((prevPlayer) => {
-                            if (prevPlayer?.id === player.id) return null;
-                            return player;
-                          });
+                        if (player.id !== getState("hostId")) {
+                          setIsKick(!isKick());
                         }
                       }}
                       onCustomize={() => {
@@ -266,8 +268,16 @@ function Lobby() {
                         setIsCustomizeOpen(true);
                       }}
                     />
-                    <Show when={isHost() && player.id === isKickOpen()?.id}>
-                      <KickButton player={player} />
+                    <Show when={isHost() && player.id !== myPlayer().id}>
+                      <button
+                        class="kick-btn"
+                        onClick={() => {
+                          player.kick();
+                          
+                        }}
+                      >
+                        ×
+                      </button>
                     </Show>
                   </div>
                 );
@@ -553,22 +563,7 @@ function CustomizeModal(props: CustomizeModalProps) {
   );
 }
 
-//TODO: STYLE THIS W/ CSS MAGIC!!!
-function KickButton(props: { player: PlayerState }) {
-  return (
-    <button
-      id="kick-btn"
-      onclick={() => {
-        props.player.kick();
-      }}
-      style={{
-        display: "block",
-      }}
-    >
-      Kick
-    </button>
-  );
-}
+
 
 function SettingsModal(props: { timerSeconds: number; onClose: () => void }) {
   const updateTime = (amt: number) => {
