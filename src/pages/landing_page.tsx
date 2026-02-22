@@ -95,6 +95,7 @@ function LandingMain() {
         onClick={() => {
               const sound = new Audio("/audio/bark.mp3");
               sound.play();
+              console.log("Play sound");
             }}>
         <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
       </button>
