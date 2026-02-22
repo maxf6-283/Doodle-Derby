@@ -250,7 +250,8 @@ export function SpectatorCanvas(props: { artistId: string }) {
       canvas,
       { x: 0, y: 0 },
       stage,
-      DEFAULT_BRUSH
+      DEFAULT_BRUSH,
+      true
     );
 
     onCleanup(() => {
@@ -265,14 +266,6 @@ export function SpectatorCanvas(props: { artistId: string }) {
       </h1>
       <div ref={containerRef} id='container-spectator'>
       </div>
-
-      <style>
-        {`
-          #container-spectator {
-            border: solid 2px red;
-          }
-        `}
-      </style>
     </>
   );
 }
