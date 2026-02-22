@@ -47,7 +47,11 @@ function LandingMain() {
     Object.assign(reaction.style, {
       width: `50px`,
       animation: `moveUp 2s ease-out`,
-    })
+      zIndex: `3`,
+    });
+
+    document.body.appendChild(reaction);
+    setTimeout(() => reaction.remove(), 2000);
   }
 
   const spawnSheep = () => {
