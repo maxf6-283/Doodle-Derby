@@ -10,17 +10,18 @@
 
 .reac-element {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
-  opacity: 0.1;
+  right: 40px;
+  bottom: 40px;
+  opacity: 0;
   scale: 1.5;
-  transition: opacity 2s ease-out, scale 2s ease-out;
+  z-index: 5;
+  transition: opacity 2s ease-in, scale 2s ease-out, ;
 }
 
 @starting-style {
   .reac-element {
     opacity: 1;
-    scale: 1;
+    scale: 3;
   }
 }
 
