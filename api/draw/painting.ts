@@ -3,7 +3,7 @@ import Konva from "konva"
 import { CurveInterpolator } from "curve-interpolator";
 import { Vector2d } from "konva/lib/types";
 
-const NETWORK_STROKE_DELAY_MS: number = 50
+const NETWORK_STROKE_DELAY_MS: number = 100
 
 export interface Brush {
   // Hex (RGB) -- Ex: #FFFFFF
@@ -114,8 +114,6 @@ export class PaintCanvas {
   private networkCallbacks: NetworkPaintCallbacks | null = null;
 
   private networkPoints: [number, number][] = [];
-  private lastSentNetworkPoint: number = 0;
-  private strokeBatchInterval: NodeJS.Timeout | null = null;
   private previousClientImageData: ImageData | null = null;
 
   // Initializes internals of PaintCanvas and sets up
@@ -171,6 +169,7 @@ export class PaintCanvas {
       if (this.pointsBuffer.length > this.requiredPoints) {
         let segment = this.getSegmentPoints(this.pointsBuffer);
         if (segment.length == 0) return;
+        this.networkCallbacks?.onStrokeMove(segment, this.currentBrush, this.paintMode);
         submitDraw();
         this.pointsBuffer.shift();
       }
@@ -184,6 +183,8 @@ export class PaintCanvas {
       if (segment.length == 0) return;
 
       let newBoundingBox = this.drawPoint(segment, brush, this.paintMode, imageData);
+      this.networkCallbacks?.onStrokeMove(segment, this.currentBrush, this.paintMode);
+
       if (newBoundingBox == null) return;
       if (currentBoundingBox == null) {
         currentBoundingBox = { ...newBoundingBox };
@@ -206,18 +207,7 @@ export class PaintCanvas {
         return;
       }
 
-      if (this.strokeBatchInterval) {
-        this.networkCallbacks?.onStrokeMove(
-          this.networkPoints.slice(this.lastSentNetworkPoint),
-          this.currentBrush,
-          this.paintMode
-        );
-        clearInterval(this.strokeBatchInterval);
-        this.networkPoints = [];
-        this.lastSentNetworkPoint = 0;
-        this.strokeBatchInterval = null;
-        this.networkCallbacks?.onStrokeEnd(currentBoundingBox);
-      }
+      this.networkCallbacks?.onStrokeEnd(currentBoundingBox);
 
       if (previousImageData == null) {
         console.error("previous image data is NULL!");
@@ -316,17 +306,6 @@ export class PaintCanvas {
         paintMode: this.paintMode
       });
 
-      this.strokeBatchInterval = setInterval(() => {
-        if (this.networkPoints.length - this.lastSentNetworkPoint < 4) return;
-        // We send the last point of every stroke twice
-        this.networkCallbacks?.onStrokeMove(
-          this.networkPoints.slice(this.lastSentNetworkPoint),
-          this.currentBrush,
-          this.paintMode
-        );
-        this.lastSentNetworkPoint = this.networkPoints.length - 1;
-      }, NETWORK_STROKE_DELAY_MS);
-
       previousImageData = this.context.getImageData(
         0,
         0,
@@ -378,7 +357,11 @@ export class PaintCanvas {
       if (radius > 1) {
         radius /= 2;
       }
-      this.drawCircle(points[0], radius, brush.color, imageData);
+      if (paintMode !== PaintMode.ERASE) {
+        this.drawCircle(points[0], radius, brush.color, imageData);
+      } else {
+        this.drawCircle(points[0], radius, "#ffffff", imageData);
+      }
       this.context.putImageData(imageData, 0, 0);
       this.layer.batchDraw();
       return;
