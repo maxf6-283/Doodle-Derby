@@ -19,11 +19,10 @@ import { render } from "solid-js/web";
 import { getRandomName } from "../../api/random_name";
 
 import "../../style/lobby.css";
-
-const DEFAULT_TIMER = 30;
-const MIN_TIMER = 15;
-const MAX_TIMER = 180;
-const TIME_INCREMENT = 15;
+import { AudioManager } from "../components/AudioManager";
+import { IconButton } from "../components/IconButton";
+import { MuteButton } from "../components/MuteButton";
+import { DEFAULT_TIMER, SettingsModal } from "../components/SettingsModal";
 
 const MAX_NAME_LENGTH = 16;
 
@@ -94,7 +93,6 @@ function Lobby() {
 
   const [isCustomizeOpen, setIsCustomizeOpen] = createSignal(false);
   const [isSettingsOpen, setIsSettingsOpen] = createSignal(false);
-  const [currentTimer, setCurrentTimer] = createSignal(DEFAULT_TIMER);
   const [isKickOpen, setIsKick] = createSignal<PlayerState | null>(null);
 
   const resetKickButton = () => {
@@ -117,9 +115,9 @@ function Lobby() {
       }
     }, 100);
 
-    const settingsSync = setInterval(() => {
-      setCurrentTimer(getState("timer-seconds") ?? DEFAULT_TIMER);
-    }, 100);
+    // const settingsSync = setInterval(() => {
+    //   setCurrentTimer(getState("timer-seconds") ?? DEFAULT_TIMER);
+    // }, 100);
 
     const me = myPlayer();
     const initSequence = async () => {
@@ -168,7 +166,7 @@ function Lobby() {
 
     onCleanup(() => {
       clearInterval(interval);
-      clearInterval(settingsSync);
+      // clearInterval(settingsSync);
       clearInterval(hostCheck);
     });
   });
@@ -187,8 +185,10 @@ function Lobby() {
 
   const handleStart = () => {
     const pList = players();
+
     if (pList.every((p) => p.getState("isReady")) && pList.length >= 3) {
       setState("game-started", true, true);
+      AudioManager.playSound("/audio/go forward.mp3");
       RPC.call("start-game", {}, RPC.Mode.ALL);
     } else {
       alert("Need 3+ players and everyone must be ready!");
@@ -227,16 +227,19 @@ function Lobby() {
           <h1>
             Code: <span id="code-span">{getRoomCode() ?? "Error"}</span>
           </h1>
-          <IconButton
-            id="settings-btn"
-            defaultImg="/lobby/settings_icon.png"
-            hoverImg="/lobby/settings_icon_highlighted.png"
-            altText="Settings"
-            onClick={() => {
-              resetKickButton();
-              setIsSettingsOpen(true);
-            }}
-          />
+          <div>
+            <MuteButton onClick={() => {}}></MuteButton>
+            <IconButton
+              id="settings-btn"
+              defaultImg="/lobby/settings_icon.png"
+              hoverImg="/lobby/settings_icon_highlighted.png"
+              altText="Settings"
+              onClick={() => {
+                resetKickButton();
+                setIsSettingsOpen(true);
+              }}
+            />
+          </div>
         </header>
 
         {/* Main Content */}
@@ -244,12 +247,18 @@ function Lobby() {
           <aside class="sticky-note rules-note">
             <h3>RULES:</h3>
             <ul>
-              <li>Number of Rounds: 3</li>
+              <li>
+                Number of Rounds:{" "}
+                {(() => {
+                  lobbyTicket(); // Listen for changes
+                  return getState("number-rounds") ?? 1;
+                })()}
+              </li>
               <li>
                 Time Limit:{" "}
                 {(() => {
                   lobbyTicket(); // Listen for changes
-                  return currentTimer();
+                  return getState("timer-seconds") ?? DEFAULT_TIMER;
                 })()}
                 s
               </li>
@@ -261,10 +270,7 @@ function Lobby() {
               {(player) => {
                 const [isKick, setIsKick] = createSignal(false);
                 return (
-                  <div
-                    class="player-slot"
-                    style={{ position: "relative" }}
-                  >
+                  <div class="player-slot" style={{ position: "relative" }}>
                     <PlayerCard
                       player={player}
                       onKick={() => {
@@ -282,7 +288,6 @@ function Lobby() {
                         class="kick-btn"
                         onClick={() => {
                           player.kick();
-                          
                         }}
                       >
                         ×
@@ -328,7 +333,7 @@ function Lobby() {
         </Show>
         <Show when={isSettingsOpen()}>
           <SettingsModal
-            timerSeconds={currentTimer()}
+            timerSeconds={getState("timer-seconds") ?? DEFAULT_TIMER}
             onClose={() => setIsSettingsOpen(false)}
           />
         </Show>
@@ -433,7 +438,6 @@ function CustomizeModal(props: CustomizeModalProps) {
   };
 
   const handleOpenPicker = (e: MouseEvent, index: number) => {
-    setPickerPos({ x: e.clientX, y: e.clientY });
     setActiveSlot(index);
     setShowPicker(true);
   };
@@ -463,97 +467,23 @@ function CustomizeModal(props: CustomizeModalProps) {
   };
 
   return (
-    <div class="modal" style={{ display: "flex" }}>
-      <div class="modal-content">
-        <span class="close" onClick={props.onClose}>
-          &times;
-        </span>
-
-        <div class="customization-body">
-          <div class="name-group">
-            <input
-              type="text"
-              value={name()}
-              onInput={(e) => updateName(e.currentTarget.value)}
-              placeholder="YOUR NAME"
-              maxlength={MAX_NAME_LENGTH}
-            />
-          </div>
-
-          <div class="preview-section">
-            <button
-              class="preview-button-wrapper"
-              onClick={(e) => handleOpenPicker(e, -1)}
-            >
-              <div class="stick-man preview-size">
-                <img
-                  src={myChar()}
-                  style="width:100%; height:100%; object-fit:contain;"
-                />
-                <For each={[0, 1, 2]}>
-                  {(idx) => {
-                    const myAccPath = () => {
-                      lobbyTicket(); // Force reactivity
-                      return myPlayer().getState(`acc_${idx}`);
-                    };
-                    return (
-                      <Show when={myAccPath()}>
-                        <div
-                          class="acc-layer"
-                          style={{
-                            "background-image": `url(${myAccPath()})`,
-                            "z-index": idx === 0 ? 10 : idx === 1 ? 15 : 5,
-                          }}
-                        />
-                      </Show>
-                    );
-                  }}
-                </For>
-              </div>
-            </button>
-          </div>
-
-          <div class="accessory-slots-container">
-            <For each={[0, 1, 2]}>
-              {(idx) => (
-                <div
-                  class="accessory-slot"
-                  onClick={(e) => handleOpenPicker(e, idx)}
-                >
-                  <div class="slot-label">
-                    {idx === 0 ? "HAT" : idx === 1 ? "FACE" : "ITEM"}
-                  </div>
-                  <div class="slot-display">
-                    {(() => {
-                      lobbyTicket(); // Listen for changes
-                      const path = myPlayer().getState(`acc_${idx}`);
-                      return (
-                        <Show when={path}>
-                          <img src={path.replace("-equip", "")} />
-                        </Show>
-                      );
-                    })()}
-                  </div>
-                </div>
-              )}
-            </For>
-          </div>
-        </div>
-
-        {/* The Accessory Picker integrated as a reactive Solid element */}
+    <div
+      class="modal"
+      style={{ display: "flex", "flex-direction": "row", gap: "20px" }}
+    >
+      {/* The Accessory Picker integrated as a reactive Solid element */}
+      <div style={{ width: "400px" }}>
         <Show when={showPicker()}>
-          <div
-            class="picker-popup"
-            style={{
-              top: `${pickerPos().y}px`,
-              left: `${pickerPos().x}px`,
-              transform: "translate(-50%, -100%) rotate(-1deg)",
-            }}
-          >
+          <div class="picker-popup">
             <div class="picker-header">
               <span>SELECT {activeSlot() === -1 ? "CHARACTER" : "ITEM"}</span>
-              <button class="close-small" onClick={() => setShowPicker(false)}>
-                &times;
+              <button
+                class="kick-btn"
+                onClick={() => {
+                  setShowPicker(false);
+                }}
+              >
+                ×
               </button>
             </div>
             <div class="picker-grid">
@@ -568,76 +498,85 @@ function CustomizeModal(props: CustomizeModalProps) {
           </div>
         </Show>
       </div>
-    </div>
-  );
-}
 
-
-
-function SettingsModal(props: { timerSeconds: number; onClose: () => void }) {
-  const updateTime = (amt: number) => {
-    if (!isHost()) return;
-    const current = getState("timer-seconds") ?? 30;
-    setState(
-      "timer-seconds",
-      Math.max(MIN_TIMER, Math.min(MAX_TIMER, current + amt)),
-    );
-    RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
-  };
-
-  return (
-    <div id="settingsMenu" class="modal" style={{ display: "flex" }}>
       <div class="modal-content">
-        <span class="close" onClick={props.onClose}>
-          &times;
-        </span>
-        <div class="customization-body">
-          <div id="timerContainer">
-            <label>Timer per round:</label>
-            <div id="custom-timer-display">
-              <button onClick={() => updateTime(-TIME_INCREMENT)}>&lt;</button>
-              <span>{props.timerSeconds}s</span>
-              <button onClick={() => updateTime(TIME_INCREMENT)}>&gt;</button>
+        <div>
+          <span class="close" onClick={props.onClose}>
+            &times;
+          </span>
+
+          <div class="customization-body">
+            <div class="name-group">
+              <input
+                type="text"
+                value={name()}
+                onInput={(e) => updateName(e.currentTarget.value)}
+                placeholder="YOUR NAME"
+                maxlength={MAX_NAME_LENGTH}
+              />
             </div>
-          </div>
-          //TODO: VOLUME SHOULD BECOME A SIGNAL THAT IS UPDATED // BASED ON
-          MULTIPLAYER STATE!
-          <div id="volumeContainer">
-            <label>Volume</label>
-            <input type="range" id="volumeSlider" min="0" max="100" />
+
+            <div class="preview-section">
+              <button
+                class="preview-button-wrapper"
+                onClick={(e) => handleOpenPicker(e, -1)}
+              >
+                <div class="stick-man preview-size">
+                  <img
+                    src={myChar()}
+                    style="width:100%; height:100%; object-fit:contain;"
+                  />
+                  <For each={[0, 1, 2]}>
+                    {(idx) => {
+                      const myAccPath = () => {
+                        lobbyTicket(); // Force reactivity
+                        return myPlayer().getState(`acc_${idx}`);
+                      };
+                      return (
+                        <Show when={myAccPath()}>
+                          <div
+                            class="acc-layer"
+                            style={{
+                              "background-image": `url(${myAccPath()})`,
+                              "z-index": idx === 0 ? 10 : idx === 1 ? 15 : 5,
+                            }}
+                          />
+                        </Show>
+                      );
+                    }}
+                  </For>
+                </div>
+              </button>
+            </div>
+
+            <div class="accessory-slots-container">
+              <For each={[0, 1, 2]}>
+                {(idx) => (
+                  <div
+                    class="accessory-slot"
+                    onClick={(e) => handleOpenPicker(e, idx)}
+                  >
+                    <div class="slot-label">
+                      {idx === 0 ? "HAT" : idx === 1 ? "FACE" : "ITEM"}
+                    </div>
+                    <div class="slot-display">
+                      {(() => {
+                        lobbyTicket(); // Listen for changes
+                        const path = myPlayer().getState(`acc_${idx}`);
+                        return (
+                          <Show when={path}>
+                            <img src={path.replace("-equip", "")} />
+                          </Show>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-interface IconButtonProps {
-  defaultImg: string;
-  hoverImg: string;
-  onClick: () => void;
-  altText?: string;
-  id?: string;
-}
-
-function IconButton(props: IconButtonProps) {
-  // 1. Local signal to track hover state for this specific button
-  const [isHovered, setIsHovered] = createSignal(false);
-
-  return (
-    <button
-      id={props.id}
-      class="icon-btn"
-      onClick={props.onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <img
-        // 2. Dynamically swap the src based on the hover signal
-        src={isHovered() ? props.hoverImg : props.defaultImg}
-        width="100px"
-        alt={props.altText || "icon"}
-      />
-    </button>
   );
 }

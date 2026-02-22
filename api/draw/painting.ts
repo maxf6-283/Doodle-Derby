@@ -1,24 +1,24 @@
-import Konva from "konva"
+import Konva from "konva";
 
 import { CurveInterpolator } from "curve-interpolator";
 import { Vector2d } from "konva/lib/types";
 
 export interface Brush {
   // Hex (RGB) -- Ex: #FFFFFF
-  color: string
-  strokeWidth: number
+  color: string;
+  strokeWidth: number;
 }
 
 export enum PaintActionType {
   Draw,
   Erase,
-  Fill
+  Fill,
 }
 
 type BoundingBox = {
-  min: [number, number],
-  max: [number, number]
-}
+  min: [number, number];
+  max: [number, number];
+};
 
 function boundingBoxDefault(): BoundingBox {
   return {
@@ -28,9 +28,9 @@ function boundingBoxDefault(): BoundingBox {
 }
 
 interface ImageCapture {
-  beforeImage: ImageData | null,
-  afterImage: ImageData | null,
-  boundingBox: BoundingBox
+  beforeImage: ImageData | null;
+  afterImage: ImageData | null;
+  boundingBox: BoundingBox;
 }
 
 // TODO: If adding more actions in the future, ensure
@@ -40,8 +40,8 @@ interface ImageCapture {
 
 export interface PaintAction {
   // Array of connecting points
-  strokes: ImageCapture,
-  type: PaintActionType
+  strokes: ImageCapture;
+  type: PaintActionType;
 }
 
 function paintActionDefault(): PaintAction {
@@ -49,29 +49,30 @@ function paintActionDefault(): PaintAction {
     strokes: {
       beforeImage: null,
       afterImage: null,
-      boundingBox: boundingBoxDefault()
+      boundingBox: boundingBoxDefault(),
     },
-    type: PaintActionType.Draw
+    type: PaintActionType.Draw,
   };
 }
 
 export class PaintCanvas {
-  private image: Konva.Image
-  private layer: Konva.Layer
-  private context: CanvasRenderingContext2D
+  private image: Konva.Image;
+  private layer: Konva.Layer;
+  private context: CanvasRenderingContext2D;
 
-  private _isErasing: boolean
-  private currentBrush: Brush
+  private _isErasing: boolean;
+  private _isPainting: boolean;
+  private currentBrush: Brush;
 
-  private undoBuffer: PaintAction[]
-  private redoBuffer: PaintAction[]
+  private undoBuffer: PaintAction[];
+  private redoBuffer: PaintAction[];
 
-  private canvasWidth: number
-  private canvasHeight: number
+  private canvasWidth: number;
+  private canvasHeight: number;
 
-  private pointsBuffer: [number, number][] = []
+  private pointsBuffer: [number, number][] = [];
 
-  private requiredPoints: number = 4
+  private requiredPoints: number = 4;
 
   // Track if fill bucket was used
   private hasFilled: boolean = false;
@@ -79,25 +80,28 @@ export class PaintCanvas {
   // Track if undo or redo was used
   private hasReverted: boolean = false;
 
+  // Optional callback invoked when erasing state changes
+  private _erasingCallback?: (isErasing: boolean) => void;
+
   // Initializes internals of PaintCanvas and sets up
   // callbacks for drawing.
   constructor(
     canvas: HTMLCanvasElement,
     pos: Konva.Vector2d,
     stage: Konva.Stage,
-    brush: Brush
+    brush: Brush,
   ) {
     this.image = new Konva.Image({
       image: canvas,
       x: pos.x,
-      y: pos.y
+      y: pos.y,
     });
 
     this.layer = new Konva.Layer();
 
     this.layer.add(this.image);
 
-    this.context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
     this.currentBrush = brush;
 
@@ -108,7 +112,7 @@ export class PaintCanvas {
 
     let currentType: PaintActionType = PaintActionType.Draw;
 
-    let isPainting = false;
+    this._isPainting = false;
     let imageData: ImageData | null = null;
     let previousImageData: ImageData | null = null;
     let currentBoundingBox: BoundingBox | null = null;
@@ -125,7 +129,7 @@ export class PaintCanvas {
       let currentMousePos = stage.pointerPos as Vector2d;
       let pos: [number, number] = [
         currentMousePos.x - this.layer.getPosition().x,
-        currentMousePos.y - this.layer.getPosition().y
+        currentMousePos.y - this.layer.getPosition().y,
       ];
 
       this.pointsBuffer.push(pos);
@@ -145,16 +149,33 @@ export class PaintCanvas {
 
       if (segment.length == 0) return;
 
-      let newBoundingBox = this.drawPoint(segment, brush, this.isErasing, imageData);
+      let newBoundingBox = this.drawPoint(
+        segment,
+        brush,
+        this.isErasing,
+        imageData,
+      );
       if (newBoundingBox == null) return;
       if (currentBoundingBox == null) {
         currentBoundingBox = { ...newBoundingBox };
       } else {
-        currentBoundingBox.min[0] = Math.min(currentBoundingBox.min[0], newBoundingBox.min[0]);
-        currentBoundingBox.min[1] = Math.min(currentBoundingBox.min[1], newBoundingBox.min[1]);
+        currentBoundingBox.min[0] = Math.min(
+          currentBoundingBox.min[0],
+          newBoundingBox.min[0],
+        );
+        currentBoundingBox.min[1] = Math.min(
+          currentBoundingBox.min[1],
+          newBoundingBox.min[1],
+        );
 
-        currentBoundingBox.max[0] = Math.max(currentBoundingBox.max[0], newBoundingBox.max[0]);
-        currentBoundingBox.max[1] = Math.max(currentBoundingBox.max[1], newBoundingBox.max[1]);
+        currentBoundingBox.max[0] = Math.max(
+          currentBoundingBox.max[0],
+          newBoundingBox.max[0],
+        );
+        currentBoundingBox.max[1] = Math.max(
+          currentBoundingBox.max[1],
+          newBoundingBox.max[1],
+        );
       }
     };
 
@@ -181,52 +202,44 @@ export class PaintCanvas {
         startX,
         startY,
         width,
-        height
+        height,
       );
 
       submitDraw();
 
-      let afterImage = this.context.getImageData(
-        startX,
-        startY,
-        width,
-        height
-      );
+      let afterImage = this.context.getImageData(startX, startY, width, height);
 
-      isPainting = false;
+      this._isPainting = false;
 
       let paintAction = paintActionDefault();
 
       paintAction.strokes = {
         afterImage,
         beforeImage: previousImage,
-        boundingBox: { ...currentBoundingBox }
+        boundingBox: { ...currentBoundingBox },
       };
 
       this.undoBuffer.push({
-        ...paintAction
+        ...paintAction,
       });
 
       paintAction = paintActionDefault();
       this.pointsBuffer = [];
-    }
+    };
 
-    this.image.on('mouseup', () => {
+    this.image.on("mouseup", () => {
       finish();
     });
 
-    this.image.on('mouseleave', () => {
-      if (!isPainting) return;
+    this.image.on("mouseleave", () => {
+      if (!this._isPainting) return;
       if (imageData == null) return;
       draw(imageData);
       finish();
     });
 
-    this.image.on('mousedown', () => {
-      if (imageData == null ||
-        this.hasFilled ||
-        this.hasReverted
-      ) {
+    this.image.on("mousedown", () => {
+      if (imageData == null || this.hasFilled || this.hasReverted) {
         imageData = this.getImageData();
         this.hasFilled = false;
         this.hasReverted = false;
@@ -236,24 +249,24 @@ export class PaintCanvas {
         0,
         0,
         this.canvasWidth,
-        this.canvasHeight
+        this.canvasHeight,
       );
 
       currentBoundingBox = null;
 
-      isPainting = true;
+      this._isPainting = true;
 
-      currentType = this.isErasing ?
-        PaintActionType.Erase :
-        PaintActionType.Draw;
+      currentType = this.isErasing
+        ? PaintActionType.Erase
+        : PaintActionType.Draw;
 
       this.redoBuffer = [];
 
       draw(imageData, true);
     });
 
-    this.image.on('mousemove', () => {
-      if (!isPainting || imageData == null) return;
+    this.image.on("mousemove", () => {
+      if (!this._isPainting || imageData == null) return;
       draw(imageData);
     });
 
@@ -278,7 +291,7 @@ export class PaintCanvas {
     srcX: number,
     srcY: number,
     srcWidth: number,
-    srcHeight: number
+    srcHeight: number,
   ): ImageData {
     let startX = Math.floor(srcX);
     let startY = Math.floor(srcY);
@@ -288,8 +301,11 @@ export class PaintCanvas {
     const rowBytes = srcWidth * 4;
     for (let y = 0; y < srcHeight; ++y) {
       const srcStart = ((startY + y) * this.canvasWidth + startX) * 4;
-      const dstStart = (y * srcWidth) * 4;
-      imageData.data.set(previousImage.data.subarray(srcStart, srcStart + rowBytes), dstStart);
+      const dstStart = y * srcWidth * 4;
+      imageData.data.set(
+        previousImage.data.subarray(srcStart, srcStart + rowBytes),
+        dstStart,
+      );
     }
 
     return imageData;
@@ -297,6 +313,9 @@ export class PaintCanvas {
 
   get isErasing() {
     return this._isErasing;
+  }
+  get isPainting() {
+    return this._isPainting;
   }
 
   setErasing(isErasing: boolean) {
@@ -321,7 +340,9 @@ export class PaintCanvas {
 
   setBrushStrokeWidth(strokeWidth: number) {
     if (strokeWidth <= 0) {
-      console.error(`Trying to update strokeWidth with ${strokeWidth} which doesn't make sense.`);
+      console.error(
+        `Trying to update strokeWidth with ${strokeWidth} which doesn't make sense.`,
+      );
       return;
     }
     this.currentBrush.strokeWidth = strokeWidth;
@@ -349,7 +370,7 @@ export class PaintCanvas {
       parseInt(hex.substring(1, 3), 16),
       parseInt(hex.substring(3, 5), 16),
       parseInt(hex.substring(5, 7), 16),
-      255
+      255,
     ];
   }
 
@@ -376,7 +397,12 @@ export class PaintCanvas {
     Based on: https://stackoverflow.com/questions/1201200/fast-algorithm-for-drawing-filled-circles
     (AlexGeorg)
   */
-  private drawCircle(point: [number, number], radius: number, color: string, image: ImageData) {
+  private drawCircle(
+    point: [number, number],
+    radius: number,
+    color: string,
+    image: ImageData,
+  ) {
     for (let x = -radius; x < radius; ++x) {
       let hh = Math.sqrt(radius * radius - x * x);
 
@@ -393,17 +419,19 @@ export class PaintCanvas {
   private getSegmentPoints(points: [number, number][]): [number, number][] {
     if (points.length < this.requiredPoints) return [];
 
-    const interp = new CurveInterpolator(
-      points,
-      { tension: 0, alpha: 0.5 }
-    );
+    const interp = new CurveInterpolator(points, { tension: 0, alpha: 0.5 });
 
     const segments = 100;
 
     return interp.getPoints(segments);
   }
 
-  private drawSegment(segment: [number, number][], radius: number, color: string, image: ImageData) {
+  private drawSegment(
+    segment: [number, number][],
+    radius: number,
+    color: string,
+    image: ImageData,
+  ) {
     for (let point of segment) {
       this.drawCircle(point, radius, color, image);
     }
@@ -413,7 +441,7 @@ export class PaintCanvas {
     points: [number, number][],
     brush: Brush,
     isErasing: boolean,
-    image: ImageData
+    image: ImageData,
   ): BoundingBox | null {
     if (points.length == 0) {
       console.warn("Trying to draw point with 0 points?");
@@ -443,14 +471,26 @@ export class PaintCanvas {
     const BIAS = 5;
 
     for (let point of points) {
-      boundingBox.min[0] = Math.min(boundingBox.min[0], Math.floor(point[0] - radius - BIAS));
-      boundingBox.min[1] = Math.min(boundingBox.min[1], Math.floor(point[1] - radius - BIAS));
+      boundingBox.min[0] = Math.min(
+        boundingBox.min[0],
+        Math.floor(point[0] - radius - BIAS),
+      );
+      boundingBox.min[1] = Math.min(
+        boundingBox.min[1],
+        Math.floor(point[1] - radius - BIAS),
+      );
 
       boundingBox.min[0] = Math.max(boundingBox.min[0], 0);
       boundingBox.min[1] = Math.max(boundingBox.min[1], 0);
 
-      boundingBox.max[0] = Math.max(boundingBox.max[0], Math.floor(point[0] + radius + BIAS));
-      boundingBox.max[1] = Math.max(boundingBox.max[1], Math.floor(point[1] + radius + BIAS));
+      boundingBox.max[0] = Math.max(
+        boundingBox.max[0],
+        Math.floor(point[0] + radius + BIAS),
+      );
+      boundingBox.max[1] = Math.max(
+        boundingBox.max[1],
+        Math.floor(point[1] + radius + BIAS),
+      );
 
       boundingBox.max[0] = Math.min(boundingBox.max[0], this.canvasWidth);
       boundingBox.max[1] = Math.min(boundingBox.max[1], this.canvasHeight);
@@ -459,12 +499,7 @@ export class PaintCanvas {
     this.drawCircle(points[0], radius, color, image);
 
     if (points.length > 1) {
-      this.drawSegment(
-        points,
-        radius,
-        color,
-        image
-      );
+      this.drawSegment(points, radius, color, image);
     }
 
     return boundingBox;
@@ -481,7 +516,7 @@ export class PaintCanvas {
       this.context.putImageData(
         strokes.beforeImage,
         strokes.boundingBox.min[0],
-        strokes.boundingBox.min[1]
+        strokes.boundingBox.min[1],
       );
     } else {
       if (strokes.afterImage == null) {
@@ -491,7 +526,7 @@ export class PaintCanvas {
       this.context.putImageData(
         strokes.afterImage,
         strokes.boundingBox.min[0],
-        strokes.boundingBox.min[1]
+        strokes.boundingBox.min[1],
       );
     }
 
@@ -502,8 +537,7 @@ export class PaintCanvas {
   // and sending the last item of the undo buffer into
   // the redo buffer
   undo() {
-    if (this.undoBuffer.length == 0)
-      return;
+    if (this.undoBuffer.length == 0) return;
 
     let lastAction = this.undoBuffer.pop() as PaintAction;
     this.redoBuffer.push(lastAction);
@@ -514,8 +548,7 @@ export class PaintCanvas {
   }
 
   redo() {
-    if (this.redoBuffer.length == 0)
-      return;
+    if (this.redoBuffer.length == 0) return;
 
     let lastAction = this.redoBuffer.pop() as PaintAction;
     this.undoBuffer.push(lastAction);
@@ -530,8 +563,7 @@ export class PaintCanvas {
     let height = this.layer.getHeight() as number;
 
     const isValidCoord = (x: number, y: number) => {
-      return x >= 0 && x < width &&
-        y >= 0 && y < height;
+      return x >= 0 && x < width && y >= 0 && y < height;
     };
 
     if (!isValidCoord(x, y)) {
@@ -546,7 +578,7 @@ export class PaintCanvas {
       const dr = Math.abs(a[0] - b[0]);
       const dg = Math.abs(a[1] - b[1]);
       const db = Math.abs(a[2] - b[2]);
-      let res = (dr * dr + dg * dg + db * db) <= tolerance * tolerance;
+      let res = dr * dr + dg * dg + db * db <= tolerance * tolerance;
       return res;
     };
 
@@ -573,7 +605,7 @@ export class PaintCanvas {
       for (let startX = x; startX < width; ++startX) {
         const currentColorRGB = getPixelColor(startX, y);
         if (!isSameColor(currentColorRGB, oldColorRGB, 0)) {
-          end = startX - 1
+          end = startX - 1;
           break;
         }
       }
@@ -585,7 +617,7 @@ export class PaintCanvas {
         }
       }
       return [start, end, y];
-    }
+    };
 
     let pixel_span: Array<[number, number]> = [];
     pixel_span.push([Math.floor(x), Math.floor(y)]);
@@ -596,10 +628,7 @@ export class PaintCanvas {
       }
 
       let topPixelColor = getPixelColor(x, y);
-      if (
-        isSameColor(topPixelColor, oldColorRGB, 0) &&
-        !isInsideSpan
-      ) {
+      if (isSameColor(topPixelColor, oldColorRGB, 0) && !isInsideSpan) {
         let adjacentSpan = getSpan(x, y);
         pixel_span.push([x, y]);
         return [true, adjacentSpan[1]];
@@ -610,7 +639,7 @@ export class PaintCanvas {
 
     let fillBoundingBox: BoundingBox = {
       min: [Math.floor(x), Math.floor(y)],
-      max: [Math.floor(x), Math.floor(y)]
+      max: [Math.floor(x), Math.floor(y)],
     };
 
     // Used to extend the boundaries on the max edges of the
@@ -630,14 +659,24 @@ export class PaintCanvas {
       fillBoundingBox.min[0] = Math.min(fillBoundingBox.min[0], currentSpan[0]);
       fillBoundingBox.min[1] = Math.min(fillBoundingBox.min[1], currentY);
 
-      fillBoundingBox.max[0] = Math.max(fillBoundingBox.max[0], currentSpan[1] + MAX_BIAS);
+      fillBoundingBox.max[0] = Math.max(
+        fillBoundingBox.max[0],
+        currentSpan[1] + MAX_BIAS,
+      );
       fillBoundingBox.max[0] = Math.min(fillBoundingBox.max[0], width);
-      fillBoundingBox.max[1] = Math.max(fillBoundingBox.max[1], currentY + MAX_BIAS);
+      fillBoundingBox.max[1] = Math.max(
+        fillBoundingBox.max[1],
+        currentY + MAX_BIAS,
+      );
       fillBoundingBox.max[1] = Math.min(fillBoundingBox.max[1], height);
 
       // Check above
 
-      for (let currentX = currentSpan[0]; currentX <= currentSpan[1]; ++currentX) {
+      for (
+        let currentX = currentSpan[0];
+        currentX <= currentSpan[1];
+        ++currentX
+      ) {
         let state = checkPixelForSpan(currentX, currentY - 1, isInsideSpan);
         isInsideSpan = state[0] as boolean;
         let newX = state[1] as number;
@@ -649,7 +688,11 @@ export class PaintCanvas {
 
       // Check below
 
-      for (let currentX = currentSpan[0]; currentX <= currentSpan[1]; ++currentX) {
+      for (
+        let currentX = currentSpan[0];
+        currentX <= currentSpan[1];
+        ++currentX
+      ) {
         let state = checkPixelForSpan(currentX, currentY + 1, isInsideSpan);
         isInsideSpan = state[0] as boolean;
         let newX = state[1] as number;
@@ -659,7 +702,11 @@ export class PaintCanvas {
 
       // Fill in current span
 
-      for (let currentX = currentSpan[0]; currentX <= currentSpan[1]; ++currentX) {
+      for (
+        let currentX = currentSpan[0];
+        currentX <= currentSpan[1];
+        ++currentX
+      ) {
         let i = (currentY * width + currentX) * 4;
 
         imageData.data[i] = newColorRGB[0];
@@ -689,7 +736,7 @@ export class PaintCanvas {
       strokes: {
         beforeImage,
         afterImage,
-        boundingBox: fillBoundingBox
+        boundingBox: fillBoundingBox,
       },
       type: PaintActionType.Fill,
     };

@@ -23,6 +23,7 @@ import konva from "konva";
 import { PaintCanvas } from "../../api/draw/painting";
 
 import "../../style/game.css";
+import { AudioManager } from "../components/AudioManager";
 
 // Functions here are throwaways and only serve as substitutes
 const randInt = (length: number) => {
@@ -148,6 +149,33 @@ const DrawPage = () => {
         changeColor(color_button.value),
       );
 
+      let eraseLoop: HTMLAudioElement | null = null;
+      let drawingLoop: HTMLAudioElement | null = null;
+      const handleMouseDown = () => {
+        console.log("mouse down");
+        if (paint.isErasing && !eraseLoop) {
+          eraseLoop = AudioManager.playLoop("/audio/erase.mp3");
+          console.log("erase loop");
+        } else if (paint.isPainting && !drawingLoop) {
+          drawingLoop = AudioManager.playLoop("/audio/draw.mp3");
+          console.log("draw loop");
+        }
+      };
+      const handleMouseUp = () => {
+        console.log("mouse up");
+        if (eraseLoop) {
+          AudioManager.stopLoop(eraseLoop);
+          eraseLoop = null;
+        }
+        if (drawingLoop) {
+          AudioManager.stopLoop(drawingLoop);
+          drawingLoop = null;
+        }
+      };
+
+      stage.on("mousedown touchstart", handleMouseDown);
+      stage.on("mouseup touchend", handleMouseUp);
+
       window.addEventListener("keydown", (ev) => {
         if (ev.key == "e") {
           paint.setErasing(!paint.isErasing);
@@ -170,12 +198,12 @@ const DrawPage = () => {
 
       onCleanup(() => {
         clearInterval(syncInterval);
+        stage.off("mousedown touchstart", handleMouseDown);
+        stage.off("mouseup touchend", handleMouseUp);
         stage.destroy(); // Clean up Konva stage on unmount
       });
     }
   });
-
-  
 
   const prompt = () => me().getState("prompt") || "";
 
