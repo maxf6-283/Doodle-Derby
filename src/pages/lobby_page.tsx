@@ -124,6 +124,7 @@ function Lobby() {
         player.setState('score', 0);
         if (player.getState("isArtist")) {
             player.setState('rightGuesses', 0);
+            console.log("right guesses set to zero");
         }
       })
     }

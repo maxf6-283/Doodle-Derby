@@ -2,7 +2,7 @@ import { Page } from "../../api/page";
 import { render } from "solid-js/web"
 import { createSignal, onMount, onCleanup } from "solid-js";
 
-import { getParticipants, PlayerState, me, isHost, RPC, getState, setState, usePlayersState, usePlayersList, myPlayer } from "playroomkit";
+import { getParticipants, PlayerState, me, isHost, RPC, getState, setState, usePlayersState, myPlayer } from "playroomkit";
 
 import konva from "konva";
 import { PaintCanvas } from "../../api/draw/painting"
@@ -247,6 +247,7 @@ const SpectatorPage = () => {
       // }
       const rGuess = participants[promptOneTrue].getState('rightGuesses');
       let guess = rGuess;
+      console.log("Before guesses: " + participants[promptOneTrue].getState('rightGuesses'));
       participants[promptOneTrue].setState('rightGuesses', rGuess + 1);
 
       //add score for first guess
@@ -255,6 +256,7 @@ const SpectatorPage = () => {
         const currentScore = participants[promptOneTrue].getState('score');
         participants[promptOneTrue].setState('score', currentScore +2);
         addition = 5;
+        
       }
       else if (guess == 1) {
         addition = 3;
@@ -266,6 +268,11 @@ const SpectatorPage = () => {
         const currentScore = participants[promptOneTrue].getState('score');
         participants[promptOneTrue].setState('score', currentScore +1);
       }
+
+      console.log("Number of guesses:" + participants[promptOneTrue].getState('rightGuesses'));
+      console.log("Player score: " + myPlayer().getState('score'));
+      console.log("Artist score: " +participants[promptOneTrue].getState('score'));
+
       const currentScore = myPlayer().getState('score');
       myPlayer().setState('score', currentScore + addition);
       setDisplay(text() + " is correct!");
