@@ -14,7 +14,7 @@ export const AudioManager = {
     setVolume(val);
     localStorage.setItem("volume", String(val));
   },
-
+  
   playSound: (src: string) => {
     if (isMuted()) return;
     const audio = new Audio(src);
