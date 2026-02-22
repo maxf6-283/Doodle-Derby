@@ -1,11 +1,8 @@
-import { Page } from '../../api/page';
-
 import { createSignal, onMount, onCleanup } from "solid-js";
 
-import { RPC, getState, setState, myPlayer } from "playroomkit";
-import { render } from 'solid-js/web';
+import { RPC, getState, setState, myPlayer, getParticipants } from "playroomkit";
 
-export const ChatGuesser = () => {
+export const ChatGuesser = (props: { promptList: string[] }) => {
   let [text, setText] = createSignal("");
   let [isDisabled, setIsDisabled] = createSignal(false);
   let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
@@ -13,19 +10,19 @@ export const ChatGuesser = () => {
   let [globalMessages, setGlobalMessages] = createSignal(new Array<string>());
   setState('chats', guessedWords());
 
-  let intervalId: NodeJS.Timeout;
-
-  let promptSet: string[] = getState("promptList");
-
   // let guessCounter = 0;
   let correctGuesses = 0;
 
   onMount(() => {
-    intervalId = setInterval(() => {setGlobalMessages(getState('chats'));}, 300);
+    let intervalId = setInterval(() => {setGlobalMessages(getState('chats'));}, 300);
+
+    onCleanup(() => {
+      clearInterval(intervalId);
+    });
   });
 
   const guessChecker = () => {
-    if (promptSet.find(word => word === text().toLowerCase())) {
+    if (props.promptList.find(word => word === text().toLowerCase())) {
       correctGuesses++;
       if (correctGuesses == 2) {
         submitMessage("guessed both word!");
@@ -39,6 +36,61 @@ export const ChatGuesser = () => {
       wordList.push(text().toLowerCase())
       return wordList;
     });
+
+    //find artist
+    let firstArtistIndex = -1;
+    let secondArtistIndex = -1;
+    let participants = Object.values(getParticipants());
+    participants.forEach((player, index) => {
+      if (player.getState("isArtist") && firstArtistIndex < 0) {
+        firstArtistIndex = index;
+      } else if (player.getState("isArtist") && secondArtistIndex < 0) {
+        secondArtistIndex = index;
+      }
+    });
+
+    //Update artist right guesses to decide how many points guesser recieves
+    const promptOneTrue = text() === props.promptList[0] ? firstArtistIndex : secondArtistIndex;
+    // if (promptOneTrue) {
+    //   const rGuess = participants[firstArtistIndex].getState('rightGuesses');
+    //   guess = rGuess;
+    //   participants[firstArtistIndex].setState('rightGuesses', rGuess + 1);
+    // }
+    // else {
+    //   const rGuess = participants[secondArtistIndex].getState('rightGuesses');
+    //   guess = rGuess;
+    //   participants[secondArtistIndex].setState('rightGuesses', rGuess + 1);
+    // }
+    const rGuess = participants[promptOneTrue].getState('rightGuesses');
+    let guess = rGuess;
+    console.log("Right guesses: " + guess);
+    participants[promptOneTrue].setState('rightGuesses', rGuess + 1);
+
+    //add score for first guess
+    let addition = 0;
+    if(guess == 0) {
+      const currentScore = participants[promptOneTrue].getState('score');
+      participants[promptOneTrue].setState('score', currentScore +2);
+      addition = 5;
+    }
+    else if (guess == 1) {
+      addition = 3;
+      const currentScore = participants[promptOneTrue].getState('score');
+      participants[promptOneTrue].setState('score', currentScore +1);
+    }
+    else {
+      addition = 1;
+      const currentScore = participants[promptOneTrue].getState('score');
+      participants[promptOneTrue].setState('score', currentScore +1);
+    }
+    const currentScore = myPlayer().getState('score');
+    myPlayer().setState('score', currentScore + addition);
+    console.log("Right guesses after: " + guess);
+    console.log("Player score: "+ myPlayer().getState('score'));
+    console.log("Artist score: "+ participants[promptOneTrue].getState('rightGuesses'));
+    if (correctGuesses >= 2) {
+    setIsDisabled(true);
+    }
   }
 
   function displayChat() {
@@ -66,10 +118,6 @@ export const ChatGuesser = () => {
     appendMessage(`${myPlayer().getState('name')}: ${currentMessage}`); /* { message: `${currentName}: ${currentMessage}`, owner: currentName } */
   }
 
-  onCleanup(() => {
-    clearInterval(intervalId);
-  });
-
   return (
     <>
       <div style = {{
@@ -80,14 +128,8 @@ export const ChatGuesser = () => {
       }}>
         {displayChat()}
       </div>
-      <input disabled={isDisabled()} type="text" onChange={(c) => setText(text => text = c.currentTarget.value)} />
+      <input disabled={isDisabled()} type="text" onChange={(c) => setText(prevText => prevText = c.currentTarget.value)} />
       <button onClick={guessChecker}>Submit</button>
     </>
   );
 }
-
-export const SpectatorChat: Page = {
-  async render(root: HTMLElement) {
-    this.onEnd = render(() => <ChatGuesser />, root);
-  },
-};
