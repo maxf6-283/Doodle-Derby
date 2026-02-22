@@ -1,0 +1,110 @@
+.podium-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.podium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  transform: translateY(100vh);
+  opacity: 0;
+
+  animation: popIn 0.6s ease-out forwards;
+}
+
+/* Stagger timing */
+.podium:nth-child(3) { animation-delay: 0s; }
+.podium:nth-child(1) { animation-delay: 1s; }
+.podium:nth-child(2) { animation-delay: 2s; }
+
+@keyframes popIn {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.player-score-card {
+  padding: 20px;
+  border-radius: 16px;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-name-label {
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.player-score {
+  font-weight: bold;
+  font-size: 1.5rem;
+  text-align: center;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.player-icon-wrapper {
+  width: 100px;
+  height: 100px;
+}
+
+.mini-stick-man {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #000;
+  border-radius: 8px;
+  background: white;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-stick-man img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+}
+/* Re-use shared logic for all layers */
+.mini-stick-man .base-char {
+  position: relative;
+}
+
+
+.acc-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain; /* Or 'cover' if you want 1:1 pixel mapping */
+}
+
+.acc-layer.hat,
+.acc-layer.face,
+.acc-layer.item {
+  top: 0;
+  left: 0;
+  transform: none;
+  width: 100%;
+  height: 100%;
+}
