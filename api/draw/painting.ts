@@ -111,7 +111,6 @@ export class PaintCanvas {
 
   private networkCallbacks: NetworkPaintCallbacks | null = null;
 
-  private networkPoints: [number, number][] = [];
   private previousClientImageData: ImageData | null = null;
 
   // Initializes internals of PaintCanvas and sets up
@@ -120,7 +119,8 @@ export class PaintCanvas {
     canvas: HTMLCanvasElement,
     pos: Konva.Vector2d,
     stage: Konva.Stage,
-    brush: Brush
+    brush: Brush,
+    isSpectator: boolean = false
   ) {
     this.image = new Konva.Image({
       image: canvas,
@@ -139,6 +139,19 @@ export class PaintCanvas {
     this.undoBuffer = [];
     this.redoBuffer = [];
 
+    if (!isSpectator) {
+      this.registerImageCallbacks(stage);
+    }
+
+    stage.add(this.layer);
+
+    this.canvasWidth = this.layer.getWidth() as number;
+    this.canvasHeight = this.layer.getHeight() as number;
+
+    this.clear();
+  }
+
+  private registerImageCallbacks(stage: Konva.Stage) {
     let currentType: PaintActionType = PaintActionType.Draw;
 
     let isPainting = false;
@@ -162,7 +175,6 @@ export class PaintCanvas {
       ];
 
       this.pointsBuffer.push(pos);
-      this.networkPoints.push(pos);
 
       if (this.pointsBuffer.length > this.requiredPoints) {
         let segment = this.getSegmentPoints(this.pointsBuffer);
@@ -180,8 +192,7 @@ export class PaintCanvas {
 
       if (segment.length == 0) return;
 
-      let newBoundingBox = this.drawPoint(segment, brush, this.paintMode, imageData);
-      this.networkCallbacks?.onStrokeMove(segment, this.currentBrush, this.paintMode);
+      let newBoundingBox = this.drawPoint(segment, this.currentBrush, this.paintMode, imageData);
 
       if (newBoundingBox == null) return;
       if (currentBoundingBox == null) {
@@ -267,7 +278,6 @@ export class PaintCanvas {
     });
 
     this.image.on('mousedown', ev => {
-
       // Only left clicks are processed
       if (ev.evt.button != 0) return;
 
@@ -328,13 +338,6 @@ export class PaintCanvas {
       if (!isPainting || imageData == null) return;
       draw(imageData);
     });
-
-    stage.add(this.layer);
-
-    this.canvasWidth = this.layer.getWidth() as number;
-    this.canvasHeight = this.layer.getHeight() as number;
-
-    this.clear();
   }
 
   public setNetworkCallbacks(callbacks: NetworkPaintCallbacks) {
@@ -350,29 +353,11 @@ export class PaintCanvas {
 
   public drawPointsClient(points: [number, number][], brush: Brush, paintMode: PaintMode) {
     let imageData = this.getImageData();
-    if (points.length == 1) {
-      let radius = brush.strokeWidth;
-      if (radius > 1) {
-        radius /= 2;
-      }
-      if (paintMode !== PaintMode.ERASE) {
-        this.drawCircle(points[0], radius, brush.color, imageData);
-      } else {
-        this.drawCircle(points[0], radius, "#ffffff", imageData);
-      }
-      this.context.putImageData(imageData, 0, 0);
-      this.layer.batchDraw();
-      return;
-    }
 
-    let segment = this.getSegmentPoints(points);
+    if (points.length == 0) return;
 
-    if (segment.length == 0) return;
-
-    this.drawPoint(segment, brush, paintMode, imageData);
-
+    this.drawPoint(points, brush, paintMode, imageData);
     this.context.putImageData(imageData, 0, 0);
-
     this.layer.batchDraw();
   }
 
