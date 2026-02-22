@@ -88,6 +88,30 @@ function LandingMain() {
         </button>
       </div>
 
+      {/* Reactions */}
+
+    <div class="reac-container">
+      <button class="reac-button">
+        <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
+      </button>
+      <button class="reac-button">
+        <img src="/reactions/ellipsis.png" class="reac-img" alt="Ellipsis"/>
+      </button>
+      <button class="reac-button">
+        <img src="/reactions/laugh.png" class="reac-img" alt="Laugh"/>
+      </button>
+      <button class="reac-button">
+        <img src="/reactions/question.png" class="reac-img" alt="Question"/>
+      </button>
+      <button class="reac-button">
+        <img src="/reactions/sad.png" class="reac-img" alt="Sad"/>
+      </button>
+      <button class="reac-button">
+        <img src="/reactions/tomato.png" class="reac-img" alt="Tomato"/>
+      </button>
+    </div>
+
+
       {/* Center Actions */}
       <div class="button-container">
         <button

@@ -4,6 +4,34 @@
   --margin-pink: #ffcada;
 }
 
+/* REACTIONS */
+
+.reac-img {
+  width: 50px;
+  height: auto;
+  position: relative;
+  z-index: 2;
+  transition:
+    transform 0.1s ease,
+    filter 0.1s ease;
+}
+.reac-button:hover .reac-img {
+  transform: scale(1.02);
+}
+.reac-button:active .reac-img {
+  /* Push the logo "down" into the paper */
+  transform: scale(0.92) translateY(4px);
+}
+
+.reac-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+
+
+
 .landing-page-body {
   margin: 0;
   padding: 0;
