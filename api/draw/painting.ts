@@ -3,8 +3,6 @@ import Konva from "konva"
 import { CurveInterpolator } from "curve-interpolator";
 import { Vector2d } from "konva/lib/types";
 
-const NETWORK_STROKE_DELAY_MS: number = 100
-
 export interface Brush {
   // Hex (RGB) -- Ex: #FFFFFF
   color: string
