@@ -6,10 +6,18 @@
 
 /* REACTIONS */
 
+@starting-style {
+  .reac-element {
+    opacity: 1;
+  }
+}
+
 .reac-element {
   position: fixed;
   right: 20px;
   bottom: 20px;
+  opacity: 0;
+  transition: opacity 2s ease-out;
 }
 
 .reac-button {
