@@ -102,6 +102,13 @@ body {
   box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
   transform: rotate(1deg);
   z-index: 5; /* Ensures it stays above the lines but below any popups */
+  opacity: 0;
+}
+
+@media screen and (min-width: 800px) {
+  .rules-note {
+    opacity: 1;
+  }
 }
 
 .rules-note h3 {
@@ -661,7 +668,6 @@ body {
   max-width: 80%;
   max-height: 80%;
 }
-
 
 #game-container {
   width: 100vw; /* 100% of viewport width */
