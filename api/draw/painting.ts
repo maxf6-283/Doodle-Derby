@@ -414,6 +414,7 @@ export class PaintCanvas {
       this.canvasWidth,
       this.canvasHeight,
     );
+    this.redoBuffer = [];
   }
 
   public registerUndoClient(boundingBox: BoundingBox) {
@@ -709,8 +710,6 @@ export class PaintCanvas {
 
     this.networkCallbacks?.onUndo();
 
-    this.networkCallbacks?.onUndo();
-
     let lastAction = this.undoBuffer.pop() as PaintAction;
     this.redoBuffer.push(lastAction);
 
@@ -721,8 +720,6 @@ export class PaintCanvas {
 
   redo() {
     if (this.redoBuffer.length == 0) return;
-
-    this.networkCallbacks?.onRedo();
 
     this.networkCallbacks?.onRedo();
 
