@@ -7,39 +7,19 @@ import { insertCoin, isHost, myPlayer } from "playroomkit";
 import { AudioManager } from "../components/AudioManager";
 import { MuteButton } from "../components/MuteButton";
 
-async function joinLobby(code: string) {
-  if (code.length == 4) {
-    try {
-      await insertCoin({
-        gameId: process.env.GAME_ID,
-        roomCode: code,
-        skipLobby: true,
-      });
-
-      if (isHost()) {
-        // Leave the accidental new room
-        myPlayer().leaveRoom();
-        alert("Lobby not found. Please check the code.");
-        return;
-      }
-
-      routerNavigate("/lobby");
-      window.location.href = "/#r=R" + code;
-    } catch (error) {
-      alert("Lobby not found. Please check the code.");
-      return;
-    }
-  } else {
-    alert("Invalid code");
-  }
-}
+import {
+  PromptModal,
+  AlertModal,
+  AlertModalProps,
+  PromptModalState
+} from "../../api/modals/ModalComponents";
 
 function LandingMain() {
-  const [lobbyCode, setLobbyCode] = createSignal("");
-  const [showJoinInput, setShowJoinInput] = createSignal(false);
   let logoClickCount = 0;
   const logoClickEvent = 20;
   const eventDuration = 10;
+  const [alertModal, setAlertModal] = createSignal<AlertModalProps | null>(null);
+  const [promptModal, setPromptModal] = createSignal<PromptModalState | null>(null);
 
   const spawnSheep = () => {
     const doodle = document.createElement("img");
@@ -68,14 +48,46 @@ function LandingMain() {
       logoClickCount = 0;
     }
   };
-  const handleJoinClick = async () => {
-    // If input is already shown and there is a code, join the lobby
-    if (showJoinInput() && lobbyCode().length === 4) {
-      await joinLobby(lobbyCode());
+  const showAlert = (title: string | null, message: string, imgSrc?: string) => {
+    setAlertModal({ title, message, imgSrc });
+  };
+
+  const showPrompt = (label: string, placeholder: string, onConfirm: (value: string | null) => void) => {
+    setPromptModal({ label, placeholder, onConfirm });
+  };
+
+  const joinLobby = async (code: string) => {
+    if (code.length === 4) {
+      try {
+        await insertCoin({
+          gameId: process.env.GAME_ID,
+          roomCode: code,
+          skipLobby: true,
+        });
+
+        if (isHost()) {
+          // Leave the accidental new room
+          myPlayer().leaveRoom();
+          showAlert(null, "Lobby not found. Please check the code.");
+          return;
+        }
+
+        routerNavigate("/lobby");
+        window.location.href = "/#r=R" + code;
+      } catch (error) {
+        showAlert(null, "Lobby not found. Please check the code.");
+        return;
+      }
     } else {
-      // Otherwise, just show the input field
-      setShowJoinInput(true);
+      showAlert(null, "Invalid code");
     }
+  };
+
+  const handleJoinClick = async () => {
+    showPrompt("Enter Game Code:", "e.g. ABC123", async (code) => {
+      if (!code) return;
+      await joinLobby(code);
+    });
   };
 
   const [bgMusicLoop, setBgMusicLoop] = createSignal<HTMLAudioElement | null>(
@@ -99,6 +111,28 @@ function LandingMain() {
       AudioManager.stopLoop(bgMusicLoop());
     }
   });
+
+  const handleCredits = () => {
+    showAlert(
+      "Credits!!",
+      "Artists: Allie, Jay, Marissa, Bella\n" +
+      "Programmers: Neel, Seven, Zidane, Isha, Jack, Adrian\n" +
+      "Audio: Jay\n" +
+      "Designers: Emily",
+      "/group_photo.png",
+    );
+  };
+
+  const handleHowToPlay = () => {
+    showAlert(
+      "How to Play",
+      "Each player submits 5-10 word prompts." +
+      " At the start of each round, two artists are randomly selected and given a prompt to draw." +
+      " The rest of the players have a set time limit to guess both artists' prompts." +
+      " The artist with the most correct guesses wins the round!" +
+      " The player who guesses the fastest gains the most points!! Have fun doodlers!!",
+    );
+  };
   return (
     <div class="landing-page-body">
       <div style={{ position: "absolute", top: "10px", right: "10px" }}>
@@ -145,18 +179,6 @@ function LandingMain() {
             <img src="/landing-page/join_button_flat.png" class="btn-idle" />
             <img src="/landing-page/join_button_hover.png" class="btn-hover" />
           </button>
-          <Show when={showJoinInput()}>
-            <input
-              type="text"
-              class="join-code-input"
-              placeholder="CODE"
-              value={lobbyCode()}
-              onInput={(e) => setLobbyCode(e.currentTarget.value.toUpperCase())}
-              onKeyDown={(e) => e.key === "Enter" && joinLobby(lobbyCode())}
-              maxLength={4}
-              autofocus
-            />
-          </Show>
         </div>
       </div>
 
@@ -166,15 +188,36 @@ function LandingMain() {
           <span class="version-text">Version 0.0.1</span>
           <span
             class="footer-link"
-            onClick={() => alert("Credits coming soon!")}
+            onClick={() => handleCredits()}
           >
             credits
           </span>
-          <span class="footer-link" onClick={() => alert("Draw fast!")}>
+          <span class="footer-link" onClick={() => handleHowToPlay()}>
             how to play
           </span>
         </div>
       </div>
+      <Show when={alertModal()}>
+        {(alert) => (
+          <AlertModal
+            {...alert()}
+            onClose={() => setAlertModal(null)}
+          />
+        )}
+      </Show>
+      <Show when={promptModal()}>
+        {(prompt) => (
+          <PromptModal
+            label={prompt().label}
+            placeholder={prompt().placeholder}
+            onClose={(value) => {
+              const current = promptModal();
+              setPromptModal(null);
+              current?.onConfirm(value);
+            }}
+          />
+        )}
+      </Show>
     </div>
   );
 }
@@ -184,3 +227,4 @@ export const LandingPage: Page = {
     this.onEnd = render(() => <LandingMain />, root);
   },
 };
+
