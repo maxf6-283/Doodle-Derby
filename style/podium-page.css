@@ -11,22 +11,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  transform: translateY(100vh);
-  opacity: 0;
-
-  animation: popIn 0.6s ease-out forwards;
-}
-
-/* Stagger timing */
-.podium:nth-child(3) { animation-delay: 0s; }
-.podium:nth-child(1) { animation-delay: 1s; }
-.podium:nth-child(2) { animation-delay: 2s; }
-
-@keyframes popIn {
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  transform-origin: bottom;
+  scale: .80;
 }
 
 .player-score-card {
