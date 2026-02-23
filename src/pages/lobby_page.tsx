@@ -132,6 +132,10 @@ function Lobby() {
 
       // Small delay to allow state to propagate
       setTimeout(() => setIsLoading(false), 800);
+
+      // set state for reactions
+      console.log("setting initial state...");
+      setState("reactionPressed", "");
     };
 
     initSequence();
@@ -190,10 +194,6 @@ function Lobby() {
 
   /* BEGIN REACTIONS */
 
-  if (getState("reactionPressed") === undefined || !getState("reactionPressed")){
-    setState("reactionPressed", "");
-  }
-
   const newReaction = (path: string) => {
     const reaction = document.createElement("img");
     reaction.src = path;
@@ -206,7 +206,7 @@ function Lobby() {
 
     document.body.appendChild(reaction);
     setTimeout(() => reaction.remove(), 2000);
-    RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL);
+    
   }
 
   if (getState("reactionPressed") != ""){
@@ -319,7 +319,10 @@ function Lobby() {
           {/* Reactions */}
 
           <div class="reac-container">
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/cool.png"); }}>
+            <button class="reac-button" onClick={() => { 
+              setState("reactionPressed", "/reactions/cool.png");
+              console.log("clicked!");
+              RPC.call("refresh_lobby_ui", {}, RPC.Mode.ALL); }}>
               <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
             </button>
             <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/ellipsis.png"); }}>
