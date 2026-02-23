@@ -15,6 +15,7 @@ import {
 } from "./painting";
 
 import { RPC } from "playroomkit";
+import { CanvasButton } from "../../src/components/CanvasButton";
 
 const SMALL_BRUSH_SIZE = 5;
 const MEDIUM_BRUSH_SIZE = 10;
@@ -26,8 +27,7 @@ const DEFAULT_BRUSH = { color: "#000000", strokeWidth: 5 };
 function DrawCanvas(props: { prompt: string }) {
   let containerRef: HTMLDivElement | undefined;
 
-  let [width, setWidth] = createSignal(600);
-  let [height, setHeight] = createSignal(600);
+  
 
   let [paintMode, setPaintMode] = createSignal(PaintMode.DRAW);
   let [brush, setBrush] = createSignal(DEFAULT_BRUSH);
@@ -42,13 +42,12 @@ function DrawCanvas(props: { prompt: string }) {
     }
 
     const rect = containerRef.getBoundingClientRect();
-    setWidth(rect.width);
-    setHeight(rect.height);
+  
 
     stage = new konva.Stage({
       container: containerRef,
-      width: width(),
-      height: height(),
+      width: rect.width,
+      height: rect.height,
     });
 
     canvas = stage.toCanvas();
@@ -103,122 +102,144 @@ function DrawCanvas(props: { prompt: string }) {
     paintCanvas.setBrushStrokeWidth(brush().strokeWidth);
   });
 
-  const setModeErase = () => {
-    if (paintMode() == PaintMode.ERASE) {
-      setPaintMode(PaintMode.DRAW);
-      return;
-    }
-    setPaintMode(PaintMode.ERASE);
-  };
-
-  const setModeFill = () => {
-    if (paintMode() == PaintMode.FILL) {
-      setPaintMode(PaintMode.DRAW);
-      return;
-    }
-
-    setPaintMode(PaintMode.FILL);
-  };
-
   const setBrushStroke = (stroke: number) => {
-    setBrush((prevBrush) => {
-      prevBrush.strokeWidth = stroke;
-      return prevBrush;
-    });
+    setBrush((prevBrush) => ({
+      ...prevBrush,
+      strokeWidth: stroke,
+    }));
   };
 
   const changeColor = (color: string) => {
-    setBrush((prevBrush) => {
-      prevBrush.color = color;
-      return prevBrush;
-    });
+    setBrush((prevBrush) => ({
+      ...prevBrush,
+      color: color,
+    }));
   };
 
   return (
     <>
-      <div
-        style={{
-          position: "fixed", // This is temporary styling, I hope!
-          top: "0%",
-          right: "5%",
-          "z-index": 1,
-          "max-width": "20vw", // ensure it doesn't overflow the viewport
-          width: "max-content", // only as wide as content, but will wrap if too long
-          "word-break": "break-word", // wrap long words
-          "white-space": "normal", // allow wrapping
-        }}
-      >
+      <div class="draw-root-container">
         <h1
-          style={{
-            margin: 0,
-            "word-break": "break-word",
-            "white-space": "normal",
-          }}
+          class="draw-header"
         >
-          {props.prompt.toUpperCase()}
+          DRAW: {props.prompt.toUpperCase()}
         </h1>
         <div
-          ref={containerRef}
-          id="container"
-          style={{ width: "400px", height: "400px" }}
-        ></div>
-      </div>
+          class="draw-workspace"
+        >
+          <div class="sidebar" id="sidebar">
+            {/* Brush Sizes */}
+            <div class="sidebar-options-container">
+              <CanvasButton
+                icon="/drawing/small_brush.png"
+                alt="Small"
+                isActive={brush().strokeWidth === SMALL_BRUSH_SIZE}
+                onClick={() => setBrushStroke(SMALL_BRUSH_SIZE)}
+                size="64px"
+                top="60%"
+                left="55%"
+              />
+              <CanvasButton
+                icon="/drawing/medium_brush.png"
+                alt="Medium"
+                isActive={brush().strokeWidth === MEDIUM_BRUSH_SIZE}
+                onClick={() => setBrushStroke(MEDIUM_BRUSH_SIZE)}
+                size="64px"
+                top="60%"
+                left="55%"
+              />
+              <CanvasButton
+                icon="/drawing/large_brush.png"
+                alt="Large"
+                isActive={brush().strokeWidth === LARGE_BRUSH_SIZE}
+                onClick={() => setBrushStroke(LARGE_BRUSH_SIZE)}
+                size="64px"
+                top="60%"
+                left="55%"
+              />
+              <CanvasButton
+                icon="/drawing/extreme_brush.png"
+                alt="Extreme"
+                isActive={brush().strokeWidth === EXTREME_BRUSH_SIZE}
+                onClick={() => setBrushStroke(EXTREME_BRUSH_SIZE)}
+                size="64px"
+                top="60%"
+                left="55%"
+              />
+            </div>
 
-      <div class="sidebar" id="sidebar">
-        <input
-          type="button"
-          value="Small"
-          onClick={() => setBrushStroke(SMALL_BRUSH_SIZE)}
-        />
-        <input
-          type="button"
-          value="Medium"
-          onClick={() => setBrushStroke(MEDIUM_BRUSH_SIZE)}
-        />
-        <input
-          type="button"
-          value="Large"
-          onClick={() => setBrushStroke(LARGE_BRUSH_SIZE)}
-        />
-        <input
-          type="button"
-          value="Extreme"
-          onClick={() => setBrushStroke(EXTREME_BRUSH_SIZE)}
-        />
-        <input type="button" value="Erase" onClick={() => setModeErase()} />
+            {/* Modes */}
+            <div class="sidebar-options-container">
+              <CanvasButton
+                icon="/drawing/paintbrush.png"
+                alt="Fill"
+                isActive={paintMode() === PaintMode.DRAW}
+                onClick={() => setPaintMode(PaintMode.DRAW)}
+                top="50%"
+                left="50%"
+              />
+              <CanvasButton
+                icon="/drawing/eraser.png"
+                alt="Erase"
+                isActive={paintMode() === PaintMode.ERASE}
+                onClick={() => setPaintMode(PaintMode.ERASE)}
+                top="50%"
+                left="50%"
+              />
+              <CanvasButton
+                icon="/drawing/bucket.png"
+                alt="Fill"
+                isActive={paintMode() === PaintMode.FILL}
+                onClick={() => setPaintMode(PaintMode.FILL)}
+                top="50%"
+                left="50%"
+                size="40px"
+              />
+            </div>
 
-        <input type="button" value="Undo" onClick={() => paintCanvas.undo()} />
-        <input type="button" value="Redo" onClick={() => paintCanvas.redo()} />
-        <input type="button" value="Fill" onClick={() => setModeFill()} />
+            {/* Actions (Non-toggle) */}
+            <div class="sidebar-options-container">
+              <CanvasButton
+                icon="/drawing/undo_icon.png"
+                alt="Undo"
+                isActive={false}
+                onClick={() => paintCanvas.undo()}
+                size="64px"
+                top="50%"
+                left="50%"
+                transparent={true}
+              />
+              <CanvasButton
+                icon="/drawing/redo_button.png"
+                alt="Redo"
+                isActive={false}
+                onClick={() => paintCanvas.redo()}
+                size="64px"
+                top="50%"
+                left="50%"
+                transparent={true}
+              />
+            </div>
 
-        <input
-          type="color"
-          onInput={(element) => changeColor(element.target.value)}
-        />
+            <input
+              type="color"
+              style={{ width: "100%", height: "40px", "margin-top": "5px" }}
+              onInput={(element) => changeColor(element.currentTarget.value)}
+            />
+          </div>
+          <div
+            ref={containerRef}
+            id="container"
+            class="canvas-container"
+          ></div>
+        </div>
       </div>
 
       <style>
         {`
-          .sidebar {
-            position: fixed;
-            left: 5%;
-            background-color: #666666;
-            padding: 5px;
-            display: grid;
-          }
+          
 
-          .sidebar button {
-            display: block;
-            margin: 3px;
-          }
-
-          #container {
-            border: solid 2px red;
-            position: fixed;
-            left: 25%;
-            right: auto;
-            top: 0;
-          }
+          
         `}
       </style>
     </>
@@ -285,10 +306,13 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
       paintCanvas.redo();
     });
 
+    const rect = containerRef.getBoundingClientRect();
+    
+
     stage = new konva.Stage({
       container: containerRef,
-      width: width(),
-      height: height(),
+      width: rect.width,
+      height: rect.height,
     });
 
     canvas = stage.toCanvas();
@@ -315,7 +339,7 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
   return (
     <>
       <h1> {props.artist.getState("name")} </h1>
-      <div ref={containerRef} id="container-spectator"></div>
+      <div ref={containerRef} id="container-spectator" class="canvas-container"></div>
     </>
   );
 }

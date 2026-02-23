@@ -17,3 +17,66 @@
     linear-gradient(var(--line-blue) 0.1em, transparent 0.1em);
   background-size: 100% 40px;
 }
+
+.canvas-btn {
+  transition: transform 0.2s ease;
+}
+.canvas-btn:hover {
+  transform: scale(1.05);
+}
+.canvas-btn:active {
+  transform: scale(0.95);
+}
+
+.sidebar {
+  position: flex;
+  flex-direction: column;
+  min-width: 40px;
+  left: 5%;
+  background : none;
+  padding: 5px;
+  display: grid;
+  gap : 10px;
+}
+
+.sidebar button {
+  display: block;
+  margin: 3px;
+}
+
+.sidebar-options-container {
+  border: 1px solid #111111
+}
+
+/* Container wrapping the entire draw area (Header + Workspace) */
+.draw-root-container {
+  display: flex;
+  flex-direction: column;
+  width: 800px;
+}
+
+/* The prompt header text */
+.draw-header {
+  margin: 0;
+  word-break: break-word;
+  white-space: normal;
+  align-self: center;
+  justify-self: center;
+  padding: 10px 0px;
+}
+
+/* The workspace container (Sidebar + Canvas) */
+.draw-workspace {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px 70px;
+}
+
+/* The actual Konva canvas container */
+.canvas-container {
+  width: 400px;
+  height: 400px;
+  border: 1px solid #ccc;
+}
