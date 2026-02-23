@@ -157,7 +157,6 @@ function Lobby() {
 
     onCleanup(() => {
       clearInterval(interval);
-      // clearInterval(settingsSync);
       clearInterval(hostCheck);
     });
   });
@@ -219,7 +218,7 @@ function Lobby() {
             Code: <span id="code-span">{getRoomCode() ?? "Error"}</span>
           </h1>
           <div>
-            <MuteButton onClick={() => {}}></MuteButton>
+            <MuteButton onClick={() => { }}></MuteButton>
             <IconButton
               id="settings-btn"
               defaultImg="/lobby/settings_icon.png"
