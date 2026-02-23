@@ -58,6 +58,7 @@ body {
   height: auto;
   position: relative;
   z-index: 2;
+  opacity: 1;
   transition:
     transform 0.1s ease,
     filter 0.1s ease;
@@ -68,6 +69,11 @@ body {
 .reac-button:active .reac-img {
   /* Push the logo "down" into the paper */
   transform: scale(0.86) translateY(4px);
+}
+.reac-button:disabled .reac-img {
+  /* Push the logo "down" into the paper */
+  opacity: 0.8;
+  transition: opacity 0.1;
 }
 
 .reac-container {
