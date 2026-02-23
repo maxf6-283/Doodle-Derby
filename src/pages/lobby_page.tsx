@@ -127,10 +127,6 @@ function Lobby() {
       if (isHost() && !getState("hostId")) {
         setState("hostId", me.id, true);
       }
-      /********************************************************************************/
-      // set state for reactions
-      setState("reactionPressed", "");
-      /********************************************************************************/
 
       // Small delay to allow state to propagate
       setTimeout(() => setIsLoading(false), 800);
@@ -203,12 +199,16 @@ function Lobby() {
     return getState("reactionPressed");
   }
 
+  const reactionSoundURL = () => {
+    lobbyTicket();
+    return getState("reactionSound");
+  }
+
   const newReaction = () => {
     const button_list = document.getElementsByClassName('reac-button');
     for (let i=0; i<button_list.length; i++){
       button_list[i].disabled = true;
     }
-
     const reaction = document.createElement("img");
     reaction.src = reactionURL();
     reaction.classList.add("reac-element");
@@ -217,7 +217,7 @@ function Lobby() {
       animation: `moveUp 2s ease-out`,
       zIndex: `10`,
     });
-    AudioManager.playSound("/audio/bark.mp3");
+    AudioManager.playSound(reactionSoundURL());
 
     document.body.appendChild(reaction);
     setTimeout(() => {
@@ -341,30 +341,41 @@ function Lobby() {
           <div class="reac-container">
             <button class="reac-button" onClick={() => { 
               setState("reactionPressed", "/reactions/cool.png");
+              setState("reactionSound", "/audio/meow-01.wav");
               RPC.call("new-reaction", {}, RPC.Mode.ALL); }}>
               <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/ellipsis.png"); 
+            <button class="reac-button" onClick={() => { 
+              setState("reactionPressed", "/reactions/ellipsis.png"); 
+              setState("reactionSound", "/audio/bark.mp3");
               RPC.call("new-reaction", {}, RPC.Mode.ALL); 
             }}>
               <img src="/reactions/ellipsis.png" class="reac-img" alt="Ellipsis"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/laugh.png"); 
+            <button class="reac-button" onClick={() => { 
+              setState("reactionPressed", "/reactions/laugh.png"); 
+              setState("reactionSound", "/audio/bark.mp3");
               RPC.call("new-reaction", {}, RPC.Mode.ALL); 
             }}>
               <img src="/reactions/laugh.png" class="reac-img" alt="Laugh"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/question.png"); 
+            <button class="reac-button" onClick={() => { 
+              setState("reactionPressed", "/reactions/question.png"); 
+              setState("reactionSound", "/audio/bark.mp3");
               RPC.call("new-reaction", {}, RPC.Mode.ALL); 
             }}>
               <img src="/reactions/question.png" class="reac-img" alt="Question"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/sad.png"); 
+            <button class="reac-button" onClick={() => { 
+              setState("reactionPressed", "/reactions/sad.png"); 
+              setState("reactionSound", "/audio/bark.mp3");
               RPC.call("new-reaction", {}, RPC.Mode.ALL); 
             }}>
               <img src="/reactions/sad.png" class="reac-img" alt="Sad"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/tomato.png"); 
+            <button class="reac-button" onClick={() => { 
+              setState("reactionPressed", "/reactions/tomato.png"); 
+              setState("reactionSound", "/audio/bark.mp3");
               RPC.call("new-reaction", {}, RPC.Mode.ALL); 
             }}>
               <img src="/reactions/tomato.png" class="reac-img" alt="Tomato"/>
