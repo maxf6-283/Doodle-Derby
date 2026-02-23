@@ -382,6 +382,8 @@ export class PaintCanvas {
     });
   }
 
+  
+
   public setNetworkCallbacks(callbacks: NetworkPaintCallbacks) {
     this.networkCallbacks = {
       onStrokeBegin: callbacks.onStrokeBegin,

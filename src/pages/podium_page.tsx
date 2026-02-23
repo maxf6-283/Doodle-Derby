@@ -153,25 +153,27 @@ function PodiumPageMain() {
   });
 
   return (
-    <div class="podium-container">
-      <Podium
-        src={secondImage}
-        player={secondPlace()}
-        playerScale={secondPlaceScale}
-        width={415}
-      />
-      <Podium
-        src={firstImage}
-        player={firstPlace()}
-        playerScale={firstPlaceScale}
-        width={500}
-      />
-      <Podium
-        src={thirdImage}
-        player={thirdPlace()}
-        playerScale={thirdPlaceScale}
-        width={415}
-      />
+    <div class="podium-page">
+      <div class="podium-container">
+        <Podium
+          src={secondImage}
+          player={secondPlace()}
+          playerScale={secondPlaceScale}
+          width={415}
+        />
+        <Podium
+          src={firstImage}
+          player={firstPlace()}
+          playerScale={firstPlaceScale}
+          width={500}
+        />
+        <Podium
+          src={thirdImage}
+          player={thirdPlace()}
+          playerScale={thirdPlaceScale}
+          width={415}
+        />
+      </div>
     </div>
   );
 }
