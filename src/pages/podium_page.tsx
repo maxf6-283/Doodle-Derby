@@ -69,6 +69,8 @@ function Podium(props: {
   );
 }
 
+// Is this actually needed?
+
 const images = import.meta.glob("/public/podium/*.png", {
   eager: true,
   import: "default", // get the final URL
@@ -81,6 +83,8 @@ imageUrls.forEach(src => {
   img.src = src;
   console.log("img url:", img.src);
 });
+
+//
 
 function PodiumPageMain() {
   const [firstPlace, setFirstPlace] = createSignal<PlayerState | null>(null);
