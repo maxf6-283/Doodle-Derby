@@ -52,23 +52,18 @@ function PlayerCard({
   );
 }
 
-function Podium({
-  src,
-  player,
-  width,
-  playerScale,
-}: {
-  src: Accessor<string | null>;
-  player: PlayerState | null;
+function Podium(props: {
+  src: string;
+  player: PlayerState;
   width: number;
   playerScale: Accessor<number>;
 }) {
   console.log("Rerendered");
   return (
-    <Show when={player != null}>
-      <div class="podium" style={{ width: `${width}px` }}>
-        <PlayerCard player={player as PlayerState} playerScale={playerScale} />
-        <img src={src() as string}></img>
+    <Show when={props.player != null && props.src != null}>
+      <div class="podium" style={{ width: `${props.width}px` }}>
+        <PlayerCard player={props.player} playerScale={props.playerScale} />
+        <img src={props.src}></img>
       </div>
     </Show>
   );
@@ -80,6 +75,12 @@ const images = import.meta.glob("/public/podium/*.png", {
 });
 
 const imageUrls = Object.values(images) as string[];
+
+imageUrls.forEach(src => {
+  const img = new Image();
+  img.src = src;
+  console.log("img url:", img.src);
+});
 
 function PodiumPageMain() {
   const [firstPlace, setFirstPlace] = createSignal<PlayerState | null>(null);
@@ -97,29 +98,21 @@ function PodiumPageMain() {
   onMount(() => {
     const players = Object.values(getParticipants());
 
-    let firstPlaceScore = -1;
-    let secondPlaceScore = -1;
-    let thirdPlaceScore = -1;
+    // Sorts in descending order
+    let topPlayers = players.sort((playerA, playerB) => {
+      let playerAScore = playerA.getState('score') ?? 0;
+      let playerBScore = playerB.getState('score') ?? 0;
 
-    for (let player of players) {
-      let score = player.getState("score") ?? 0;
-      if (score > firstPlaceScore) {
-        console.log("First place set");
-        firstPlaceScore = score;
-        setFirstPlace(player);
-      } else if (score > secondPlaceScore) {
-        secondPlaceScore = score;
-        setSecondPlace(player);
-      } else if (score > thirdPlaceScore) {
-        thirdPlaceScore = score;
-        setThirdPlace(player);
-      }
+      return playerBScore - playerAScore;
     }
+    ).slice(0, 4)
 
-    imageUrls.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
+    // We should probably check if this is 3 players
+    // But hopefully no one leaves :))
+
+    setFirstPlace(topPlayers[0]);
+    setSecondPlace(topPlayers[1]);
+    setThirdPlace(topPlayers[2]);
 
     const next_img = (
       prefix: string,
@@ -135,11 +128,12 @@ function PodiumPageMain() {
       else done();
     };
 
-    setTimeout(() => {
-      next_img("/podium/Third_podium_", 1, 4, setThirdImage, () =>
-        setThirdPlaceScale(1),
-      );
-    }, 0);
+    next_img("/podium/Third_podium_", 1, 4, setThirdImage, () =>
+      setThirdPlaceScale(1),
+    );
+
+    console.log(thirdImage(), thirdPlace()?.getState('name'));
+
     setTimeout(() => {
       next_img("/podium/Second_podium_", 1, 5, setSecondImage, () =>
         setSecondPlaceScale(1),
@@ -155,20 +149,20 @@ function PodiumPageMain() {
   return (
     <div class="podium-container">
       <Podium
-        src={secondImage}
-        player={secondPlace()}
+        src={secondImage() as string}
+        player={secondPlace() as PlayerState}
         playerScale={secondPlaceScale}
         width={415}
       />
       <Podium
-        src={firstImage}
-        player={firstPlace()}
+        src={firstImage() as string}
+        player={firstPlace() as PlayerState}
         playerScale={firstPlaceScale}
         width={500}
       />
       <Podium
-        src={thirdImage}
-        player={thirdPlace()}
+        src={thirdImage() as string}
+        player={thirdPlace() as PlayerState}
         playerScale={thirdPlaceScale}
         width={415}
       />
