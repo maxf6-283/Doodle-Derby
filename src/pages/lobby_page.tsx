@@ -131,7 +131,6 @@ function Lobby() {
       }
       /********************************************************************************/
       // set state for reactions
-      console.log("setting initial state...");
       setState("reactionPressed", "");
       /********************************************************************************/
 
@@ -209,7 +208,6 @@ function Lobby() {
     for (let i=0; i<button_list.length; i++){
       button_list[i].disabled = true;
     }
-
 
     const reaction = document.createElement("img");
     reaction.src = reactionURL();
@@ -337,23 +335,32 @@ function Lobby() {
           <div class="reac-container">
             <button class="reac-button" onClick={() => { 
               setState("reactionPressed", "/reactions/cool.png");
-              console.log("clicked!");
               RPC.call("new-reaction", {}, RPC.Mode.ALL); }}>
               <img src="/reactions/cool.png" class="reac-img" alt="Cool"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/ellipsis.png"); }}>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/ellipsis.png"); 
+              RPC.call("new-reaction", {}, RPC.Mode.ALL); 
+            }}>
               <img src="/reactions/ellipsis.png" class="reac-img" alt="Ellipsis"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/laugh.png"); }}>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/laugh.png"); 
+              RPC.call("new-reaction", {}, RPC.Mode.ALL); 
+            }}>
               <img src="/reactions/laugh.png" class="reac-img" alt="Laugh"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/question.png"); }}>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/question.png"); 
+              RPC.call("new-reaction", {}, RPC.Mode.ALL); 
+            }}>
               <img src="/reactions/question.png" class="reac-img" alt="Question"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/sad.png"); }}>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/sad.png"); 
+              RPC.call("new-reaction", {}, RPC.Mode.ALL); 
+            }}>
               <img src="/reactions/sad.png" class="reac-img" alt="Sad"/>
             </button>
-            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/tomato.png"); }}>
+            <button class="reac-button" onClick={() => { setState("reactionPressed", "/reactions/tomato.png"); 
+              RPC.call("new-reaction", {}, RPC.Mode.ALL); 
+            }}>
               <img src="/reactions/tomato.png" class="reac-img" alt="Tomato"/>
             </button>
           </div>

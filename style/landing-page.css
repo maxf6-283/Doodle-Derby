@@ -4,59 +4,6 @@
   --margin-pink: #ffcada;
 }
 
-/* BEGIN REACTIONS */
-
-.reac-element {
-  position: fixed;
-  right: 70px;
-  bottom: 70px;
-  opacity: 0;
-  scale: 1.5;
-  transition: opacity 2s ease-out, scale 2s ease-out;
-}
-
-@starting-style {
-  .reac-element {
-    opacity: 1;
-    scale: 3.5;
-  }
-}
-
-.reac-button {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  outline: none;
-  position: relative;
-}
-
-.reac-img {
-  width: 60px;
-  height: auto;
-  position: relative;
-  z-index: 2;
-  transition:
-    transform 0.1s ease,
-    filter 0.1s ease;
-}
-.reac-button:hover .reac-img {
-  transform: scale(1.05);
-}
-.reac-button:active .reac-img {
-  /* Push the logo "down" into the paper */
-  transform: scale(0.86) translateY(4px);
-}
-
-.reac-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-/* END REACTIONS */
-
-
 
 .landing-page-body {
   margin: 0;
