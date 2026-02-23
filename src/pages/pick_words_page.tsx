@@ -230,9 +230,6 @@ function WaitingPage(props: { readyToStart: boolean }) {
   );
 }
 
-// start_game_btn.style.display = "block";
-// waiting_status_text.innerText = "Start Doodling!";
-
 function PickWordsMain() {
   const [wordsList, setWordsList] = createSignal(new Array<string>());
   const [isWaiting, setIsWaiting] = createSignal(false);
