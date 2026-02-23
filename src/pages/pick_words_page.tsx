@@ -256,6 +256,10 @@ function PickWordsMain() {
       }
     });
 
+    myPlayer().setState("words", []);
+    myPlayer().setState("words_complete", 0);
+    myPlayer().setState("picked_words", false);
+
     onCleanup(() => {
       startClean();
       readyClean();
