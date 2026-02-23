@@ -7,7 +7,7 @@ import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroo
 
 import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/ArtistCanvasComponent";
 
-import { ReactionBar } from "../../api/reactions/ReactionComponent"
+import { ReactionBar } from "../../api/reactions/ReactionBarComponent"
 
 import "../../style/game.css";
 import { AudioManager } from "../components/AudioManager";
