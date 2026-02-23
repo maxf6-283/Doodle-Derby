@@ -320,6 +320,84 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
   );
 }
 
+export function GuessElement(props: { promptLength: number }) {
+    let [text, setText] = createSignal("");
+    let containerRef: HTMLDivElement | undefined;
+
+    const handleContainerClick = () => {
+        const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+        let hasInput = Array.from(inputs).find(input => input.value);
+        if (inputs) {
+            if (!hasInput) inputs[0].focus();
+        }
+    };
+
+    const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
+        const input = e.currentTarget;
+        if (input.value.length >= 1) {
+            const next = input.parentElement?.nextElementSibling?.querySelector('input');
+            if (next) (next as HTMLInputElement).focus();
+        }
+    };
+    return (
+        <>
+            <div class='guessContainer' ref={containerRef} onClick={handleContainerClick}>
+                {Array.from({ length: props.promptLength }).map(() => (
+                    <>
+                        <div class="input-unit">
+                            <input
+                                class="letter-input"
+                                type="text"
+                                maxlength="1"
+                                onInput={handleInput}
+                                onChange={(c) => setText((text) => (text = c.currentTarget.value))} />
+                            <div class="bold-dash"></div >
+                        </div>
+                    </>
+                ))}
+            </div>
+            <style>
+                {
+                    `.guessContainer {
+                position: relative;
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin-top: 2rem;
+            }
+
+            .input-unit {
+                position: relative;
+                top:100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .letter-input {
+                width: 40px;
+                background: transparent;
+                border: none;
+                text-align: center;
+                font-size: 2.5rem;
+                font-weight: 500;
+                color: #2c3e50;
+                text-transform: uppercase;
+                outline: none;
+            }
+
+            .bold-dash {
+                width: 100%;
+                height: 6px;
+                background-color: #2c3e50;
+                border-radius: 10px;
+            }`
+                }
+            </style>
+        </>
+    );
+}
+
 export function ArtistCanvasComponent(props: { prompt: string }) {
   return (
     <div class="artist-canvas-component">
