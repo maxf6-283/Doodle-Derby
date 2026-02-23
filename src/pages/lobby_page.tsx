@@ -87,8 +87,6 @@ function Lobby() {
     }
   };
 
-
-
   onMount(() => {
     const interval = setInterval(() => {
       // This will only trigger updates in parts of the JSX
@@ -147,16 +145,9 @@ function Lobby() {
 
     const refreshClean = RPC.register("refresh_lobby_ui", async () => refreshLobby());
     /********************************************************************************/
-    const reactionClean = RPC.register("new-reaction", async () => newReaction());
-    /********************************************************************************/
 
     const startClean = RPC.register("start-game", async () => {
       routerNavigate("/pick-words");
-
-      // Uncomment to switch
-      // to gameplay page directly
-
-      // routerNavigate("/game");
     });
 
     // Ensure host is set on mount
@@ -169,7 +160,6 @@ function Lobby() {
       clearInterval(hostCheck);
       refreshClean();
       startClean();
-      reactionClean();
     });
   });
 
@@ -196,44 +186,6 @@ function Lobby() {
       alert("Need 3+ players and everyone must be ready!");
     }
   };
-
-  /********************************************************************************/
-  /* BEGIN REACTIONS */
-
-  const reactionURL = () => {
-    lobbyTicket();
-    return getState("reactionPressed");
-  }
-
-  const newReaction = () => {
-    const button_list = document.getElementsByClassName('reac-button');
-    for (let i = 0; i < button_list.length; i++) {
-      const button = button_list[i] as HTMLButtonElement;
-      button.disabled = true;
-    }
-
-    const reaction = document.createElement("img");
-    reaction.src = reactionURL();
-    reaction.classList.add("reac-element");
-    Object.assign(reaction.style, {
-      width: `50px`,
-      animation: `moveUp 2s ease-out`,
-      zIndex: `10`,
-    });
-    AudioManager.playSound("/audio/bark.mp3");
-
-    document.body.appendChild(reaction);
-    setTimeout(() => {
-      reaction.remove();
-      for (let i = 0; i < button_list.length; i++) {
-        const button = button_list[i] as HTMLButtonElement;
-        button.disabled = false;
-      }
-    }, 2000);
-  }
-
-  /* END REACTIONS */
-  /********************************************************************************/
 
   return (
     <Show
@@ -338,50 +290,6 @@ function Lobby() {
               }}
             </For>
           </div>
-
-          {/********************************************************************************/}
-          {/* Reactions */}
-
-          <div class="reac-container">
-            <button class="reac-button" onClick={() => {
-              setState("reactionPressed", "/reactions/cool.png");
-              RPC.call("new-reaction", {}, RPC.Mode.ALL);
-            }}>
-              <img src="/reactions/cool.png" class="reac-img" alt="Cool" />
-            </button>
-            <button class="reac-button" onClick={() => {
-              setState("reactionPressed", "/reactions/ellipsis.png");
-              RPC.call("new-reaction", {}, RPC.Mode.ALL);
-            }}>
-              <img src="/reactions/ellipsis.png" class="reac-img" alt="Ellipsis" />
-            </button>
-            <button class="reac-button" onClick={() => {
-              setState("reactionPressed", "/reactions/laugh.png");
-              RPC.call("new-reaction", {}, RPC.Mode.ALL);
-            }}>
-              <img src="/reactions/laugh.png" class="reac-img" alt="Laugh" />
-            </button>
-            <button class="reac-button" onClick={() => {
-              setState("reactionPressed", "/reactions/question.png");
-              RPC.call("new-reaction", {}, RPC.Mode.ALL);
-            }}>
-              <img src="/reactions/question.png" class="reac-img" alt="Question" />
-            </button>
-            <button class="reac-button" onClick={() => {
-              setState("reactionPressed", "/reactions/sad.png");
-              RPC.call("new-reaction", {}, RPC.Mode.ALL);
-            }}>
-              <img src="/reactions/sad.png" class="reac-img" alt="Sad" />
-            </button>
-            <button class="reac-button" onClick={() => {
-              setState("reactionPressed", "/reactions/tomato.png");
-              RPC.call("new-reaction", {}, RPC.Mode.ALL);
-            }}>
-              <img src="/reactions/tomato.png" class="reac-img" alt="Tomato" />
-            </button>
-          </div>
-
-          {/********************************************************************************/}
         </main>
 
         {/* Footer */}
@@ -508,7 +416,6 @@ function CustomizeModal(props: CustomizeModalProps) {
   const [name, setName] = createSignal(myPlayer().getState("name") || "");
   const [showPicker, setShowPicker] = createSignal(false);
   const [activeSlot, setActiveSlot] = createSignal<number | null>(null);
-  const [pickerPos, setPickerPos] = createSignal({ x: 0, y: 0 });
 
   const updateName = (val: string) => {
     setName(val);
@@ -521,7 +428,7 @@ function CustomizeModal(props: CustomizeModalProps) {
     return myPlayer().getState("character") || CHARACTER_PATHS[0];
   };
 
-  const handleOpenPicker = (e: MouseEvent, index: number) => {
+  const handleOpenPicker = (_e: MouseEvent, index: number) => {
     setActiveSlot(index);
     setShowPicker(true);
   };
