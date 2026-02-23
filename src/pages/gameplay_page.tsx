@@ -5,7 +5,7 @@ import { ChatGuesser } from "../../api/guess/GuessComponent";
 
 import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroomkit";
 
-import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/artist_canvas_component";
+import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/ArtistCanvasComponent";
 
 import "../../style/game.css";
 import { AudioManager } from "../components/AudioManager";
