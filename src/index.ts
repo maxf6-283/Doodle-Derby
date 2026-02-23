@@ -6,6 +6,8 @@ import { PodiumPage } from "./pages/podium_page";
 
 import { routerNavigate, addPage } from "../api/tiny_router";
 
+import "../style/landing-page.css";
+
 addPage("/", LandingPage);
 addPage("/lobby", LobbyPage);
 addPage("/pick-words", PickWordsPage);
