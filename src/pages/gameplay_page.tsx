@@ -1,7 +1,7 @@
 import { Page } from "../../api/page";
 import { render, For } from "solid-js/web"
 import { createSignal, onMount, Show } from "solid-js";
-import { ChatGuesser } from "./guess_comp";
+import { ChatGuesser } from "../../api/guess/GuessComponent";
 
 import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroomkit";
 
@@ -111,12 +111,12 @@ function SelectPrompts(props: { onPromptsPicked: () => void }) {
       pickPrompts();
       participants.forEach(player => {
         player.setState('score', 0);
-        if(player.getState("isArtist")) {
+        if (player.getState("isArtist")) {
           player.setState('rightGuesses', 0);
         }
       });
       RPC.call("randomArtistsPicked", {}, RPC.Mode.ALL);
-      
+
     }
   });
 
@@ -146,10 +146,6 @@ function ArtistPage(props: { otherArtist: PlayerState }) {
 }
 
 function SpectatorPage(props: { artistList: PlayerState[] }) {
-  let [text, setText] = createSignal("");
-  let [display, setDisplay] = createSignal("");
-  let [isDisabled, setIsDisabled] = createSignal(false);
-  let [guessedWords, setGuessedWords] = createSignal(new Array<string>());
   let [prompts, setPrompts] = createSignal<string[]>([]);
 
   onMount(() => {
@@ -168,7 +164,7 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
           )}
         </For>
       </div>
-      <ChatGuesser promptList={prompts()} />
+      <ChatGuesser promptList={prompts()} artists={props.artistList} />
     </>
   );
 };
@@ -178,7 +174,6 @@ function Gameplay() {
   let [isArtist, setIsArtist] = createSignal(false);
 
   onMount(() => {
-    console.log("bruh");
     let participants = Object.values(getParticipants());
     participants = participants.filter(player => player.getState("isArtist"));
     if (me().getState("isArtist")) {
@@ -224,7 +219,7 @@ export function RandomWordSelection(props: {
   const handleSelect = (word: string) => {
     setSelected(word);
     // Set the official prompt on the player state
-    me().setState("prompt", word, true);
+    me().setState("prompt", word.toLowerCase(), true);
     props.onSelected(word);
   };
 
