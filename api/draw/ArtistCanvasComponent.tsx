@@ -90,7 +90,7 @@ function DrawCanvas(props: { prompt: string }) {
       },
     });
 
-    
+
 
     onCleanup(() => {
       stage.destroy();
@@ -228,8 +228,8 @@ function DrawCanvas(props: { prompt: string }) {
 export function SpectatorCanvas(props: { artist: PlayerState }) {
   let containerRef: HTMLDivElement | undefined;
 
-  let [width, setWidth] = createSignal(600);
-  let [height, setHeight] = createSignal(600);
+  let [width] = createSignal(600);
+  let [height] = createSignal(600);
 
   let stage: konva.Stage;
   let canvas: HTMLCanvasElement;
@@ -240,7 +240,7 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
       return;
     }
 
-    RPC.register(
+    const onStrokeBeginClean = RPC.register(
       "onStrokeBegin",
       async (payload: NetworkStrokePayload, player) => {
         if (player.id !== props.artist.id) return;
@@ -253,7 +253,7 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
       },
     );
 
-    RPC.register(
+    const onStrokeMoveClean = RPC.register(
       "onStrokeMove",
       async (payload: NetworkStrokePayload, player) => {
         if (player.id !== props.artist.id) return;
@@ -265,22 +265,22 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
       },
     );
 
-    RPC.register("onStrokeEnd", async (payload: BoundingBox, player) => {
+    const onStrokeEndClean = RPC.register("onStrokeEnd", async (payload: BoundingBox, player) => {
       if (player.id !== props.artist.id) return;
       paintCanvas.registerUndoClient(payload);
     });
 
-    RPC.register("onFill", async (payload: NetworkFillPayload, player) => {
+    const onFillClean = RPC.register("onFill", async (payload: NetworkFillPayload, player) => {
       if (player.id !== props.artist.id) return;
       paintCanvas.fill(payload.x, payload.y, payload.color);
     });
 
-    RPC.register("onUndo", async (_, player) => {
+    const onUndoClean = RPC.register("onUndo", async (_, player) => {
       if (player.id !== props.artist.id) return;
       paintCanvas.undo();
     });
 
-    RPC.register("onRedo", async (_, player) => {
+    const onRedoClean = RPC.register("onRedo", async (_, player) => {
       if (player.id !== props.artist.id) return;
       paintCanvas.redo();
     });
@@ -303,6 +303,12 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
 
     onCleanup(() => {
       stage.destroy();
+      onStrokeBeginClean();
+      onStrokeEndClean();
+      onStrokeMoveClean();
+      onFillClean();
+      onUndoClean();
+      onRedoClean();
     });
   });
 
