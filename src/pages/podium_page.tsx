@@ -7,7 +7,13 @@ import { createSignal, onMount, Show, For, Setter, Accessor } from "solid-js";
 
 import "../../style/podium-page.css";
 
-function PlayerCard({ player }: { player: PlayerState }) {
+function PlayerCard({
+  player,
+  playerScale,
+}: {
+  player: PlayerState;
+  playerScale: Accessor<number>;
+}) {
   const name = player.getState("name") ?? "Guest";
   const characterImg = player.getState("character");
   const accessories: string[] = [
@@ -18,7 +24,7 @@ function PlayerCard({ player }: { player: PlayerState }) {
   const score = player.getState("score") ?? 0;
 
   return (
-    <div class="player-score-card">
+    <div class="player-score-card" style={{ scale: playerScale() }}>
       <span class="player-name-label">
         {" "}
         {name} {player.id === myPlayer().id ? "(You)" : ""}{" "}
@@ -50,16 +56,18 @@ function Podium({
   src,
   player,
   width,
+  playerScale,
 }: {
   src: Accessor<string | null>;
   player: PlayerState | null;
   width: number;
+  playerScale: Accessor<number>;
 }) {
   console.log("Rerendered");
   return (
     <Show when={player != null}>
       <div class="podium" style={{ width: `${width}px` }}>
-        {/* <PlayerCard player={player as PlayerState} /> */}
+        <PlayerCard player={player as PlayerState} playerScale={playerScale} />
         <img src={src() as string}></img>
       </div>
     </Show>
@@ -78,6 +86,10 @@ function PodiumPageMain() {
   const [secondPlace, setSecondPlace] = createSignal<PlayerState | null>(null);
   const [thirdPlace, setThirdPlace] = createSignal<PlayerState | null>(null);
 
+  const [firstPlaceScale, setFirstPlaceScale] = createSignal<number>(0);
+  const [secondPlaceScale, setSecondPlaceScale] = createSignal<number>(0);
+  const [thirdPlaceScale, setThirdPlaceScale] = createSignal<number>(0);
+
   const [firstImage, setFirstImage] = createSignal<string | null>(null);
   const [secondImage, setSecondImage] = createSignal<string | null>(null);
   const [thirdImage, setThirdImage] = createSignal<string | null>(null);
@@ -92,6 +104,7 @@ function PodiumPageMain() {
     for (let player of players) {
       let score = player.getState("score") ?? 0;
       if (score > firstPlaceScore) {
+        console.log("First place set");
         firstPlaceScore = score;
         setFirstPlace(player);
       } else if (score > secondPlaceScore) {
@@ -113,29 +126,52 @@ function PodiumPageMain() {
       idx: number,
       max: number,
       setter: Setter<string | null>,
+      done: () => void,
     ) => {
       setter(`${prefix}${idx}.png`);
       console.log(`setting ${prefix}${idx}.png`);
       if (idx < max)
-        setTimeout(() => next_img(prefix, idx + 1, max, setter), 300);
+        setTimeout(() => next_img(prefix, idx + 1, max, setter, done), 300);
+      else done();
     };
 
     setTimeout(() => {
-      next_img("/podium/Third_podium_", 1, 4, setThirdImage);
+      next_img("/podium/Third_podium_", 1, 4, setThirdImage, () =>
+        setThirdPlaceScale(1),
+      );
     }, 0);
     setTimeout(() => {
-      next_img("/podium/Second_podium_", 1, 5, setSecondImage);
+      next_img("/podium/Second_podium_", 1, 5, setSecondImage, () =>
+        setSecondPlaceScale(1),
+      );
     }, 1000);
     setTimeout(() => {
-      next_img("/podium/First_podium_", 1, 6, setFirstImage);
+      next_img("/podium/First_podium_", 1, 6, setFirstImage, () =>
+        setFirstPlaceScale(1),
+      );
     }, 3000);
   });
 
   return (
     <div class="podium-container">
-      <Podium src={secondImage} player={secondPlace()} width={415} />
-      <Podium src={firstImage} player={firstPlace()} width={500} />
-      <Podium src={thirdImage} player={thirdPlace()} width={415} />
+      <Podium
+        src={secondImage}
+        player={secondPlace()}
+        playerScale={secondPlaceScale}
+        width={415}
+      />
+      <Podium
+        src={firstImage}
+        player={firstPlace()}
+        playerScale={firstPlaceScale}
+        width={500}
+      />
+      <Podium
+        src={thirdImage}
+        player={thirdPlace()}
+        playerScale={thirdPlaceScale}
+        width={415}
+      />
     </div>
   );
 }
