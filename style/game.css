@@ -52,17 +52,32 @@
 .draw-root-container {
   display: flex;
   flex-direction: column;
-  width: 800px;
+  gap: 5px;
+}
+.spectator-header-container {
+  display: flex;
+  flex-direction: row;
+  gap : 10px;
 }
 
 /* The prompt header text */
-.draw-header {
+.draw-header, .spectator-name-header {
   margin: 0;
   word-break: break-word;
   white-space: normal;
-  align-self: center;
-  justify-self: center;
-  padding: 10px 0px;
+  align-self: flex-start;
+  justify-self: flex-start;
+  
+  padding: 0px 0px;
+}
+.draw-header {
+  width: 650px;
+  text-align: center;
+}
+.spectator-name-header {
+  text-align: flex-start;
+  align-self: flex-end;
+  font-size: 16px;
 }
 
 /* The workspace container (Sidebar + Canvas) */
@@ -71,12 +86,11 @@
   flex-direction: row;
   gap: 20px;
   align-items: flex-start;
-  padding: 20px 70px;
 }
 
 /* The actual Konva canvas container */
 .canvas-container {
-  width: 400px;
-  height: 400px;
+  width: 500px;
+  height: 500px;
   border: 1px solid #ccc;
 }

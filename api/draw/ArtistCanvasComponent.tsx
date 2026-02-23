@@ -16,6 +16,7 @@ import {
 
 import { RPC } from "playroomkit";
 import { CanvasButton } from "../../src/components/CanvasButton";
+import { PlayerAvatar } from "../../src/components/PlayerAvatar";
 
 const SMALL_BRUSH_SIZE = 5;
 const MEDIUM_BRUSH_SIZE = 10;
@@ -249,9 +250,6 @@ function DrawCanvas(props: { prompt: string }) {
 export function SpectatorCanvas(props: { artist: PlayerState }) {
   let containerRef: HTMLDivElement | undefined;
 
-  let [width] = createSignal(600);
-  let [height] = createSignal(600);
-
   let stage: konva.Stage;
   let canvas: HTMLCanvasElement;
   let paintCanvas: PaintCanvas;
@@ -338,8 +336,17 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
 
   return (
     <>
-      <h1> {props.artist.getState("name")} </h1>
+    <div class="draw-root-container">
+      <div class="spectator-header-container">
+        <PlayerAvatar player={props.artist}></PlayerAvatar>
+        <div class="spectator-name-header">
+          {props.artist.getState("name")}
+        </div>
+      </div>
+      
       <div ref={containerRef} id="container-spectator" class="canvas-container"></div>
+    </div>
+      
     </>
   );
 }
