@@ -139,9 +139,9 @@ function Lobby() {
     }
     // Sync Playroom state changes to Solid's reactivity
 
-    RPC.register("refresh_lobby_ui", async () => refreshLobby());
+    const refreshClean = RPC.register("refresh_lobby_ui", async () => refreshLobby());
 
-    RPC.register("start-game", async () => {
+    const startClean = RPC.register("start-game", async () => {
       routerNavigate("/pick-words");
 
       // Uncomment to switch
@@ -158,6 +158,8 @@ function Lobby() {
     onCleanup(() => {
       clearInterval(interval);
       clearInterval(hostCheck);
+      refreshClean();
+      startClean();
     });
   });
 

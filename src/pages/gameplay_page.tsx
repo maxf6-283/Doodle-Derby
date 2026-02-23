@@ -1,6 +1,6 @@
 import { Page } from "../../api/page";
 import { render, For } from "solid-js/web"
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { ChatGuesser } from "../../api/guess/GuessComponent";
 
 import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroomkit";
@@ -52,6 +52,8 @@ function pickRandomArtists() {
   }
   );
 
+  console.log("artist pool:", currentArtistPool.length);
+
   if (currentArtistPool.length == 0) {
     RPC.call("gameFinished", {}, RPC.Mode.ALL);
     return;
@@ -84,49 +86,21 @@ function SelectPrompts(props: { onPromptsPicked: () => void }) {
   let [numPromptsPicked, setNumPromptsPicked] = createSignal(0);
 
   onMount(() => {
-    RPC.register("randomArtistsPicked", async () => {
-      console.log(me().getState("name"), " is ", me().getState("isArtist"));
-      setIsArtist(me().getState("isArtist"));
-    });
-
-    RPC.register("pickedPrompt", async () => {
+    const pickedPromptClean = RPC.register("pickedPrompt", async () => {
       setNumPromptsPicked(n => n + 1);
       if (numPromptsPicked() >= 2) {
         props.onPromptsPicked();
       }
     });
 
-    if (isHost()) {
-      let participants: PlayerState[] = Object.values(getParticipants());
+    const randomArtistsClean = RPC.register("randomArtistsPicked", async () => {
+      setIsArtist(me().getState("isArtist"));
+    });
 
-      participants.forEach(player => {
-        // Only set hasChosen to false on initial run.
-        // Do not want to reset between rounds.
-        // This determines the player pool of people who
-        // haven't drawn yet.
-        if (!player.getState("hasChosen")) {
-          player.setState("hasChosen", false);
-        } else {
-          console.log("Not resetting player pool");
-        }
-
-        player.setState("isArtist", false);
-      });
-
-      pickRandomArtists();
-      pickPrompts();
-
-      participants.forEach(player => {
-        // Only set the score to 0 on initial run.
-        // Do not want to reset between rounds.
-        if (!player.getState('score')) {
-          player.setState('score', 0);
-        } else {
-          console.log("Not resetting score");
-        }
-      });
-      RPC.call("randomArtistsPicked", {}, RPC.Mode.ALL);
-    }
+    onCleanup(() => {
+      pickedPromptClean();
+      randomArtistsClean();
+    });
   });
 
   return (
@@ -187,6 +161,10 @@ function Gameplay() {
     let participants = Object.values(getParticipants());
     participants = participants.filter(player => player.getState("isArtist"));
 
+    if (isHost()) {
+      console.log("players guessed:", numPlayersGuessed());
+    }
+
     setIsArtist(me().getState("isArtist") ?? false);
 
     if (me().getState("isArtist")) {
@@ -194,24 +172,37 @@ function Gameplay() {
     }
     setArtists(participants);
 
-    RPC.register("nextRound", async () => {
+    const nextRoundClean = RPC.register("nextRound", async () => {
+      console.log("next round!!!");
       setState('chats', [], true);
       routerNavigate("/game");
     });
 
-    RPC.register("playerGuessed", async () => {
-      setNumPlayersGuessed(previousNum => previousNum + 1);
+    const playerGuessedClean = RPC.register("playerGuessed", async () => {
       let guesserCount = Object.values(getParticipants()).length - 2;
-      if (numPlayersGuessed() == guesserCount) {
-        RPC.call("nextRound", {}, RPC.Mode.ALL);
-      }
+      setNumPlayersGuessed(previousNum => {
+        let newNum = previousNum + 1;
+        if (newNum >= guesserCount) {
+          RPC.call("nextRound", {}, RPC.Mode.ALL);
+        }
+        return newNum;
+      });
+    });
+
+    onCleanup(() => {
+      nextRoundClean();
+      playerGuessedClean();
     });
   });
 
   return (
     <>
-      <Show when={isArtist()} fallback={<SpectatorPage artistList={artists()} />}>
+      <Show when={isArtist()}>
         <ArtistPage otherArtist={artists()[0]} />
+      </Show>
+
+      <Show when={!isArtist()}>
+        <SpectatorPage artistList={artists()} />
       </Show>
     </>
   );
@@ -221,12 +212,46 @@ function GameplayPageMain() {
   let [gameStarted, setIsGameStarted] = createSignal(false);
 
   onMount(() => {
-    RPC.register("gameFinished", async () => {
-      me().setState("hasChosen", false);
+    const gameFinishedClean = RPC.register("gameFinished", async () => {
       routerNavigate("/podium-page");
     });
 
     me().setState('rightGuesses', 0);
+
+    if (isHost()) {
+      let participants: PlayerState[] = Object.values(getParticipants());
+
+      participants.forEach(player => {
+        // Only set the score to 0 on initial run.
+        // Do not want to reset between rounds.
+        if (!player.getState('score')) {
+          player.setState('score', 0);
+        }
+      });
+
+      participants.forEach(player => {
+        // Only set hasChosen to false on initial run.
+        // Do not want to reset between rounds.
+        // This determines the player pool of people who
+        // haven't drawn yet.
+        if (!player.getState("hasChosen")) {
+          player.setState("hasChosen", false);
+        }
+
+        player.setState("isArtist", false);
+      });
+
+      console.log("we doin this again");
+
+      pickRandomArtists();
+      pickPrompts();
+
+      RPC.call("randomArtistsPicked", {}, RPC.Mode.ALL);
+    }
+
+    onCleanup(() => {
+      gameFinishedClean();
+    });
   });
 
   return (

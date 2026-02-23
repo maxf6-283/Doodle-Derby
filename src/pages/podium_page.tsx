@@ -1,9 +1,9 @@
-import { getParticipants, myPlayer, getState, PlayerState } from "playroomkit";
+import { getParticipants, isHost, myPlayer, PlayerState, RPC, setState } from "playroomkit";
 
 import { Page } from "../../api/page";
 import { routerNavigate } from "../../api/tiny_router";
 import { render } from "solid-js/web";
-import { createSignal, onMount, Show, For, Setter, Accessor } from "solid-js";
+import { createSignal, onMount, Show, For, Setter, Accessor, onCleanup } from "solid-js";
 
 import "../../style/podium-page.css";
 
@@ -98,6 +98,24 @@ function PodiumPageMain() {
   onMount(() => {
     const players = Object.values(getParticipants());
 
+    const quitGameClean = RPC.register('quitGame', async () => {
+      myPlayer().leaveRoom();
+    });
+
+    const joinLobbyClean = RPC.register('joinLobby', async () => {
+      myPlayer().setState("score", 0);
+      myPlayer().setState("isReady", false);
+      myPlayer().setState("hasChosen", false);
+
+      setState("drawing-transition", false);
+      routerNavigate("/lobby");
+    });
+
+    onCleanup(() => {
+      quitGameClean();
+      joinLobbyClean();
+    });
+
     // Sorts in descending order
     let topPlayers = players.sort((playerA, playerB) => {
       let playerAScore = playerA.getState('score') ?? 0;
@@ -147,28 +165,38 @@ function PodiumPageMain() {
   });
 
   return (
-    <div class="podium-page">
-      <div class="podium-container">
-        <Podium
-          src={secondImage}
-          player={secondPlace()}
-          playerScale={secondPlaceScale}
-          width={415}
-        />
-        <Podium
-          src={firstImage}
-          player={firstPlace()}
-          playerScale={firstPlaceScale}
-          width={500}
-        />
-        <Podium
-          src={thirdImage}
-          player={thirdPlace()}
-          playerScale={thirdPlaceScale}
-          width={415}
-        />
+    <>
+      <Show when={isHost()}>
+        <button onClick={() => RPC.call("quitGame", {}, RPC.Mode.ALL)}>
+          End Session
+        </button>
+        <button value="Go to lobby" onClick={() => RPC.call("joinLobby", {}, RPC.Mode.ALL)}>
+          Return to Lobby
+        </button>
+      </Show>
+      <div class="podium-page">
+        <div class="podium-container">
+          <Podium
+            src={secondImage() as string}
+            player={secondPlace() as PlayerState}
+            playerScale={secondPlaceScale}
+            width={415}
+          />
+          <Podium
+            src={firstImage() as string}
+            player={firstPlace() as PlayerState}
+            playerScale={firstPlaceScale}
+            width={500}
+          />
+          <Podium
+            src={thirdImage() as string}
+            player={thirdPlace() as PlayerState}
+            playerScale={thirdPlaceScale}
+            width={415}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

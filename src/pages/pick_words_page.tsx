@@ -236,15 +236,15 @@ function PickWordsMain() {
   const [allPlayersReady, setAllPlayersReady] = createSignal(false);
 
   onMount(() => {
-    RPC.register("players-start-game", async () => {
+    const startClean = RPC.register("players-start-game", async () => {
       routerNavigate("/game");
     });
 
-    RPC.register("all-players-ready", async (_payload, _player) => {
+    const readyClean = RPC.register("all-players-ready", async (_payload, _player) => {
       setAllPlayersReady(true);
     });
 
-    RPC.register("player-picked-words", async (_payload, _player) => {
+    const pickClean = RPC.register("player-picked-words", async (_payload, _player) => {
       const players = Object.values(getParticipants());
       const allFinished = players.every(
         (p) => p.getState("picked_words") === true,
@@ -254,6 +254,12 @@ function PickWordsMain() {
         // Tell everyone (including the host themselves) that we are ready
         RPC.call("all-players-ready", {}, RPC.Mode.ALL);
       }
+    });
+
+    onCleanup(() => {
+      startClean();
+      readyClean();
+      pickClean();
     });
   });
 
