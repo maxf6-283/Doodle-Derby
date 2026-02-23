@@ -4,7 +4,6 @@
   --margin-pink: #ffcada;
 }
 
-
 .landing-page-body {
   margin: 0;
   padding: 0;
@@ -55,8 +54,9 @@
   bottom: 50px;
   right: 5px;
   display: flex;
-  flex-direction: column;
-  gap: 10px; 
+  flex-direction: row;
+  align-self: center;
+  gap: 0px; /* Reduced gap since images likely have whitespace */
   transform: rotate(3deg);
 }
 
@@ -68,7 +68,6 @@
   outline: none;
   transition: transform 0.1s;
 }
-
 
 .image-button img {
   width: 200px;
@@ -123,7 +122,7 @@
   transition: color 0.2s ease;
 }
 
-
+/* The "Underline" effect */
 .footer-link::after {
   content: "";
   position: absolute;
@@ -133,6 +132,7 @@
   left: 0;
   background-color: #000;
   transition: width 0.1s ease-in;
+  /* Makes the line look slightly "shaky" like a doodle */
   border-radius: 50%;
 }
 
@@ -232,26 +232,115 @@
   to   { opacity: 0; }
 }
 
+.join-input-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.join-code-input {
+  background: transparent;
+  border: 2px dashed #000;
+  font-family: "WinterDrawFont", cursive;
+  font-size: 24px;
+  text-align: center;
+  width: 150px;
+  padding: 10;
+  outline: none;
+  transform: rotate(-2deg); /* Match the doodle aesthetic */
+  animation: slideUp 0.2s ease-out;
+}
+
+@media screen and (min-width: 800px) {
+  .logo-img {
+    width: 300px;
+    height: auto;
+    position: relative;
+    z-index: 2;
+    transition:
+      transform 0.1s ease,
+      filter 0.1s ease;
+  }
+  .button-container {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    align-self: flex-end;
+    gap: 10px; /* Reduced gap since images likely have whitespace */
+    transform: rotate(3deg);
+  }
+  .image-button img {
+    width: 250px;
+    height: auto;
+    display: block;
+  }
+
+  .footer-nav {
+    position: absolute;
+    bottom: 20px; /* More breathing room */
+    left: 30px;
+    right: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 22px; /* Slightly larger for the cursive font */
+    font-family: "WinterDrawFont", cursive;
+    color: #222;
+    pointer-events: none; /* Allows clicks to pass through empty space */
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Ensure the keyframe from your JS is in the CSS */
+@keyframes moveLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-120vw);
+  }
+}
+
 .dd-modal-wrapper {
   filter: drop-shadow(4px 10px 12px rgba(0,0,0,0.45));
 }
 
 .dd-modal {
-  background-color: #fef08a; 
   border: none;
   border-radius: 2px;
-  padding: 32px 32px 24px 32px;
   min-width: 280px;
   max-width: 380px;
   width: 90%;
   font-family: "WinterDrawFont", cursive;
   position: relative;
-  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
   transform: rotate(1.5deg) scale(0.85);
   animation: modalIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .dd-modal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: #fef08a;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+.dd-modal::after {
   content: "";
   position: absolute;
   top: 0;
@@ -261,6 +350,13 @@
   background: #ca9;
   clip-path: polygon(100% 0, 0 0, 100% 100%);
   opacity: 0.4;
+  z-index: 1;
+}
+
+.dd-modal-content {
+  position: relative;
+  z-index: 2;
+  padding: 32px 32px 24px 32px;
 }
 
 @keyframes modalIn {
@@ -350,3 +446,4 @@
 .dd-btn.primary:hover {
   background: rgba(0,0,0,0.22);
 }
+
