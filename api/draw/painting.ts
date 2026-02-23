@@ -2,7 +2,6 @@ import Konva from "konva";
 
 import { CurveInterpolator } from "curve-interpolator";
 import { Vector2d } from "konva/lib/types";
-import { isPrimary } from "node:cluster";
 
 export interface Brush {
   // Hex (RGB) -- Ex: #FFFFFF
@@ -67,6 +66,7 @@ export type NetworkedFillCallback = (
   y: number,
   color: string,
 ) => void;
+
 export type NetworkedStrokeCallback = (
   points: [number, number][],
   currentBrush: Brush,
