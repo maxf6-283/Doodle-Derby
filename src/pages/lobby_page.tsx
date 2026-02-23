@@ -205,17 +205,28 @@ function Lobby() {
   }
 
   const newReaction = () => {
+    const button_list = document.getElementsByClassName('reac-button');
+    for (let i=0; i<button_list.length; i++){
+      button_list[i].disabled = true;
+    }
+
+
     const reaction = document.createElement("img");
     reaction.src = reactionURL();
     reaction.classList.add("reac-element");
     Object.assign(reaction.style, {
       width: `50px`,
       animation: `moveUp 2s ease-out`,
-      zIndex: `4`,
+      zIndex: `10`,
     });
 
     document.body.appendChild(reaction);
-    setTimeout(() => reaction.remove(), 2000);
+    setTimeout(() => {
+      reaction.remove();
+      for (let i=0; i<button_list.length; i++){
+        button_list[i].disabled = false;
+      }
+    }, 2000);
   }
 
   /* END REACTIONS */
