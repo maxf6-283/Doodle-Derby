@@ -217,6 +217,7 @@ function Lobby() {
       animation: `moveUp 2s ease-out`,
       zIndex: `10`,
     });
+    AudioManager.playSound("/audio/bark.mp3");
 
     document.body.appendChild(reaction);
     setTimeout(() => {
