@@ -7,6 +7,8 @@ import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroo
 
 import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/ArtistCanvasComponent";
 
+import { ReactionBar } from "../../api/reactions/ReactionBarComponent"
+
 import "../../style/game.css";
 import { AudioManager } from "../components/AudioManager";
 import { routerNavigate } from "../../api/tiny_router";
@@ -255,9 +257,12 @@ function GameplayPageMain() {
   });
 
   return (
-    <Show when={!gameStarted()} fallback={<Gameplay />}>
-      <SelectPrompts onPromptsPicked={() => setIsGameStarted(true)} />
-    </Show>
+    <>
+      <Show when={!gameStarted()} fallback={<Gameplay />}>
+        <SelectPrompts onPromptsPicked={() => setIsGameStarted(true)} />
+      </Show>
+      <ReactionBar />
+    </>
   );
 }
 

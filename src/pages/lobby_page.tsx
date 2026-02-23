@@ -170,11 +170,6 @@ function Lobby() {
 
     const startClean = RPC.register("start-game", async () => {
       routerNavigate("/pick-words");
-
-      // Uncomment to switch
-      // to gameplay page directly
-
-      // routerNavigate("/game");
     });
 
     // Ensure host is set on mount
@@ -187,7 +182,6 @@ function Lobby() {
       clearInterval(hostCheck);
       refreshClean();
       startClean();
-      reactionClean();
     });
   });
 
@@ -574,7 +568,6 @@ function CustomizeModal(props: CustomizeModalProps) {
   const [name, setName] = createSignal(myPlayer().getState("name") || "");
   const [showPicker, setShowPicker] = createSignal(false);
   const [activeSlot, setActiveSlot] = createSignal<number | null>(null);
-  const [pickerPos, setPickerPos] = createSignal({ x: 0, y: 0 });
 
   const updateName = (val: string) => {
     setName(val);
@@ -587,7 +580,7 @@ function CustomizeModal(props: CustomizeModalProps) {
     return myPlayer().getState("character") || CHARACTER_PATHS[0];
   };
 
-  const handleOpenPicker = (e: MouseEvent, index: number) => {
+  const handleOpenPicker = (_e: MouseEvent, index: number) => {
     setActiveSlot(index);
     setShowPicker(true);
   };
