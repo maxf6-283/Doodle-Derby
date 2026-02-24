@@ -1,11 +1,11 @@
 import { Page } from "../../api/page";
 import { render, For } from "solid-js/web"
-import { createSignal, onCleanup, onMount, Show} from "solid-js";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { ChatGuesser, GuessElement } from "../../api/guess/GuessComponent";
 
 import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroomkit";
 
-import { ArtistCanvasComponent, SpectatorCanvas} from "../../api/draw/ArtistCanvasComponent";
+import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/ArtistCanvasComponent";
 
 import { ReactionBar } from "../../api/reactions/ReactionBarComponent"
 
@@ -117,7 +117,6 @@ function SelectPrompts(props: { onPromptsPicked: () => void }) {
 function ArtistPage(props: { otherArtist: PlayerState }) {
   return (
     <>
-      <ArtistCanvasComponent prompt={me().getState('prompt')} />
       <div style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: "60%", left: "60%", width: '100%', height: '100%', "pointer-events": 'none', "z-index": 0 }}>
           <SpectatorCanvas artist={props.otherArtist} />
@@ -133,8 +132,8 @@ function ArtistPage(props: { otherArtist: PlayerState }) {
 
 function SpectatorPage(props: { artistList: PlayerState[] }) {
   let [prompts, setPrompts] = createSignal<string[]>([]);
-    //let [hiddenPrompts, setHiddenPrompts] = createSignal<string[]>([]);
-    
+  //let [hiddenPrompts, setHiddenPrompts] = createSignal<string[]>([]);
+
 
   onMount(() => {
     setPrompts([
@@ -157,15 +156,15 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
   //  return hidden;
   //}
 
-    return (
+  return (
     <>
       <div style={{ display: 'flex', gap: '1rem' }}>
         <For each={props.artistList}>
           {item => (
-              <>
-                 <SpectatorCanvas artist={item} />
-                 <GuessElement prompt={item.getState("prompt")} />
-              </>
+            <>
+              <SpectatorCanvas artist={item} />
+              <GuessElement prompt={item.getState("prompt")} />
+            </>
           )}
         </For>
       </div>

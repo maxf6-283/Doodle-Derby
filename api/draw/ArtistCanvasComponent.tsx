@@ -1,7 +1,7 @@
 import "solid-js/web";
 
 import konva from "konva";
-import { onCleanup, createSignal, createEffect, onMount} from "solid-js";
+import { onCleanup, createSignal, createEffect, onMount } from "solid-js";
 
 import { PlayerState } from "playroomkit";
 
