@@ -344,7 +344,7 @@ function GameplayPageMain() {
       <Show when={!gameStarted()} fallback={<Gameplay />}>
         <SelectPrompts onPromptsPicked={() => setIsGameStarted(true)} />
       </Show>
-      <ReactionBar />
+      
     </>
   );
 }
