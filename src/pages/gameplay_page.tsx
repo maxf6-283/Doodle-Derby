@@ -1,7 +1,7 @@
 import { Page } from "../../api/page";
 import { render, For } from "solid-js/web";
 import { createSignal, onCleanup, onMount, Show } from "solid-js";
-import { ChatGuesser } from "../../api/guess/GuessComponent";
+import { ChatGuesser, GuessElement } from "../../api/guess/GuessComponent";
 
 import {
   getParticipants,
@@ -403,3 +403,5 @@ export function RandomWordSelection(props: {
     </Show>
   );
 }
+
+
