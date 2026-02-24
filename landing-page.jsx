@@ -69,7 +69,7 @@ export default function LandingPage() {
   function handleCredits() {
     ddAlert("Credits!!",
       "Producer – Allie Atkinson\n" +
-      "Programmers – Seven Flaminiano, Max Fisch, Zidane Ho, Neel Dharm, Adrian Guzman, Isha Pandit, Gloria Lee, Michelle Mitchell, Jack Park\n" +
+      "Programmers – Seven Flaminiano, Max Fisch, Zidane Ho, Neel Dharm, Adrian Guzman, Isha Pandit, Gloria Lee, Michelle Mitchell, Jack Park, Zhiheng Zhou\n" +
       "Artists – Marissa Morales, Jay Siqueiroz, Bella Lau, Allie Atkinson\n" +
       "Audio – Jay Siqueiroz, Jason Montanez\n" +
       "Design – Emily Le, Zidane Ho\n",
