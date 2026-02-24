@@ -54,6 +54,9 @@ export function SettingsModal(props: {
   const [fillKey, setFillKey] = createSignal(
     myPlayer().getState("hotkey-fill") ?? "f",
   );
+  const [drawKey, setDrawKey] = createSignal(
+    myPlayer().getState("hotkey-draw") ?? "b",
+  );
   const [listeningAction, setListeningAction] = createSignal<string | null>(
     null,
   );
@@ -110,7 +113,15 @@ export function SettingsModal(props: {
   };
 
   return (
-    <div id="settingsMenu" class="modal" style={{ display: "flex", "align-items" : "center", "justify-content" : "center" }}>
+    <div
+      id="settingsMenu"
+      class="modal"
+      style={{
+        display: "flex",
+        "align-items": "center",
+        "justify-content": "center",
+      }}
+    >
       <div class="modal-content">
         <div class="settings-layout">
           {/* Left Sidebar - Tab Navigation */}
@@ -236,6 +247,17 @@ export function SettingsModal(props: {
                       onStart={() => setListeningAction("Fill")}
                       onUpdate={(k) => {
                         if (!isKeyTaken(k, "Fill")) setFillKey(k);
+                        setListeningAction(null); // Stop listening after update
+                      }}
+                      onCancel={() => setListeningAction(null)}
+                    />
+                    <HotkeyRow
+                      label="Draw"
+                      value={drawKey()}
+                      isListening={listeningAction() === "Draw"}
+                      onStart={() => setListeningAction("Draw")}
+                      onUpdate={(k) => {
+                        if (!isKeyTaken(k, "Draw")) setDrawKey(k);
                         setListeningAction(null); // Stop listening after update
                       }}
                       onCancel={() => setListeningAction(null)}

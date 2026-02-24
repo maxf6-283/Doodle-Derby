@@ -3,7 +3,7 @@ import "solid-js/web";
 import konva from "konva";
 import { onCleanup, createSignal, createEffect, onMount } from "solid-js";
 
-import { PlayerState } from "playroomkit";
+import { myPlayer, PlayerState } from "playroomkit";
 
 import {
   PaintMode,
@@ -38,8 +38,43 @@ function DrawCanvas(props: { prompt: string }) {
     if (!containerRef) {
       return;
     }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent hotkeys from firing if the user is typing in a chat/input field
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
 
-    const rect = containerRef.getBoundingClientRect();
+      const player = myPlayer();
+      const key = e.key.toLowerCase();
+
+      // Get dynamic hotkeys from player state, falling back to defaults
+      const eraseKey = player.getState("hotkey-erase") || "e";
+      const undoKey = player.getState("hotkey-undo") || "u";
+      const redoKey = player.getState("hotkey-redo") || "r";
+      const fillKey = player.getState("hotkey-fill") || "f";
+      const drawKey = player.getState("hotkey-draw") || "b";
+
+      const pc = paintCanvas();
+      if (!pc) return;
+
+      if (key === eraseKey) {
+        setPaintMode(PaintMode.ERASE);
+        pc.setPaintMode(PaintMode.ERASE);
+      } else if (key === fillKey) {
+        setPaintMode(PaintMode.FILL);
+        pc.setPaintMode(PaintMode.FILL);
+      } else if (key === undoKey) {
+        pc.undo();
+      } else if (key === redoKey) {
+        pc.redo();
+      } else if (key === drawKey) {
+        setPaintMode(PaintMode.DRAW);
+        pc.setPaintMode(PaintMode.DRAW);
+      }
+    };
 
     stage = new konva.Stage({
       container: containerRef,
@@ -96,7 +131,10 @@ function DrawCanvas(props: { prompt: string }) {
 
     setPaintCanvas(pc);
 
+    window.addEventListener("keydown", handleKeyDown);
+
     onCleanup(() => {
+      window.removeEventListener("keydown", handleKeyDown);
       stage.destroy();
     });
   });
@@ -447,4 +485,3 @@ export function ArtistCanvasComponent(props: { prompt: string }) {
     </div>
   );
 }
-

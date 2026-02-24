@@ -5,7 +5,7 @@ import { PlayerAvatar } from "./PlayerAvatar";
 export function PlayerList() {
   // Memoize the players list to handle reactivity when players join/leave or scores change
   const players = createMemo(() => Object.values(getParticipants()));
-
+// "border": "black 2px solid",
   return (
     <div style={{
       display: "flex",
@@ -14,6 +14,7 @@ export function PlayerList() {
       padding: "16px",
       background: "#b3d1ff",
       "border-radius": "16px",
+      "border": "black 2px solid",
       "max-width": "300px"
     }}>
       <For each={players()}>

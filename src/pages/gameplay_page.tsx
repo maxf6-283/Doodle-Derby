@@ -167,6 +167,7 @@ function ArtistPage(props: { otherArtist: PlayerState }) {
           {/* Color pallete here??? */}
         </div>
         <div class="game-info-container">
+          <h1 class="round-header">Round {getState("roundsPlayed") || 0}</h1>
           <Show when={props.otherArtist}>
             <SpectatorCanvas artist={props.otherArtist} scale={0.4} />
           </Show>
@@ -307,7 +308,7 @@ function Gameplay() {
 
   return (
     <>
-      <h1>Round {getState("roundsPlayed") || 0}</h1>
+      
 
       <Show when={isArtist()}>
         <ArtistPage otherArtist={artists()[0]} />
