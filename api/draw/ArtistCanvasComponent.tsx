@@ -47,7 +47,7 @@ function DrawCanvas(props: { prompt: string }) {
       height: VIRTUAL_HEIGHT,
     });
 
-    canvas = document.createElement("canvas");
+    canvas = stage.toCanvas();
 
     const pc = new PaintCanvas(
       canvas,
@@ -226,7 +226,7 @@ export function SpectatorCanvas(props: {
       "onFill",
       async (payload: NetworkFillPayload, player) => {
         if (player.id !== props.artist.id) return;
-        paintCanvas.fill(payload.x, payload.y, payload.color);
+        paintCanvas.handleRemoteFill(payload.x, payload.y, payload.color);
       },
     );
 
@@ -251,7 +251,7 @@ export function SpectatorCanvas(props: {
       containerRef.style.height = `${displayHeight}px`;
     }
 
-    canvas = document.createElement("canvas");
+    canvas = stage.toCanvas();
 
     paintCanvas = new PaintCanvas(
       canvas,
@@ -447,3 +447,4 @@ export function ArtistCanvasComponent(props: { prompt: string }) {
     </div>
   );
 }
+

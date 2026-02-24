@@ -248,6 +248,20 @@ export class PaintCanvas {
     }
   }
 
+  public handleRemoteFill(
+    x: number,
+    y: number,
+    color: string,
+    referenceSize: { width: number; height: number } = {
+      width: this.virtualWidth,
+      height: this.virtualHeight,
+    },
+  ) {
+    const scaleX = this.canvasWidth / referenceSize.width;
+    const scaleY = this.canvasHeight / referenceSize.height;
+    this.fill(x * scaleX, y * scaleY, color);
+  }
+
   private registerImageCallbacks(stage: Konva.Stage) {
     let currentType: PaintActionType = PaintActionType.Draw;
     let isPainting = false;
@@ -494,10 +508,18 @@ export class PaintCanvas {
   }
 
   public registerUndoClient(boundingBox: BoundingBox) {
-    let startX = Math.floor(boundingBox.min[0]);
-    let startY = Math.floor(boundingBox.min[1]);
-    let endX = Math.floor(boundingBox.max[0]);
-    let endY = Math.floor(boundingBox.max[1]);
+    const scaleX = this.canvasWidth / this.virtualWidth;
+    const scaleY = this.canvasHeight / this.virtualHeight;
+
+    let startX = Math.floor(boundingBox.min[0] * scaleX);
+    let startY = Math.floor(boundingBox.min[1] * scaleY);
+    let endX = Math.floor(boundingBox.max[0] * scaleX);
+    let endY = Math.floor(boundingBox.max[1] * scaleY);
+
+    startX = Math.max(startX, 0);
+    startY = Math.max(startY, 0);
+    endX = Math.min(endX, this.canvasWidth);
+    endY = Math.min(endY, this.canvasHeight);
 
     let width = endX - startX;
     let height = endY - startY;
@@ -522,7 +544,10 @@ export class PaintCanvas {
     paintAction.strokes = {
       afterImage,
       beforeImage: previousImage,
-      boundingBox: { ...boundingBox },
+      boundingBox: {
+        min: [startX, startY],
+        max: [endX, endY],
+      },
     };
 
     this.undoBuffer.push({
@@ -998,3 +1023,4 @@ export class PaintCanvas {
     this.undoBuffer.push(fillAction);
   }
 }
+
