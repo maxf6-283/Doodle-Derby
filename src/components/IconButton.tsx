@@ -2,7 +2,7 @@ import { createSignal } from "solid-js";
 
 export interface IconButtonProps {
   defaultImg: string;
-  hoverImg: string;
+  hoverImg?: string;
   onClick: () => void;
   altText?: string;
   id?: string;
@@ -22,7 +22,7 @@ export function IconButton(props: IconButtonProps) {
     >
       <img
         // 2. Dynamically swap the src based on the hover signal
-        src={isHovered() ? props.hoverImg : props.defaultImg}
+        src={isHovered() && props.hoverImg ? props.hoverImg : props.defaultImg}
         width="80px"
         alt={props.altText || "icon"}
       />
