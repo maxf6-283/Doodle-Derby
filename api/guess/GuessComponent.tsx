@@ -1,8 +1,8 @@
-import { createSignal, onMount, onCleanup } from "solid-js";
+import { createSignal, onMount, onCleanup, Show } from "solid-js";
 
 import { RPC, getState, setState, myPlayer, PlayerState } from "playroomkit";
 
-export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[] }) => {
+export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[], notArtist: boolean }) => {
   let [text, setText] = createSignal("");
   let [isDisabled, setIsDisabled] = createSignal(false);
   let [prompts, setPrompts] = createSignal<string[]>(props.promptList);
@@ -121,16 +121,18 @@ export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[
       <div style={{
         height: "20vh",
         "overflow": "auto",
+        border: "solid 4px blue"
       }}>
         {displayChat()}
       </div>
-      <input
-        disabled={isDisabled()}
-        value={text()}
-        type="text"
-        onChange={(c) => setText(prevText => prevText = c.currentTarget.value)}
-        onkeydown={(ev) => ev.key === "Enter" && guessChecker()} />
-      <button onClick={guessChecker}>Submit</button>
+      <Show when={props.notArtist}>
+        <input
+          disabled={isDisabled()}
+          value={text()}
+          type="text"
+          onChange={(c) => setText(prevText => prevText = c.currentTarget.value)}/>
+        <button onClick={guessChecker}>Submit</button>
+      </Show>
     </>
   );
 }

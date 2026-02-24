@@ -126,19 +126,35 @@ function ArtistPage(props: { otherArtist: PlayerState }) {
           <ArtistCanvasComponent prompt={me().getState('prompt')} />
         </div>
       </div>
+      <ChatGuesser promptList={[]} artists={[]} notArtist={false} />
     </>
   );
 }
 
 function SpectatorPage(props: { artistList: PlayerState[] }) {
   let [prompts, setPrompts] = createSignal<string[]>([]);
+  let [hiddenPrompts, setHiddenPrompts] = createSignal<string[]>([]);
 
   onMount(() => {
     setPrompts([
       props.artistList[0].getState("prompt"),
       props.artistList[1].getState("prompt")
     ]);
+    setHiddenPrompts([
+      hangman(prompts()[0]),
+      hangman(prompts()[1])
+    ]);
   });
+
+  const hangman = (prompt: string) => {
+    let hidden = "";
+    for (let i = 0; i < prompt.length; i++) {
+      if (prompt.charAt(i) === " ") { hidden += " "; }
+      else { hidden += "_"; }
+      hidden += " "; 
+    }
+    return hidden;
+  }
 
   return (
     <>
@@ -149,7 +165,11 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
           )}
         </For>
       </div>
-      <ChatGuesser promptList={prompts()} artists={props.artistList} />
+      <div style={{ display: 'flex', gap: '10rem', border: "solid 2px red" }}>
+        <h1>{hiddenPrompts()[0]}</h1>
+        <h1>{hiddenPrompts()[1]}</h1>
+      </div>
+      <ChatGuesser promptList={prompts()} artists={props.artistList} notArtist={true} />
     </>
   );
 };
