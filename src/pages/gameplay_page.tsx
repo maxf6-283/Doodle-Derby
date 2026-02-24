@@ -279,6 +279,9 @@ function Gameplay() {
 
   return (
     <>
+
+      <h1>Round {getState("roundsPlayed") || 0}</h1>
+
       <Show when={isArtist()}>
         <ArtistPage otherArtist={artists()[0]} />
       </Show>
