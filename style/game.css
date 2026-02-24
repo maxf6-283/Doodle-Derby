@@ -4,7 +4,7 @@
   margin: 0;
   border-radius: 0; /* Optional: remove rounded corners for full-screen look */
   box-shadow: none; /* Optional: remove shadow when full-screen */
-
+  justify-content: center;
   background-color: var(--paper-white);
   background-image:
     linear-gradient(
@@ -17,3 +17,177 @@
     linear-gradient(var(--line-blue) 0.1em, transparent 0.1em);
   background-size: 100% 40px;
 }
+
+.canvas-btn {
+  transition: transform 0.2s ease;
+}
+.canvas-btn:hover {
+  transform: scale(1.05);
+}
+.canvas-btn:active {
+  transform: scale(0.95);
+}
+
+.sidebar {
+  position: flex;
+  flex-direction: column;
+  min-width: 40px;
+  left: 5%;
+  background : none;
+  padding: 5px;
+  display: grid;
+  gap : 10px;
+}
+
+.sidebar button {
+  display: block;
+  margin: 3px;
+}
+
+.sidebar-options-container {
+  border: 1px solid #111111
+}
+
+/* Container wrapping the entire draw area (Header + Workspace) */
+.draw-root-container {
+  display: flex;
+  flex-direction: column;
+}
+.spectator-header-container {
+  display: flex;
+  flex-direction: row;
+  gap : 10px;
+}
+
+/* The prompt header text */
+.draw-header, .spectator-name-header {
+  margin: 0;
+  word-break: break-word;
+  white-space: normal;
+  align-self: flex-start;
+  justify-self: flex-start;
+  
+  padding: 0px 0px;
+}
+.draw-header {
+  width: 100%;
+  text-align: center;
+  justify-content: end;
+}
+.spectator-name-header {
+  text-align: flex-start;
+  align-self: flex-end;
+  font-size: 16px;
+}
+
+/* The workspace container (Sidebar + Canvas) */
+.draw-workspace {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* The actual Konva canvas container */
+.canvas-container {
+  width: 600px;
+  height: 600px;
+  border-radius : 5px;
+}
+
+.artist-container {
+  display: flex;
+  width: 100%;
+  height:100%;
+  padding: 50px 70px;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.second-artist-canvas-container {
+  width: 250px;
+  height: 250px;
+  border: 100px solid #000000;
+}
+
+.game-info-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height:100%;
+}
+
+.chat-container {
+  height: 300px;
+  max-height: 400px;
+  margin: 10px;
+  border: 1px solid black;
+  background-color: #fff3a0;
+  display: flex;
+  flex-direction: column;
+  /* This hides anything that sticks out of the container */
+  overflow: hidden; 
+  border-radius: 4px;
+}
+
+/* This allows the message area to grow and scroll internally */
+.chat-messages-area {
+  flex-grow: 1;
+  overflow-y: auto; /* Scroll messages, but hide the main container overflow */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.chat-messages-area::-webkit-scrollbar {
+    display: none;
+}
+
+/* The horizontal wrapper for input + button */
+.chat-input-row {
+  display: flex;
+  border-top: 1px solid black;
+  background-color: white;
+}
+
+.chat-input-textbox {
+  flex-grow: 1; /* Takes up all available space on the left */
+  padding: 10px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  /* Ensures text doesn't cause the box to grow weirdly */
+  overflow: hidden; 
+}
+
+.chat-input-submit {
+  padding: 0 20px;
+  border: none;
+  border-left: 1px solid black;
+  background-color: #4a90e2;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap; /* Prevents button text from wrapping */
+}
+
+.chat-input-submit:hover:not(:disabled) {
+  background-color: #357abd;
+}
+
+.chat-input-submit:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.chat-message-container {
+  overflow: hidden;
+  word-wrap: break-word; /* Prevents long text from breaking the layout */
+  flex-shrink: 0; /* Ensures messages don't squash */
+}
+
+.audience-canvas-container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+
