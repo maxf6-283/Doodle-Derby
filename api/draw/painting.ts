@@ -129,6 +129,9 @@ export class PaintCanvas {
   private canvasWidth: number;
   private canvasHeight: number;
 
+  private virtualWidth: number;
+  private virtualHeight: number;
+
   private pointsBuffer: [number, number][] = [];
 
   private requiredPoints: number = 4;
@@ -142,6 +145,7 @@ export class PaintCanvas {
   private networkCallbacks: NetworkPaintCallbacks | null = null;
 
   private previousClientImageData: ImageData | null = null;
+  private canvas: HTMLCanvasElement;
 
   // Initializes internals of PaintCanvas and sets up
   // callbacks for drawing.
@@ -151,13 +155,15 @@ export class PaintCanvas {
     stage: Konva.Stage,
     brush: Brush,
     isSpectator: boolean = false,
+    baseSize?: { width: number; height: number },
+    virtualSize?: { width: number; height: number },
   ) {
     this.image = new Konva.Image({
       image: canvas,
       x: pos.x,
       y: pos.y,
     });
-
+    this.canvas = canvas;
     this.layer = new Konva.Layer();
 
     this.layer.add(this.image);
@@ -175,10 +181,71 @@ export class PaintCanvas {
 
     stage.add(this.layer);
 
-    this.canvasWidth = this.layer.getWidth() as number;
-    this.canvasHeight = this.layer.getHeight() as number;
+    this.canvasWidth = baseSize ? baseSize.width : canvas.width;
+    this.canvasHeight = baseSize ? baseSize.height : canvas.height;
+
+    this.virtualWidth = virtualSize ? virtualSize.width : this.canvasWidth;
+    this.virtualHeight = virtualSize ? virtualSize.height : this.canvasHeight;
+
+    if (baseSize) {
+      this.canvas.width = baseSize.width;
+      this.canvas.height = baseSize.height;
+    }
 
     this.clear();
+  }
+
+  /**
+   * Handles incoming stroke data from the network and scales it to the local canvas size.
+   * @param payload The networked stroke data containing points, brush, and mode.
+   * @param referenceSize The virtual resolution used by the network (default 1000x1000).
+   */
+  public handleRemoteStroke(
+    payload: NetworkStrokePayload,
+    referenceSize: { width: number; height: number } = {
+      width: this.virtualWidth,
+      height: this.virtualHeight,
+    },
+  ) {
+    const { points, currentBrush, paintMode } = payload;
+
+    // 1. Calculate the scale factor relative to the reference size
+    const scaleX = this.canvasWidth / referenceSize.width;
+    const scaleY = this.canvasHeight / referenceSize.height;
+
+    // 2. Scale the incoming points to the local coordinate system
+    const localPoints = points.map(
+      (p) => [p[0] * scaleX, p[1] * scaleY] as [number, number],
+    );
+
+    // 3. Scale the brush stroke width so it remains proportional to the canvas size
+    // We use scaleX as a uniform scale factor for the brush width
+    const localBrush: Brush = {
+      ...currentBrush,
+      strokeWidth: currentBrush.strokeWidth * scaleX,
+    };
+
+    // 4. Get the current image data to apply the stroke to
+    const imageData = this.context.getImageData(
+      0,
+      0,
+      this.canvasWidth,
+      this.canvasHeight,
+    );
+
+    // 5. Draw the point/segment locally
+    const newBoundingBox = this.drawPoint(
+      localPoints,
+      localBrush,
+      paintMode,
+      imageData,
+    );
+
+    // 6. Update the canvas and layer
+    if (newBoundingBox) {
+      this.context.putImageData(imageData, 0, 0);
+      this.layer.batchDraw();
+    }
   }
 
   private registerImageCallbacks(stage: Konva.Stage) {
@@ -199,18 +266,27 @@ export class PaintCanvas {
 
     const draw = (imageData: ImageData, clicked: boolean = false) => {
       let currentMousePos = stage.pointerPos as Vector2d;
-      let pos: [number, number] = [
+      let localPos: [number, number] = [
         currentMousePos.x - this.layer.getPosition().x,
         currentMousePos.y - this.layer.getPosition().y,
       ];
+      const scaleX = this.virtualWidth / this.canvasWidth;
+      const scaleY = this.virtualHeight / this.canvasHeight;
+      let networkPos: [number, number] = [
+        localPos[0] * scaleX,
+        localPos[1] * scaleY,
+      ];
 
-      this.pointsBuffer.push(pos);
+      this.pointsBuffer.push(localPos);
 
       if (this.pointsBuffer.length > this.requiredPoints) {
         let segment = this.getSegmentPoints(this.pointsBuffer);
         if (segment.length == 0) return;
+        const networkedSegment = segment.map(
+          (p) => [p[0] * scaleX, p[1] * scaleY] as [number, number],
+        );
         this.networkCallbacks?.onStrokeMove(
-          segment,
+          networkedSegment, // Send scaled points
           this.currentBrush,
           this.paintMode,
         );
@@ -221,7 +297,7 @@ export class PaintCanvas {
       let segment = this.getSegmentPoints(this.pointsBuffer);
 
       if (clicked) {
-        segment.push(pos);
+        segment.push(localPos);
       }
 
       if (segment.length == 0) return;
@@ -381,8 +457,6 @@ export class PaintCanvas {
       draw(imageData);
     });
   }
-
-  
 
   public setNetworkCallbacks(callbacks: NetworkPaintCallbacks) {
     this.networkCallbacks = {

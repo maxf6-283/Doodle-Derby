@@ -52,7 +52,6 @@
 .draw-root-container {
   display: flex;
   flex-direction: column;
-  gap: 5px;
 }
 .spectator-header-container {
   display: flex;
@@ -73,6 +72,7 @@
 .draw-header {
   width: 650px;
   text-align: center;
+  justify-content: end;
 }
 .spectator-name-header {
   text-align: flex-start;
@@ -90,7 +90,27 @@
 
 /* The actual Konva canvas container */
 .canvas-container {
-  width: 500px;
-  height: 500px;
+  width: 600px;
+  height: 600px;
   border: 1px solid #ccc;
+}
+
+.artist-container {
+  display: flex;
+  width: 100%;
+  height:100%;
+  padding: 50px 70px;
+}
+
+.second-artist-canvas-container {
+  width: 250px;
+  height: 250px;
+  border: 1px solid #ccc;
+}
+
+.game-info-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height:100%;
 }
