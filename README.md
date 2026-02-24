@@ -18,7 +18,7 @@ At the end of the game, a winner will be declared. __Let’s doodle!__
 
 **Producer** – Allie Atkinson
 
-**Programmers** – Seven Flaminiano, Max Fisch, Zidane Ho, Neel Dharm, Adrian Guzman, Isha Pandit, Gloria Lee, Michelle Mitchell
+**Programmers** – Seven Flaminiano, Max Fisch, Zidane Ho, Neel Dharm, Adrian Guzman, Isha Pandit, Gloria Lee, Michelle Mitchell, Jack Park
 
 **Artists** – Marissa Morales, Jay Siqueiroz, Bella Lau, Allie Atkinson
 
