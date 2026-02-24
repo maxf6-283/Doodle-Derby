@@ -14,6 +14,7 @@ import { render } from "solid-js/web";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 
 import "../../style/pick-words.css";
+import { IconButton } from "../components/IconButton";
 
 // Even though you can get the words completed
 // through the player state, we must store a changing
@@ -157,10 +158,16 @@ function SubmitWord(props: {
           onkeydown={(ev) => ev.key === "Enter" && submitWord()}
           onInput={(element) => onUpdateWord(element.currentTarget.value)}
         />
-
-        <button id="add-word-btn" onClick={(_) => submitWord()}>
-          <b>SUBMIT</b>
-        </button>
+        <IconButton
+          onClick={() => {
+            submitWord();
+          }}
+          defaultImg="/buttons/submit_icon.png"
+          hoverImg="/buttons/submit_hovered_icon.png"
+          altText="Submit"
+          text="SUBMIT"
+          width="120px"
+        ></IconButton>
       </div>
     </div>
   );
@@ -189,7 +196,7 @@ function WordsList(props: {
   );
 }
 
-function WaitingPage(props: { readyToStart: boolean, maxWords: number }) {
+function WaitingPage(props: { readyToStart: boolean; maxWords: number }) {
   let [host, _] = createSignal(isHost());
 
   const onStart = () => {
@@ -216,15 +223,21 @@ function WaitingPage(props: { readyToStart: boolean, maxWords: number }) {
         </h1>
         <PlayerCards maxWords={props.maxWords} />
       </div>
-
-      <button
-        id="start-game-btn"
-        class="continue-btn"
-        style={!props.readyToStart || !host() ? "display: none;" : "block"}
-        onClick={(_) => onStart()}
-      >
-        START DOODLING!
-      </button>
+      <Show when={props.readyToStart && host()}>
+        <div class="continue-btn">
+          <IconButton
+            onClick={() => {
+              onStart();
+            }}
+            defaultImg="/buttons/start_icon.png"
+            hoverImg="/buttons/start_hovered_icon.png"
+            altText="Start Game"
+            text="START DOODLING!"
+            width="150px"
+            textColor="#313136"
+          ></IconButton>
+        </div>
+      </Show>
     </>
   );
 }
@@ -240,23 +253,31 @@ function PickWordsMain() {
       routerNavigate("/game");
     });
 
-    const readyClean = RPC.register("all-players-ready", async (_payload, _player) => {
-      setAllPlayersReady(true);
-    });
+    const readyClean = RPC.register(
+      "all-players-ready",
+      async (_payload, _player) => {
+        setAllPlayersReady(true);
+      },
+    );
 
-    const pickClean = RPC.register("player-picked-words", async (_payload, _player) => {
-      const players = Object.values(getParticipants());
-      const allFinished = players.every(
-        (p) => p.getState("picked_words") === true,
-      );
+    const pickClean = RPC.register(
+      "player-picked-words",
+      async (_payload, _player) => {
+        const players = Object.values(getParticipants());
+        const allFinished = players.every(
+          (p) => p.getState("picked_words") === true,
+        );
 
-      if (allFinished) {
-        // Tell everyone (including the host themselves) that we are ready
-        RPC.call("all-players-ready", {}, RPC.Mode.ALL);
-      }
-    });
+        if (allFinished) {
+          // Tell everyone (including the host themselves) that we are ready
+          RPC.call("all-players-ready", {}, RPC.Mode.ALL);
+        }
+      },
+    );
 
-    setMaxWords(prevMaxWord => prevMaxWord * (getState("number-rounds") ?? 1));
+    setMaxWords(
+      (prevMaxWord) => prevMaxWord * (getState("number-rounds") ?? 1),
+    );
 
     myPlayer().setState("words", []);
     myPlayer().setState("words_complete", 0);
@@ -291,27 +312,39 @@ function PickWordsMain() {
   return (
     <Show
       when={!isWaiting()}
-      fallback={<WaitingPage readyToStart={allPlayersReady()} maxWords={maxWords()} />}
+      fallback={
+        <WaitingPage readyToStart={allPlayersReady()} maxWords={maxWords()} />
+      }
     >
       <div class="pick-words-container">
         <WordsList words={wordsList()} deleteWord={deleteWord} />
         <h1 class="input-label">
-          <strong>WRITE ANYTHING...</strong>
+          <strong>
+            ({wordsList().length}/{maxWords()})
+          </strong>
+          <strong>WRITE ANYTHING!</strong>
         </h1>
-        <SubmitWord words={wordsList()} pushWord={pushWord} maxWords={maxWords()} />
+        <SubmitWord
+          words={wordsList()}
+          pushWord={pushWord}
+          maxWords={maxWords()}
+        />
       </div>
-      <button
-        id="continue-btn"
-        class="continue-btn"
-        style={
-          wordsList().length >= maxWords()
-            ? wordsList().length.toString()
-            : "display: none"
-        }
-        onClick={(_) => continueToWaiting()}
-      >
-        CONTINUE
-      </button>
+      <Show when={wordsList().length >= maxWords()}>
+        <div class="continue-btn">
+          <IconButton
+            onClick={() => {
+              continueToWaiting();
+            }}
+            defaultImg="/buttons/continue_icon.png"
+            hoverImg="/buttons/continue_hovered_icon.png"
+            altText="Continue"
+            text="CONTINUE"
+            width="150px"
+            textColor="#313136"
+          ></IconButton>
+        </div>
+      </Show>
     </Show>
   );
 }

@@ -342,14 +342,14 @@ function Lobby() {
                   return getState("number-rounds") ?? 1;
                 })()}
               </li>
-              <li>
+              {/* <li>
                 Time Limit:{" "}
                 {(() => {
                   lobbyTicket(); // Listen for changes
                   return getState("timer-seconds") ?? DEFAULT_TIMER;
                 })()}
                 s
-              </li>
+              </li> */}
             </ul>
           </aside>
 

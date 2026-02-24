@@ -172,11 +172,11 @@ export function SettingsModal(props: {
                       value={`${localRounds()}`}
                       onUpdate={(dir) => updateLocalRounds(dir)}
                     />
-                    <SettingRow
+                    {/* <SettingRow
                       label="Round Timer"
                       value={`${localTimer()}s`}
                       onUpdate={(dir) => updateLocalTime(dir * TIME_INCREMENT)}
-                    />
+                    /> */}
                     <div
                       class="settings-actions"
                       style={{
