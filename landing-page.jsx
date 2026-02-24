@@ -68,21 +68,24 @@ export default function LandingPage() {
 
   function handleCredits() {
     ddAlert("Credits!!",
-      "Artists: Allie, Jay, Marissa, Bella\n" +
-      "Programmers: Neel, Seven, Zidane, Isha, Jack, Adrian\n" +
-      "Audio: Jay\n" +
-      "Designers: Emily",
+      "Producer – Allie Atkinson\n" +
+      "Programmers – Seven Flaminiano, Max Fisch, Zidane Ho, Neel Dharm, Adrian Guzman, Isha Pandit, Gloria Lee, Michelle Mitchell, Jack Park\n" +
+      "Artists – Marissa Morales, Jay Siqueiroz, Bella Lau, Allie Atkinson\n" +
+      "Audio – Jay Siqueiroz, Jason Montanez\n" +
+      "Design – Emily Le, Zidane Ho\n",
       "group_photo.png"
     );
   }
 
   function handleHowToPlay() {
     ddAlert("How to Play",
-      "Each player submits 5-10 word prompts." +
-      " At the start of each round, two artists are randomly selected and given a prompt to draw." +
-      " The rest of the players have a set time limit to guess both artists' prompts." +
-      " The artist with the most correct guesses wins the round!" +
-      " The player who guesses the fastest gains the most points!! Have fun doodlers!!"
+      "Start by creating a lobby and inviting at least two friends!" +
+      " The game will begin by everyone writing word prompts that are drawable." +
+       " They can be simple, like “apple pie,” or more personal to your friend group, like “Allie’s cat.”" +
+       " After everybody has submitted words, the drawing will begin! If you are an artist, draw your prompt" +
+       " accurately and quickly to win the round. If you are in the audience, try to guess both artists’ prompts" +
+       " (they’re different!). Faster guesses = more points. " +
+       "At the end of the game, a winner will be declared. Let’s doodle!"
     );
   }
 
