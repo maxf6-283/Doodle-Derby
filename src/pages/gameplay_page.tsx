@@ -10,6 +10,7 @@ import {
   RPC,
   setState,
   isHost,
+  getState,
 } from "playroomkit";
 
 import {
@@ -31,30 +32,37 @@ const randInt = (length: number) => {
 
 function pickPrompts() {
   let participants = Object.values(getParticipants());
-  let allWords: string[] = [];
 
-  // Consolidate all words from all players
-  participants.forEach((p) => {
-    const words = p.getState("words") || [];
-    allWords = [...allWords, ...words];
-  });
-
-  // Shuffle the pool
-  allWords.sort(() => Math.random() - 0.5);
+  let artists: PlayerState[] = [];
+  let artistChoices: Map<string, string[]> = new Map();
 
   participants.forEach((player) => {
     if (player.getState("isArtist")) {
-      // Pick 2 unique words for this artist from the pool
-      const choices = allWords.splice(0, 2);
-      // Give the artist their choices via state
-      player.setState("promptChoices", choices, true);
-      // Clear any previous selection
-      player.setState("prompt", "");
+      artists.push(player);
+
+      let wordPool: string[] = player.getState("words");
+      wordPool.sort(() => Math.random() - 0.5);
+      const choices = wordPool.splice(0, 2);
+      artistChoices.set(player.id, [...choices]);
+
+      player.setState("words", wordPool, true);
     }
   });
 
-  // Update remaining global pool if needed for other logic
-  setState("globalWordPool", allWords);
+  // These will exist!!! They will not be
+  // undefined!!!
+
+  let firstArtist = artists[0];
+  let firstArtistPrompts = artistChoices.get(firstArtist.id) as string[];
+  let secondArtist = artists[1];
+  let secondArtistPrompts = artistChoices.get(secondArtist.id) as string[];
+
+  // Give the artist their choices via state
+  firstArtist.setState("promptChoices", secondArtistPrompts, true);
+  firstArtist.setState("prompt", "");
+
+  secondArtist.setState("promptChoices", firstArtistPrompts, true);
+  secondArtist.setState("prompt", "");
 }
 
 function pickRandomArtists() {
@@ -64,11 +72,30 @@ function pickRandomArtists() {
     return !player.getState("hasChosen");
   });
 
-  console.log("artist pool:", currentArtistPool.length);
-
   if (currentArtistPool.length == 0) {
-    RPC.call("gameFinished", {}, RPC.Mode.ALL);
-    return;
+    let roundsPlayed = getState("roundsPlayed") + 1;
+    let maxRounds = getState("number-rounds");
+
+    console.log("end state:", roundsPlayed, maxRounds);
+    // Check if greater just in case,
+    // but ideally it should never be greater
+    if (roundsPlayed >= maxRounds) {
+      RPC.call("gameFinished", {}, RPC.Mode.ALL);
+      return;
+    }
+
+    setState("roundsPlayed", roundsPlayed, true);
+
+    // Reset player pool
+
+    participants.forEach(player => {
+      player.setState("hasChosen", false);
+    });
+
+    currentArtistPool = participants.filter((player) => {
+      player.setState("isArtist", false);
+      return !player.getState("hasChosen");
+    });
   }
 
   let firstIndex = randInt(currentArtistPool.length);

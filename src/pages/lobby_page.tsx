@@ -121,6 +121,14 @@ function Lobby() {
     //   setCurrentTimer(getState("timer-seconds") ?? DEFAULT_TIMER);
     // }, 100);
 
+    // This is very important, don't remove
+    setState("roundsPlayed", 0, true);
+
+    // If number-rounds is undefined set it!
+    if (!getState("number-rounds")) {
+      setState("number-rounds", 1);
+    }
+
     const me = myPlayer();
     const initSequence = async () => {
       // Wait for connection and room code
@@ -303,7 +311,7 @@ function Lobby() {
           </div>
 
           <div>
-            <MuteButton onClick={() => {}}></MuteButton>
+            <MuteButton onClick={() => { }}></MuteButton>
             <IconButton
               id="settings-btn"
               defaultImg="/lobby/settings_icon.png"
@@ -379,7 +387,7 @@ function Lobby() {
         <footer class="lobby-footer">
           {/********************************************************************************/}
           {/* Reactions */}
-          <div style={{display:"flex","justify-content":"center", width:"100%"}}>
+          <div style={{ display: "flex", "justify-content": "center", width: "100%" }}>
             <div class="reac-container">
               <button
                 class="reac-button"
