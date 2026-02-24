@@ -1,11 +1,11 @@
 import { Page } from "../../api/page";
 import { render, For } from "solid-js/web"
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
-import { ChatGuesser } from "../../api/guess/GuessComponent";
+import { createSignal, onCleanup, onMount, Show} from "solid-js";
+import { ChatGuesser, GuessElement } from "../../api/guess/GuessComponent";
 
 import { getParticipants, PlayerState, me, RPC, setState, isHost } from "playroomkit";
 
-import { ArtistCanvasComponent, SpectatorCanvas } from "../../api/draw/ArtistCanvasComponent";
+import { ArtistCanvasComponent, SpectatorCanvas} from "../../api/draw/ArtistCanvasComponent";
 
 import { ReactionBar } from "../../api/reactions/ReactionBarComponent"
 
@@ -133,41 +133,45 @@ function ArtistPage(props: { otherArtist: PlayerState }) {
 
 function SpectatorPage(props: { artistList: PlayerState[] }) {
   let [prompts, setPrompts] = createSignal<string[]>([]);
-  let [hiddenPrompts, setHiddenPrompts] = createSignal<string[]>([]);
+    //let [hiddenPrompts, setHiddenPrompts] = createSignal<string[]>([]);
+    
 
   onMount(() => {
     setPrompts([
       props.artistList[0].getState("prompt"),
       props.artistList[1].getState("prompt")
     ]);
-    setHiddenPrompts([
-      hangman(prompts()[0]),
-      hangman(prompts()[1])
-    ]);
+    //setHiddenPrompts([
+    //  hangman(prompts()[0]),
+    //  hangman(prompts()[1])
+    //]);
   });
 
-  const hangman = (prompt: string) => {
-    let hidden = "";
-    for (let i = 0; i < prompt.length; i++) {
-      if (prompt.charAt(i) === " ") { hidden += " "; }
-      else { hidden += "_"; }
-      hidden += " "; 
-    }
-    return hidden;
-  }
+  //const hangman = (prompt: string) => {
+  //  let hidden = "";
+  //  for (let i = 0; i < prompt.length; i++) {
+  //    if (prompt.charAt(i) === " ") { hidden += " "; }
+  //    else { hidden += "_"; }
+  //    hidden += " "; 
+  //  }
+  //  return hidden;
+  //}
 
-  return (
+    return (
     <>
       <div style={{ display: 'flex', gap: '1rem' }}>
         <For each={props.artistList}>
           {item => (
-            <SpectatorCanvas artist={item} />
+              <>
+                 <SpectatorCanvas artist={item} />
+                 <GuessElement prompt={item.getState("prompt")} />
+              </>
           )}
         </For>
       </div>
       <div style={{ display: 'flex', gap: '10rem', border: "solid 2px red" }}>
-        <h1>{hiddenPrompts()[0]}</h1>
-        <h1>{hiddenPrompts()[1]}</h1>
+        {/*<h1>{hiddenPrompts()[0]}</h1>*/}
+        {/*<h1>{hiddenPrompts()[1]}</h1>*/}
       </div>
       <ChatGuesser promptList={prompts()} artists={props.artistList} notArtist={true} />
     </>
@@ -370,3 +374,5 @@ export function RandomWordSelection(props: {
     </Show>
   );
 }
+
+
