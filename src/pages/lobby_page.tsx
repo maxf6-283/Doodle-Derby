@@ -62,7 +62,7 @@ export const refreshLobby = () => setLobbyTicket((t) => t + 1);
 
 export const LobbyPage: Page = {
   async render(root: HTMLElement) {
-    onDisconnect(ev => {
+    onDisconnect((ev) => {
       if (ev.reason === "PLAYER_KICKED") {
         alert("You have been kicked by the host.");
       }
@@ -76,14 +76,30 @@ export const LobbyPage: Page = {
 function Lobby() {
   // Local state for UI visibility
   const [isLoading, setIsLoading] = createSignal(true);
+  const [showCode, setShowCode] = createSignal(false);
 
   const [isCustomizeOpen, setIsCustomizeOpen] = createSignal(false);
   const [isSettingsOpen, setIsSettingsOpen] = createSignal(false);
   const [isKickOpen, setIsKick] = createSignal<PlayerState | null>(null);
+  const [copied, setCopied] = createSignal(false);
+
+  const roomCode = getRoomCode();
 
   const resetKickButton = () => {
     if (isKickOpen()) {
       setIsKick(null);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!roomCode) return;
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      // Reset the "Copied!" state after 2 seconds
+      setTimeout(() => setCopied(false), 1000);
+    } catch (err) {
+      console.error("Failed to copy lobby code: ", err);
     }
   };
 
@@ -143,7 +159,13 @@ function Lobby() {
     }
     // Sync Playroom state changes to Solid's reactivity
 
-    const refreshClean = RPC.register("refresh_lobby_ui", async () => refreshLobby());
+    const refreshClean = RPC.register("refresh_lobby_ui", async () =>
+      refreshLobby(),
+    );
+    /********************************************************************************/
+    const reactionClean = RPC.register("new-reaction", async () =>
+      newReaction(),
+    );
     /********************************************************************************/
 
     const startClean = RPC.register("start-game", async () => {
@@ -187,6 +209,44 @@ function Lobby() {
     }
   };
 
+  /********************************************************************************/
+  /* BEGIN REACTIONS */
+
+  const reactionURL = () => {
+    lobbyTicket();
+    return getState("reactionPressed");
+  };
+
+  const newReaction = () => {
+    const button_list = document.getElementsByClassName("reac-button");
+    for (let i = 0; i < button_list.length; i++) {
+      const button = button_list[i] as HTMLButtonElement;
+      button.disabled = true;
+    }
+
+    const reaction = document.createElement("img");
+    reaction.src = reactionURL();
+    reaction.classList.add("reac-element");
+    Object.assign(reaction.style, {
+      width: `50px`,
+      animation: `moveUp 2s ease-out`,
+      zIndex: `10`,
+    });
+    AudioManager.playSound("/audio/bark.mp3");
+
+    document.body.appendChild(reaction);
+    setTimeout(() => {
+      reaction.remove();
+      for (let i = 0; i < button_list.length; i++) {
+        const button = button_list[i] as HTMLButtonElement;
+        button.disabled = false;
+      }
+    }, 2000);
+  };
+
+  /* END REACTIONS */
+  /********************************************************************************/
+
   return (
     <Show
       when={!isLoading()}
@@ -216,11 +276,33 @@ function Lobby() {
               routerNavigate("/");
             }}
           />
-          <h1>
-            Code: <span id="code-span">{getRoomCode() ?? "Error"}</span>
-          </h1>
+          <div style={{
+                  display: "flex",
+                  "align-items": "center",
+                  gap: "10px",
+                }}>
+            
+            <h1 style={{ margin: 0 }}>
+              Code: <span id="code-span">{getRoomCode() ?? "Error"}</span>
+            </h1>
+            <div class="copy-button-container">
+              <button class="copy-btn" onClick={handleCopy}>
+                <img
+                  src="/lobby/copy.png"
+                  alt="Copy"
+                  style={{ width: "24px", height: "24px" }}
+                />
+              </button>
+
+              {/* Show ensures the signal doesn't affect the flexbox layout */}
+              <Show when={copied()}>
+                <span class="copy-status">Copied!</span>
+              </Show>
+            </div>
+          </div>
+
           <div>
-            <MuteButton onClick={() => { }}></MuteButton>
+            <MuteButton onClick={() => {}}></MuteButton>
             <IconButton
               id="settings-btn"
               defaultImg="/lobby/settings_icon.png"
@@ -290,6 +372,76 @@ function Lobby() {
               }}
             </For>
           </div>
+
+          {/********************************************************************************/}
+          {/* Reactions */}
+
+          <div class="reac-container">
+            <button
+              class="reac-button"
+              onClick={() => {
+                setState("reactionPressed", "/reactions/cool.png");
+                RPC.call("new-reaction", {}, RPC.Mode.ALL);
+              }}
+            >
+              <img src="/reactions/cool.png" class="reac-img" alt="Cool" />
+            </button>
+            <button
+              class="reac-button"
+              onClick={() => {
+                setState("reactionPressed", "/reactions/ellipsis.png");
+                RPC.call("new-reaction", {}, RPC.Mode.ALL);
+              }}
+            >
+              <img
+                src="/reactions/ellipsis.png"
+                class="reac-img"
+                alt="Ellipsis"
+              />
+            </button>
+            <button
+              class="reac-button"
+              onClick={() => {
+                setState("reactionPressed", "/reactions/laugh.png");
+                RPC.call("new-reaction", {}, RPC.Mode.ALL);
+              }}
+            >
+              <img src="/reactions/laugh.png" class="reac-img" alt="Laugh" />
+            </button>
+            <button
+              class="reac-button"
+              onClick={() => {
+                setState("reactionPressed", "/reactions/question.png");
+                RPC.call("new-reaction", {}, RPC.Mode.ALL);
+              }}
+            >
+              <img
+                src="/reactions/question.png"
+                class="reac-img"
+                alt="Question"
+              />
+            </button>
+            <button
+              class="reac-button"
+              onClick={() => {
+                setState("reactionPressed", "/reactions/sad.png");
+                RPC.call("new-reaction", {}, RPC.Mode.ALL);
+              }}
+            >
+              <img src="/reactions/sad.png" class="reac-img" alt="Sad" />
+            </button>
+            <button
+              class="reac-button"
+              onClick={() => {
+                setState("reactionPressed", "/reactions/tomato.png");
+                RPC.call("new-reaction", {}, RPC.Mode.ALL);
+              }}
+            >
+              <img src="/reactions/tomato.png" class="reac-img" alt="Tomato" />
+            </button>
+          </div>
+
+          {/********************************************************************************/}
         </main>
 
         {/* Footer */}

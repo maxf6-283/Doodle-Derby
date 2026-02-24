@@ -1,15 +1,29 @@
-# Doodle-Derby
+# Welcome to Doodle Derby!
 
-Hello this is the answer to life:
+To play, visit [www.doodlederby.com](https://www.doodlederby.com)!
 
+## How to Play
 
+Start by creating a lobby and inviting at least two friends!
 
+The game will begin by everyone writing word prompts that are drawable. They can be simple, like “apple pie,” or more personal to your friend group, like “Allie’s cat.” 
 
+After everybody has submitted words, the drawing will begin! 
+If you are an artist, draw your prompt accurately and quickly to win the round. 
+If you are in the audience, try to guess both artists’ prompts (they’re different!). Faster guesses = more points. 
 
+At the end of the game, a winner will be declared. __Let’s doodle!__
 
-| :Column1 | Column2 |
-| -------------- | --------------- |
-| Item1.1 | Item2.1 |
-| Item1.2 | Item2.2 |
-| Item1.3 | Item2.3 |
+## Credits
 
+**Producer** – Allie Atkinson
+
+**Programmers** – Seven Flaminiano, Max Fisch, Zidane Ho, Neel Dharm, Adrian Guzman, Isha Pandit, Gloria Lee, Michelle Mitchell
+
+**Artists** – Marissa Morales, Jay Siqueiroz, Bella Lau, Allie Atkinson
+
+**Audio** – Jay Siqueiroz, Jason Montanez
+
+**Design** – Emily Le, Zidane Ho
+
+A special thanks to [VGDC @ UCSD](https://www.vgdc.dev) for running Project Forge and making Doodle Derby possible!
