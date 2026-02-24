@@ -21,36 +21,36 @@ export const ChatGuesser = (props: {
     setGlobalMessages(getState("chats") ?? []);
 
     const newChatClean = RPC.register("newChat", async (newMessage) => {
-        setGlobalMessages(prevMessages => {
-            let updatedMessages = [...prevMessages, newMessage.message];
-            if (updatedMessages.length > MAX_MESSAGES) {
-                updatedMessages = updatedMessages.slice(updatedMessages.length - MAX_MESSAGES);
-            }
-            // Also update the global state
-            setState("chats", updatedMessages, true);
-            return updatedMessages;
-        });
+      setGlobalMessages(prevMessages => {
+        let updatedMessages = [...prevMessages, newMessage.message];
+        if (updatedMessages.length > MAX_MESSAGES) {
+          updatedMessages = updatedMessages.slice(updatedMessages.length - MAX_MESSAGES);
+        }
+        // Also update the global state
+        setState("chats", updatedMessages, true);
+        return updatedMessages;
+      });
     });
 
     setPrompts(props.promptList);
 
     onCleanup(() => {
-        newChatClean();
+      newChatClean();
     });
   });
 
   createEffect(() => {
-  // Access the dependency to track it
-  const messages = globalMessages(); 
-  
-  if (chatAreaRef) {
-    // A zero-delay timeout pushes the scroll to the end of the event loop
-    // ensuring the new <p> tags are already rendered.
-    setTimeout(() => {
-      chatAreaRef.scrollTop = chatAreaRef.scrollHeight;
-    }, 0);
-  }
-});
+    // Access the dependency to track it
+    const messages = globalMessages();
+
+    if (chatAreaRef) {
+      // A zero-delay timeout pushes the scroll to the end of the event loop
+      // ensuring the new <p> tags are already rendered.
+      setTimeout(() => {
+        chatAreaRef.scrollTop = chatAreaRef.scrollHeight;
+      }, 0);
+    }
+  });
 
 
   const incrementGuess = () => {
@@ -128,16 +128,16 @@ export const ChatGuesser = (props: {
   };
 
   function displayChat() {
-  return (
-    <div class="chat-messages-area" ref={chatAreaRef}>
-      <For each={globalMessages()}>
-        {(message) => (
-          <p class="chat-message-container">{message}</p>
-        )}
-      </For>
-    </div>
-  );
-}
+    return (
+      <div class="chat-messages-area" ref={chatAreaRef}>
+        <For each={globalMessages()}>
+          {(message) => (
+            <p class="chat-message-container">{message}</p>
+          )}
+        </For>
+      </div>
+    );
+  }
 
   function submitMessage(currentMessage: string) {
     setText("");
@@ -166,7 +166,7 @@ export const ChatGuesser = (props: {
     </>
   );
 };
-    
+
 
 
 export function GuessElement(props: { prompt: string }) {
