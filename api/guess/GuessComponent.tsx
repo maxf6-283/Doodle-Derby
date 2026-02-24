@@ -1,4 +1,4 @@
-import { createSignal, onMount, onCleanup, Show, Index} from "solid-js";
+import { createSignal, onMount, onCleanup, Show, Index } from "solid-js";
 
 import { RPC, getState, setState, myPlayer, PlayerState } from "playroomkit";
 
@@ -130,7 +130,7 @@ export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[
           disabled={isDisabled()}
           value={text()}
           type="text"
-          onChange={(c) => setText(prevText => prevText = c.currentTarget.value)}/>
+          onChange={(c) => setText(prevText => prevText = c.currentTarget.value)} />
         <button onClick={guessChecker}>Submit</button>
       </Show>
     </>
@@ -139,64 +139,63 @@ export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[
 
 
 export function GuessElement(props: { prompt: string }) {
-    let [text, setText] = createSignal("");
-    let containerRef: HTMLDivElement | undefined;
+  let [text, setText] = createSignal("");
+  let containerRef: HTMLDivElement | undefined;
 
+  const handleClick = () => {
+    const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+    let hasInput = Array.from(inputs).find(input => input.value);
+    if (inputs) {
+      if (!hasInput) inputs[0].focus();
+    }
+  };
 
-    const handleClick = () => {
-        const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
-        let hasInput = Array.from(inputs).find(input => input.value);
-        if (inputs) {
-            if (!hasInput) inputs[0].focus();
-        }
-    };
+  const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
+    const input = e.currentTarget;
+    if (input.value.length >= 1) {
+      const next = input.parentElement?.nextElementSibling?.querySelector('input');
+      if (next) (next as HTMLInputElement).focus();
+    }
+  };
 
-    const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
-        const input = e.currentTarget;
-        if (input.value.length >= 1) {
-            const next = input.parentElement?.nextElementSibling?.querySelector('input');
-            if (next) (next as HTMLInputElement).focus();
-        }
-    };
+  const readingInput = () => {
+    const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
 
-    const readingInput = () => {
-        const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
-
-        let currentInput = "";
-        inputs.forEach((input) => {
-            currentInput += input.value;
-        });
-        setText(currentInput);
-        console.log(currentInput);
-    };
-    return (
-        <>
-            <div class="guessContainer" ref={containerRef} onClick={handleClick}>
-                <Index each={props.prompt.split("")}>
-                    {(char, i) => (
-                        <div class="input-unit">
-                            {char() === " " ? (
-                                <div class="space" style={{ width: "20px" }}></div>
-                            ) : (
-                                <>
-                                    <input
-                                        class="letter-input"
-                                        type="text"
-                                        maxlength="1"
-                                        onInput={(e) => handleInput(e)}
-                                        onChange={readingInput}
-                                        autocomplete="off"
-                                    />
-                                    <div class="bold-dash"></div>
-                                </>
-                            )}
-                        </div>
-                    )}
-                </Index>
+    let currentInput = "";
+    inputs.forEach((input) => {
+      currentInput += input.value;
+    });
+    setText(currentInput);
+    console.log(currentInput);
+  };
+  return (
+    <>
+      <div class="guessContainer" ref={containerRef} onClick={handleClick}>
+        <Index each={props.prompt.split("")}>
+          {(char, i) => (
+            <div class="input-unit">
+              {char() === " " ? (
+                <div class="space" style={{ width: "20px" }}></div>
+              ) : (
+                <>
+                  <input
+                    class="letter-input"
+                    type="text"
+                    maxlength="1"
+                    onInput={(e) => handleInput(e)}
+                    onChange={readingInput}
+                    autocomplete="off"
+                  />
+                  <div class="bold-dash"></div>
+                </>
+              )}
             </div>
-            <style>
-                {
-                    `.guessContainer {
+          )}
+        </Index>
+      </div>
+      <style>
+        {
+          `.guessContainer {
                 position: relative;
                 display: flex;
                 gap: 15px;
@@ -230,8 +229,8 @@ export function GuessElement(props: { prompt: string }) {
                 background-color: #2c3e50;
                 border-radius: 10px;
             }`
-                }
-            </style>
-        </>
-    );
+        }
+      </style>
+    </>
+  );
 }
