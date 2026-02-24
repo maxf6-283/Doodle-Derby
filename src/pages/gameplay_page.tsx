@@ -24,6 +24,7 @@ import "../../style/game.css";
 import { AudioManager } from "../components/AudioManager";
 import { routerNavigate } from "../../api/tiny_router";
 import { PlayerList } from "../components/PlayerList";
+import { MuteButton } from "../components/MuteButton";
 
 // Functions here are throwaways and only serve as substitutes
 const randInt = (length: number) => {
@@ -88,7 +89,7 @@ function pickRandomArtists() {
 
     // Reset player pool
 
-    participants.forEach(player => {
+    participants.forEach((player) => {
       player.setState("hasChosen", false);
     });
 
@@ -170,8 +171,23 @@ function ArtistPage(props: { otherArtist: PlayerState }) {
             <SpectatorCanvas artist={props.otherArtist} scale={0.4} />
           </Show>
           <ChatGuesser promptList={[]} artists={[]} notArtist={false} />
+          <ReactionBar />
         </div>
-        <div>
+        <div
+          style={{
+            display: "flex",
+            "flex-direction": "column",
+            "justify-content": "flex-start",
+          }}
+        >
+          <div style={{ display: "flex", "justify-content": "flex-end" }}>
+            <MuteButton
+              onClick={() => {
+                if (!AudioManager.isMuted())
+                  AudioManager.playLoop("/audio/DDsong.mp3");
+              }}
+            ></MuteButton>
+          </div>
           <PlayerList></PlayerList>
         </div>
       </div>
@@ -223,11 +239,23 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
               scale={0.7}
             ></SpectatorCanvas>
           </div>
-          <ChatGuesser
-            promptList={prompts()}
-            artists={props.artistList}
-            notArtist={true}
-          />
+          <div style={{ display: "flex", "flex-direction": "column" }}>
+            <div style={{ display: "flex", "justify-content": "flex-end" }}>
+              <MuteButton
+                onClick={() => {
+                  if (!AudioManager.isMuted())
+                    AudioManager.playLoop("/audio/DDsong.mp3");
+                }}
+              ></MuteButton>
+            </div>
+
+            <ChatGuesser
+              promptList={prompts()}
+              artists={props.artistList}
+              notArtist={true}
+            />
+            <ReactionBar></ReactionBar>
+          </div>
         </div>
       </>
     </Show>
@@ -279,7 +307,6 @@ function Gameplay() {
 
   return (
     <>
-
       <h1>Round {getState("roundsPlayed") || 0}</h1>
 
       <Show when={isArtist()}>
@@ -344,7 +371,6 @@ function GameplayPageMain() {
       <Show when={!gameStarted()} fallback={<Gameplay />}>
         <SelectPrompts onPromptsPicked={() => setIsGameStarted(true)} />
       </Show>
-      
     </>
   );
 }
@@ -433,5 +459,3 @@ export function RandomWordSelection(props: {
     </Show>
   );
 }
-
-

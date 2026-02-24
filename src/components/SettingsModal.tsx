@@ -110,7 +110,7 @@ export function SettingsModal(props: {
   };
 
   return (
-    <div id="settingsMenu" class="modal" style={{ display: "flex" }}>
+    <div id="settingsMenu" class="modal" style={{ display: "flex", "align-items" : "center", "justify-content" : "center" }}>
       <div class="modal-content">
         <div class="settings-layout">
           {/* Left Sidebar - Tab Navigation */}

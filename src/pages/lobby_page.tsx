@@ -297,9 +297,9 @@ function Lobby() {
             <div class="copy-button-container">
               <button class="copy-btn" onClick={handleCopy}>
                 <img
-                  src="/lobby/copy.png"
+                  src="/lobby/copy_icon.png"
                   alt="Copy"
-                  style={{ width: "24px", height: "24px" }}
+                  style={{ width: "48px", height: "48px" }}
                 />
               </button>
 
@@ -311,7 +311,12 @@ function Lobby() {
           </div>
 
           <div>
-            <MuteButton onClick={() => { }}></MuteButton>
+            <MuteButton
+              onClick={() => {
+                if (!AudioManager.isMuted())
+                  AudioManager.playLoop("/audio/DDsong.mp3");
+              }}
+            ></MuteButton>
             <IconButton
               id="settings-btn"
               defaultImg="/lobby/settings_icon.png"
@@ -387,7 +392,13 @@ function Lobby() {
         <footer class="lobby-footer">
           {/********************************************************************************/}
           {/* Reactions */}
-          <div style={{ display: "flex", "justify-content": "center", width: "100%" }}>
+          <div
+            style={{
+              display: "flex",
+              "justify-content": "center",
+              width: "100%",
+            }}
+          >
             <div class="reac-container">
               <button
                 class="reac-button"
