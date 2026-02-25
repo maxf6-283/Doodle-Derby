@@ -311,6 +311,7 @@ function Gameplay() {
       let guesserCount = Object.values(getParticipants()).length - 2;
       setNumPlayersGuessed((previousNum) => {
         let newNum = previousNum + 1;
+        console.log("People guessed:", newNum);
         if (newNum >= guesserCount) {
           RPC.call("nextRound", {}, RPC.Mode.ALL);
         }
