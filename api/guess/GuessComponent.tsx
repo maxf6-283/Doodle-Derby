@@ -1,4 +1,12 @@
-import { createSignal, onMount, onCleanup, Show, createEffect, For, Index } from "solid-js";
+import {
+  createSignal,
+  onMount,
+  onCleanup,
+  Show,
+  createEffect,
+  For,
+  Index,
+} from "solid-js";
 import { RPC, getState, setState, myPlayer, PlayerState } from "playroomkit";
 import { IconButton } from "../../src/components/IconButton";
 
@@ -11,7 +19,7 @@ export const ChatGuesser = (props: {
   let [text, setText] = createSignal("");
   let [isDisabled, setIsDisabled] = createSignal(false);
   let [prompts, setPrompts] = createSignal<string[]>(props.promptList);
-  let [globalMessages, setGlobalMessages] = createSignal<string[]>([]);
+  let [globalMessages, setGlobalMessages] = createSignal<{text: string, isCorrect: boolean}[]>([]);
   let [correctGuesses, setCorrectGuesses] = createSignal(0);
 
   const MAX_MESSAGES = 50;
@@ -21,13 +29,19 @@ export const ChatGuesser = (props: {
     setGlobalMessages(getState("chats") ?? []);
 
     const newChatClean = RPC.register("newChat", async (newMessage) => {
-      setGlobalMessages(prevMessages => {
-        let updatedMessages = [...prevMessages, newMessage.message];
+      setGlobalMessages((prevMessages) => {
+        // Create the new message object
+        const nextMessage = {
+          text: newMessage.message,
+          isCorrect: !!newMessage.isCorrect, // Ensure it's a boolean
+        };
+
+        let updatedMessages = [...prevMessages, nextMessage];
         if (updatedMessages.length > MAX_MESSAGES) {
-          updatedMessages = updatedMessages.slice(updatedMessages.length - MAX_MESSAGES);
+          updatedMessages = updatedMessages.slice(
+            updatedMessages.length - MAX_MESSAGES,
+          );
         }
-        // Also update the global state
-        setState("chats", updatedMessages, true);
         return updatedMessages;
       });
     });
@@ -51,7 +65,6 @@ export const ChatGuesser = (props: {
       }, 0);
     }
   });
-
 
   const incrementGuess = () => {
     setCorrectGuesses((previousGuess) => previousGuess + 1);
@@ -112,14 +125,14 @@ export const ChatGuesser = (props: {
       console.log("Artist score: " + artist.getState("score"));
 
       if (correctGuesses() == 2) {
-        submitMessage("guessed both words!");
+        submitMessage("guessed both words!", true);
         setIsDisabled(true);
         RPC.call("playerGuessed", {}, RPC.Mode.HOST);
         return;
       }
-      submitMessage("guessed a word!");
+      submitMessage("guessed a word!", true);
     } else {
-      submitMessage(text());
+      submitMessage(text(), false);
     }
 
     if (correctGuesses() >= 2) {
@@ -131,25 +144,25 @@ export const ChatGuesser = (props: {
     return (
       <div class="chat-messages-area" ref={chatAreaRef}>
         <For each={globalMessages()}>
-          {(message) => (
-            <p class="chat-message-container">{message}</p>
-          )}
+          {(message) => <p class={`chat-message-container ${message.isCorrect ? 'correct-guess' : 'normal-guess'}`}>
+            {message.text}
+          </p>}
         </For>
       </div>
     );
   }
 
-  function submitMessage(currentMessage: string) {
+  function submitMessage(currentMessage: string, isCorrect : boolean = false) {
     setText("");
     if (currentMessage.trim().length == 0) return;
     const finalMessage = `${myPlayer().getState("name")}: ${currentMessage}`;
-    RPC.call("newChat", { message: finalMessage }, RPC.Mode.ALL);
+    RPC.call("newChat", { message: finalMessage, isCorrect }, RPC.Mode.ALL);
   }
 
   return (
     <>
-      <div class="chat-container">
-        {displayChat()}
+      <div class="guess-container">
+        <div class="chat-container">{displayChat()}</div>
         <Show when={props.notArtist}>
           <div class="chat-input-row">
             <input
@@ -158,8 +171,23 @@ export const ChatGuesser = (props: {
               value={text()}
               type="text"
               onInput={(e) => setText(e.currentTarget.value)}
+              placeholder="Type in chat here..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); // Prevents line breaks or form reloads
+                  guessChecker();
+                }
+              }}
             />
-            <IconButton defaultImg="/buttons/submit_icon.png" hoverImg="/buttons/submit_hovered_icon.png" onClick={() => guessChecker()}></IconButton>
+            <IconButton
+              defaultImg="/buttons/submit_icon.png"
+              hoverImg="/buttons/submit_hovered_icon.png"
+              onClick={() => guessChecker()}
+              altText="Submit"
+              text="SUBMIT"
+              width="90px"
+              height="40px"
+            ></IconButton>
           </div>
         </Show>
       </div>
@@ -167,15 +195,15 @@ export const ChatGuesser = (props: {
   );
 };
 
-
-
 export function GuessElement(props: { prompt: string }) {
   let [text, setText] = createSignal("");
   let containerRef: HTMLDivElement | undefined;
 
   const handleClick = () => {
-    const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
-    let hasInput = Array.from(inputs).find(input => input.value);
+    const inputs = containerRef?.querySelectorAll(
+      "input",
+    ) as NodeListOf<HTMLInputElement>;
+    let hasInput = Array.from(inputs).find((input) => input.value);
     if (inputs) {
       if (!hasInput) inputs[0].focus();
     }
@@ -184,13 +212,16 @@ export function GuessElement(props: { prompt: string }) {
   const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
     const input = e.currentTarget;
     if (input.value.length >= 1) {
-      const next = input.parentElement?.nextElementSibling?.querySelector('input');
+      const next =
+        input.parentElement?.nextElementSibling?.querySelector("input");
       if (next) (next as HTMLInputElement).focus();
     }
   };
 
   const readingInput = () => {
-    const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+    const inputs = containerRef?.querySelectorAll(
+      "input",
+    ) as NodeListOf<HTMLInputElement>;
 
     let currentInput = "";
     inputs.forEach((input) => {
@@ -225,8 +256,7 @@ export function GuessElement(props: { prompt: string }) {
         </Index>
       </div>
       <style>
-        {
-          `.guessContainer {
+        {`.guessContainer {
                 position: relative;
                 display: flex;
                 gap: 15px;
@@ -259,8 +289,7 @@ export function GuessElement(props: { prompt: string }) {
                 height: 6px;
                 background-color: #2c3e50;
                 border-radius: 10px;
-            }`
-        }
+            }`}
       </style>
     </>
   );

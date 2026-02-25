@@ -390,7 +390,7 @@ function SettingsHeader(props: {
           "font-weight": "bold",
           "pointer-events": "none", // Clicks pass through to the button
           "text-shadow": "1px 1px 2px rgba(0,0,0,0.5)", // Better readability
-          "font-family": '"Comic Sans MS", "Comic Sans", cursive',
+          "font-family": '"ComicSansMS", "Comic Sans", cursive',
           width: "100%",
           "text-align": "center",
           "-webkit-mask-image": `url(${isActive() ? props.activeSrc : props.baseSrc})`,

@@ -55,7 +55,7 @@
   border: 2px solid #ccc;
   border-radius: 8px;
   outline: none;
-  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-family: "ComicSansMS", "Comic Sans", cursive;
 }
 
 #word-input:focus {

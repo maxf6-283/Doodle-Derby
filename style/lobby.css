@@ -19,7 +19,7 @@ body {
 }
 body {
   background-color: #333;
-  font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+  font-family: "ComicSansMS", "Chalkboard SE", cursive;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -161,7 +161,7 @@ body {
   text-align: center;
   width: 100%;
   color: var(--text-color, rgb(235, 235, 235));
-  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-family: "ComicSansMS", "Comic Sans", cursive;
   font-weight: bold;
   text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
   font-size: 18px;
@@ -805,7 +805,7 @@ body {
 }
 
 #ui-layer h2 {
-  font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+  font-family: "ComicSansMS", "Chalkboard SE", cursive;
   margin-bottom: 20px;
 }
 
@@ -876,8 +876,7 @@ body {
 }
 
 .loading-text {
-  font-family:
-    "Comic Sans MS", "Chalkboard SE", cursive; /* Matches game style */
+  font-family: "ComicSansMS", "Chalkboard SE", cursive; /* Matches game style */
   font-size: 1.5rem;
   color: #333;
   font-weight: bold;

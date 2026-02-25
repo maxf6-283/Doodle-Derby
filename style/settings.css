@@ -8,8 +8,6 @@
   gap: 10px;
 }
 
-
-
 #settingsMenu .modal-content {
   background: none;
   border-radius: 5px;
@@ -20,7 +18,7 @@
   align-items: center;
 
   /* Add these two lines */
-  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-family: "ComicSansMS", "Comic Sans", cursive;
   color: white;
 }
 
@@ -158,7 +156,7 @@
 .host-only-msg,
 p {
   color: rgb(0, 0, 0);
-  font-family: "Comic Sans MS", "Comic Sans", cursive;
+  font-family: "ComicSansMS", "Comic Sans", cursive;
 }
 
 .settings-actions {

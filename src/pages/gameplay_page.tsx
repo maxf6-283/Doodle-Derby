@@ -225,7 +225,7 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
     <Show when={props.artistList.length >= 2}>
       <>
         {/* <><SpectatorCanvas artist={item}</> */}
-        <div style={{ display: "flex", gap: "1rem" }}>
+        <div class="spectator-page-container">
           <div class="audience-canvas-container">
             <SpectatorCanvas
               artist={props.artistList[0]}
@@ -240,7 +240,7 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
               scale={0.7}
             ></SpectatorCanvas>
           </div>
-          <div style={{ display: "flex", "flex-direction": "column" }}>
+          <div class="spectator-info-container">
             <div style={{ display: "flex", "justify-content": "flex-end" }}>
               <MuteButton
                 onClick={() => {

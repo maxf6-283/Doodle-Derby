@@ -172,38 +172,20 @@
 /* The horizontal wrapper for input + button */
 .chat-input-row {
   display: flex;
-  border-top: 1px solid black;  
+  gap: 5px;
+  align-items: center;
+  margin : 20px 40px;
 }
 
 .chat-input-textbox {
   flex-grow: 1; /* Takes up all available space on the left */
   padding: 10px;
-  border: none;
+  border: 1px solid black;
   outline: none;
   font-size: 16px;
   /* Ensures text doesn't cause the box to grow weirdly */
   overflow: hidden;
-  background: none;
-}
-
-.chat-input-submit {
-  padding: 0 20px;
-  border: none;
-  border-left: 1px solid black;
-  background-color: #4a90e2;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  white-space: nowrap; /* Prevents button text from wrapping */
-}
-
-.chat-input-submit:hover:not(:disabled) {
-  background-color: #357abd;
-}
-
-.chat-input-submit:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+   background-color: #fff7c2;
 }
 .chat-message-container {
   overflow: hidden;
@@ -215,4 +197,29 @@
   display: flex;
   justify-content: center;
   flex-direction: column;
+}
+
+.spectator-page-container {
+  display: flex;
+  padding: 20px 50px;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+.spectator-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.guess-container {
+  display: flex;
+  flex-direction: column;
+  
+}
+
+.chat-message-container.correct-guess {
+  color: #27ae60; /* A nice green color */
+  font-weight: bold;
 }
