@@ -357,7 +357,20 @@ export class PaintCanvas {
         return;
       }
 
-      this.networkCallbacks?.onStrokeEnd(currentBoundingBox);
+      const scaleX = this.virtualWidth / this.canvasWidth;
+      const scaleY = this.virtualHeight / this.canvasHeight;
+      const networkBoundingBox: BoundingBox = {
+        min: [
+          currentBoundingBox.min[0] * scaleX,
+          currentBoundingBox.min[1] * scaleY,
+        ],
+        max: [
+          currentBoundingBox.max[0] * scaleX,
+          currentBoundingBox.max[1] * scaleY,
+        ],
+      };
+
+      this.networkCallbacks?.onStrokeEnd(networkBoundingBox);
 
       if (previousImageData == null) {
         console.error("previous image data is NULL!");
@@ -428,9 +441,19 @@ export class PaintCanvas {
           currentMousePos.x - this.layer.getPosition().x,
           currentMousePos.y - this.layer.getPosition().y,
         ];
+        const scaleX = this.virtualWidth / this.canvasWidth;
+        const scaleY = this.virtualHeight / this.canvasHeight;
+        const networkPos: [number, number] = [
+          pos[0] * scaleX,
+          pos[1] * scaleY,
+        ];
 
         this.fill(pos[0], pos[1], this.currentBrush.color);
-        this.networkCallbacks?.onFill(pos[0], pos[1], this.currentBrush.color);
+        this.networkCallbacks?.onFill(
+          networkPos[0],
+          networkPos[1],
+          this.currentBrush.color,
+        );
         return;
       }
 
@@ -440,8 +463,15 @@ export class PaintCanvas {
         currentMousePos.y - this.layer.getPosition().y,
       ];
 
+      const scaleX = this.virtualWidth / this.canvasWidth;
+      const scaleY = this.virtualHeight / this.canvasHeight;
+      const networkPos: [number, number] = [
+        pos[0] * scaleX,
+        pos[1] * scaleY,
+      ];
+
       this.networkCallbacks?.onStrokeBegin({
-        points: [pos],
+        points: [networkPos],
         currentBrush: this.currentBrush,
         paintMode: this.paintMode,
       });
@@ -1023,4 +1053,3 @@ export class PaintCanvas {
     this.undoBuffer.push(fillAction);
   }
 }
-
