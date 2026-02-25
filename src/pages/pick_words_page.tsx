@@ -119,8 +119,8 @@ function PlayerCards(props: { maxWords: number }) {
 // (NOTE) After rewrite, not sure if this still has intended effect
 //        to avoid repeated setState calls
 function syncState(words: string[]) {
-  myPlayer().setState("words", [...words]);
-  myPlayer().setState("words_complete", words.length);
+  myPlayer().setState("words", [...words], true);
+  myPlayer().setState("words_complete", words.length, true);
 }
 
 function SubmitWord(props: {
@@ -130,6 +130,8 @@ function SubmitWord(props: {
 }) {
   const [wordInput, setWordInput] = createSignal("");
   const [invalidInput, setInvalidInput] = createSignal(false);
+
+  const MAX_WORD_LENGTH = 16;
 
   const submitWord = () => {
     const new_word = wordInput().trim();
@@ -152,6 +154,7 @@ function SubmitWord(props: {
         <input
           type="text"
           class={invalidInput() ? "error-shake" : ""}
+          maxlength={MAX_WORD_LENGTH}
           id="word-input"
           placeholder="Type a word..."
           value={wordInput()}
@@ -279,9 +282,9 @@ function PickWordsMain() {
       (prevMaxWord) => prevMaxWord * (getState("number-rounds") ?? 1),
     );
 
-    myPlayer().setState("words", []);
-    myPlayer().setState("words_complete", 0);
-    myPlayer().setState("picked_words", false);
+    myPlayer().setState("words", [], true);
+    myPlayer().setState("words_complete", 0, true);
+    myPlayer().setState("picked_words", false, true);
 
     onCleanup(() => {
       startClean();
@@ -305,7 +308,7 @@ function PickWordsMain() {
 
   const continueToWaiting = () => {
     setIsWaiting(true);
-    myPlayer().setState("picked_words", true);
+    myPlayer().setState("picked_words", true, true);
     RPC.call("player-picked-words", {}, RPC.Mode.HOST);
   };
 

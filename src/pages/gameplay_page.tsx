@@ -31,6 +31,27 @@ const randInt = (length: number) => {
   return Math.floor(Math.random() * length);
 };
 
+const logRoundState = (context: string) => {
+  const participants = Object.values(getParticipants());
+  const snapshot = participants.map((player) => ({
+    id: player.id,
+    name: player.getState("name"),
+    isArtist: player.getState("isArtist"),
+    prompt: player.getState("prompt"),
+    hasChosen: player.getState("hasChosen"),
+    score: player.getState("score"),
+    rightGuesses: player.getState("rightGuesses"),
+    pickedWords: player.getState("picked_words"),
+    wordsComplete: player.getState("words_complete"),
+  }));
+  console.info("[DD][Round]", context, {
+    roundsPlayed: getState("roundsPlayed"),
+    maxRounds: getState("number-rounds"),
+    participantCount: participants.length,
+    players: snapshot,
+  });
+};
+
 function pickPrompts() {
   let participants = Object.values(getParticipants());
 
@@ -60,10 +81,12 @@ function pickPrompts() {
 
   // Give the artist their choices via state
   firstArtist.setState("promptChoices", secondArtistPrompts, true);
-  firstArtist.setState("prompt", "");
+  firstArtist.setState("prompt", "", true);
 
   secondArtist.setState("promptChoices", firstArtistPrompts, true);
-  secondArtist.setState("prompt", "");
+  secondArtist.setState("prompt", "", true);
+
+  logRoundState("pickPrompts:promptChoicesAssigned");
 }
 
 function pickRandomArtists() {
@@ -82,7 +105,7 @@ function pickRandomArtists() {
     // but ideally it should never be greater
     if (roundsPlayed >= maxRounds) {
       RPC.call("gameFinished", {}, RPC.Mode.ALL);
-      return;
+      return false;
     }
 
     setState("roundsPlayed", roundsPlayed, true);
@@ -109,7 +132,6 @@ function pickRandomArtists() {
     while (participants[secondIndex].id === currentArtistPool[firstIndex].id) {
       secondIndex = randInt(participants.length);
     }
-    console.log("We chose", participants[secondIndex].getState("name"));
     participants[secondIndex].setState("isArtist", true, true);
     participants[secondIndex].setState("hasChosen", true, true);
   } else {
@@ -119,26 +141,55 @@ function pickRandomArtists() {
     currentArtistPool[secondIndex].setState("isArtist", true, true);
     currentArtistPool[secondIndex].setState("hasChosen", true, true);
   }
+
+  logRoundState("pickRandomArtists:artistsAssigned");
+  return true;
 }
 
 function SelectPrompts(props: { onPromptsPicked: () => void }) {
   let [isArtist, setIsArtist] = createSignal(false);
   let [numPromptsPicked, setNumPromptsPicked] = createSignal(0);
+  let hasStarted = false;
 
   onMount(() => {
     const pickedPromptClean = RPC.register("pickedPrompt", async () => {
-      console.log("picked prompt!");
+      console.info("[DD][Round] pickedPrompt:rpcReceived");
       setNumPromptsPicked((n) => n + 1);
       if (numPromptsPicked() >= 2) {
-        props.onPromptsPicked();
+        if (!hasStarted) {
+          hasStarted = true;
+          logRoundState("pickedPrompt:advanceToGameplay");
+          props.onPromptsPicked();
+        }
       }
     });
 
     const randomArtistsClean = RPC.register("randomArtistsPicked", async () => {
       setIsArtist(me().getState("isArtist"));
+      logRoundState("randomArtistsPicked:rpcReceived");
     });
 
+    const interval = setInterval(() => {
+      setIsArtist(me().getState("isArtist") ?? false);
+
+      const artists = Object.values(getParticipants()).filter((player) =>
+        player.getState("isArtist")
+      );
+      if (artists.length >= 2) {
+        const bothPicked = artists.every((player) => {
+          const prompt = player.getState("prompt");
+          return !!prompt && String(prompt).length > 0;
+        });
+        if (bothPicked && !hasStarted) {
+          hasStarted = true;
+          logRoundState("promptStatePolling:advanceToGameplay");
+          props.onPromptsPicked();
+        }
+      }
+    }, 250);
+
     onCleanup(() => {
+      clearInterval(interval);
       pickedPromptClean();
       randomArtistsClean();
     });
@@ -216,11 +267,26 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
   };
 
   onMount(() => {
-    setPrompts([
-      props.artistList[0].getState("prompt"),
-      props.artistList[1].getState("prompt"),
-    ]);
-    setHiddenPrompts([hangman(prompts()[0]), hangman(prompts()[1])]);
+    const updatePrompts = () => {
+      if (props.artistList.length < 2) return;
+      const nextPrompts = [
+        props.artistList[0].getState("prompt") || "",
+        props.artistList[1].getState("prompt") || "",
+      ];
+      const current = prompts();
+      if (
+        current.length !== nextPrompts.length ||
+        current[0] !== nextPrompts[0] ||
+        current[1] !== nextPrompts[1]
+      ) {
+        setPrompts(nextPrompts);
+        setHiddenPrompts([hangman(nextPrompts[0]), hangman(nextPrompts[1])]);
+      }
+    };
+
+    updatePrompts();
+    const interval = setInterval(updatePrompts, 250);
+    onCleanup(() => clearInterval(interval));
   });
 
   return (
@@ -287,22 +353,25 @@ function Gameplay() {
   let [numPlayersGuessed, setNumPlayersGuessed] = createSignal(0);
 
   onMount(() => {
-    let participants = Object.values(getParticipants());
-    participants = participants.filter((player) => player.getState("isArtist"));
+    const interval = setInterval(() => {
+      let participants = Object.values(getParticipants());
+      participants = participants.filter((player) =>
+        player.getState("isArtist")
+      );
 
-    if (isHost()) {
-      console.log("players guessed:", numPlayersGuessed());
-    }
+      const meIsArtist = me().getState("isArtist") ?? false;
+      setIsArtist(meIsArtist);
 
-    setIsArtist(me().getState("isArtist") ?? false);
+      if (meIsArtist) {
+        participants = participants.filter((player) => player.id !== me().id);
+      }
 
-    if (me().getState("isArtist")) {
-      participants = participants.filter((player) => player.id !== me().id);
-    }
-    setArtists(participants);
+      setArtists(participants);
+    }, 250);
 
     const nextRoundClean = RPC.register("nextRound", async () => {
-      console.log("next round!!!");
+      console.info("[DD][Round] nextRound:rpcReceived");
+      logRoundState("nextRound:beforeReset");
       setState("chats", [], true);
       routerNavigate("/game");
     });
@@ -311,8 +380,8 @@ function Gameplay() {
       let guesserCount = Object.values(getParticipants()).length - 2;
       setNumPlayersGuessed((previousNum) => {
         let newNum = previousNum + 1;
-        console.log("People guessed:", newNum);
         if (newNum >= guesserCount) {
+          console.info("[DD][Round] playerGuessed:allGuessed");
           RPC.call("nextRound", {}, RPC.Mode.ALL);
         }
         return newNum;
@@ -320,6 +389,7 @@ function Gameplay() {
     });
 
     onCleanup(() => {
+      clearInterval(interval);
       nextRoundClean();
       playerGuessedClean();
     });
@@ -343,10 +413,11 @@ function GameplayPageMain() {
 
   onMount(() => {
     const gameFinishedClean = RPC.register("gameFinished", async () => {
+      logRoundState("gameFinished:rpcReceived");
       routerNavigate("/podium-page");
     });
 
-    me().setState("rightGuesses", 0);
+    me().setState("rightGuesses", 0, true);
 
     if (isHost()) {
       let participants: PlayerState[] = Object.values(getParticipants());
@@ -354,7 +425,7 @@ function GameplayPageMain() {
       participants.forEach((player) => {
         // Only set the score to 0 on initial run.
         // Do not want to reset between rounds.
-        if (!player.getState("score")) {
+        if (player.getState("score") == null) {
           player.setState("score", 0);
         }
       });
@@ -364,19 +435,19 @@ function GameplayPageMain() {
         // Do not want to reset between rounds.
         // This determines the player pool of people who
         // haven't drawn yet.
-        if (!player.getState("hasChosen")) {
+        if (player.getState("hasChosen") == null) {
           player.setState("hasChosen", false, true);
         }
 
         player.setState("isArtist", false, true);
       });
 
-      console.log("we doin this again");
-
-      pickRandomArtists();
-      pickPrompts();
+      if (pickRandomArtists()) {
+        pickPrompts();
+      }
 
       RPC.call("randomArtistsPicked", {}, RPC.Mode.ALL);
+      logRoundState("gameStart:hostInitialized");
     }
 
     onCleanup(() => {
@@ -402,10 +473,27 @@ export const GameplayPage: Page = {
 export function RandomWordSelection(props: {
   onSelected: (word: string) => void;
 }) {
-  const [choices] = createSignal<string[]>(
+  const [choices, setChoices] = createSignal<string[]>(
     me().getState("promptChoices") || [],
   );
   const [selected, setSelected] = createSignal<string | null>(null);
+
+  onMount(() => {
+    const updateChoices = () => {
+      const nextChoices = me().getState("promptChoices") || [];
+      const current = choices();
+      if (
+        current.length !== nextChoices.length ||
+        current.some((word, i) => word !== nextChoices[i])
+      ) {
+        setChoices([...nextChoices]);
+      }
+    };
+
+    updateChoices();
+    const interval = setInterval(updateChoices, 250);
+    onCleanup(() => clearInterval(interval));
+  });
 
   const handleSelect = (word: string) => {
     setSelected(word);

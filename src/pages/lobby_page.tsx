@@ -142,7 +142,7 @@ function Lobby() {
       }
       if (!me.getState("name")) {
         const randomName = await getRandomName(MAX_NAME_LENGTH);
-        me.setState("name", randomName);
+        me.setState("name", randomName, true);
       }
 
       // Ensure host ID is established globally
