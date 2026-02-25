@@ -171,12 +171,28 @@ function PodiumPageMain() {
   return (
     <>
       <Show when={isHost()}>
-        <button onClick={() => RPC.call("quitGame", {}, RPC.Mode.ALL)}>
-          End Session
-        </button>
-        <button value="Go to lobby" onClick={() => RPC.call("joinLobby", {}, RPC.Mode.ALL)}>
-          Return to Lobby
-        </button>
+        <div class="cloudcontainer">
+          {/** "Quit to home" button (left side) */}
+          <button 
+              class="cloudbutton"
+              style="float:left;"
+              onClick={() => RPC.call("quitGame", {}, RPC.Mode.ALL)}>
+            <img 
+                src="/podium/quit_cloud.png" 
+                class="cloudimg"/>
+          </button>
+          {/** "Return to lobby" button (right side) */}
+          <button 
+              class="cloudbutton" 
+              style="float:right;"
+              value="Go to lobby" 
+              onClick={() => RPC.call("joinLobby", {}, RPC.Mode.ALL)}>
+            <img 
+                src="/podium/return_cloud.png" 
+                class="cloudimg"
+                ></img>
+          </button>
+        </div>
       </Show>
       <div class="podium-page">
         <div class="podium-container">
