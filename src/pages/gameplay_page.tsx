@@ -146,7 +146,14 @@ function SelectPrompts(props: { onPromptsPicked: () => void }) {
 
   return (
     <>
-      <Show when={isArtist()} fallback={<h1>Waiting for artists to pick prompt!</h1>}>
+      <Show when={isArtist()} fallback={
+  <div class="waiting-screen">
+    <img src="/sheep_thinking.gif" alt="thinking sheep" class="waiting-sheep" />
+    <div class="waiting-content">
+      <p class="waiting-label">Waiting for artist to pick prompt...</p>
+        </div>
+        </div>
+  }>
         <RandomWordSelection onSelected={() => RPC.call("pickedPrompt", {}, RPC.Mode.ALL)} />
       </Show>
     </>
@@ -398,7 +405,7 @@ export function RandomWordSelection(props: {
   <div class="waiting-screen">
     <img src="/sheep_thinking.gif" alt="thinking sheep" class="waiting-sheep" />
     <div class="waiting-content">
-      <p class="waiting-label">Waiting for other artist</p>
+      <p class="waiting-label">Waiting for other artist...</p>
         </div>
         </div>
   }
