@@ -71,7 +71,8 @@ export const ChatGuesser = (props: {
   };
 
   const removePrompt = (word: string) => {
-    let newPrompts = prompts().filter((value) => value !== word);
+    let newPrompts = prompts();
+    newPrompts.splice(newPrompts.indexOf(word), 1);
     setPrompts(newPrompts);
   };
 
