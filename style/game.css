@@ -226,9 +226,12 @@
   margin : 0px;
   display: flex;
   align-self: flex-end;
-  text-align: end;
-  white-space: nowrap;
+  flex-direction: column;
+  text-align: start;
+  white-space: normal;
   word-break: break-word;
+  max-width: 100%;
+  font-size: 18px;
 }
 
 .prompt-container {

@@ -15,10 +15,10 @@ export function PlayerAvatar(props: { player: PlayerState}) {
         height: "80px",
         display: "flex",
         "justify-content": "center",
-        "align-items": "center",
+        "align-items": "flex-end",
         background: "rgba(255, 255, 255, 0)",
         "border-radius": "12px",
-   
+        "flex-shrink": 0,
       }}
     >
       {/* Base Character */}
