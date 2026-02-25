@@ -19,13 +19,14 @@ import { CanvasButton } from "../../src/components/CanvasButton";
 import { PlayerAvatar } from "../../src/components/PlayerAvatar";
 import { ArtistBar } from "../../src/components/ArtistBar";
 
-const DEFAULT_BRUSH = { color: "#000000", strokeWidth: 5 };
 
 const VIRTUAL_WIDTH = 600;
 const VIRTUAL_HEIGHT = 600;
 
 function DrawCanvas(props: { prompt: string }) {
   let containerRef: HTMLDivElement | undefined;
+
+  const DEFAULT_BRUSH = { color: "#000000", strokeWidth: 5 };
 
   let [paintMode, setPaintMode] = createSignal(PaintMode.DRAW);
   let [brush, setBrush] = createSignal(DEFAULT_BRUSH);
@@ -221,6 +222,7 @@ export function SpectatorCanvas(props: {
   hiddenPrompt?: string;
 }) {
   let containerRef: HTMLDivElement | undefined;
+  const DEFAULT_BRUSH = { color: "#000000", strokeWidth: 5 };
 
   let stage: konva.Stage;
   let canvas: HTMLCanvasElement;
