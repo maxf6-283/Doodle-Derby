@@ -3,7 +3,7 @@ import "solid-js/web";
 import konva from "konva";
 import { onCleanup, createSignal, createEffect, onMount } from "solid-js";
 
-import { PlayerState } from "playroomkit";
+import { myPlayer, PlayerState } from "playroomkit";
 
 import {
   PaintMode,
@@ -15,47 +15,86 @@ import {
 } from "./painting";
 
 import { RPC } from "playroomkit";
-
-const SMALL_BRUSH_SIZE = 5;
-const MEDIUM_BRUSH_SIZE = 10;
-const LARGE_BRUSH_SIZE = 20;
-const EXTREME_BRUSH_SIZE = 30;
+import { CanvasButton } from "../../src/components/CanvasButton";
+import { PlayerAvatar } from "../../src/components/PlayerAvatar";
+import { ArtistBar } from "../../src/components/ArtistBar";
 
 const DEFAULT_BRUSH = { color: "#000000", strokeWidth: 5 };
+
+const VIRTUAL_WIDTH = 600;
+const VIRTUAL_HEIGHT = 600;
 
 function DrawCanvas(props: { prompt: string }) {
   let containerRef: HTMLDivElement | undefined;
 
-  let [width, setWidth] = createSignal(600);
-  let [height, setHeight] = createSignal(600);
-
   let [paintMode, setPaintMode] = createSignal(PaintMode.DRAW);
   let [brush, setBrush] = createSignal(DEFAULT_BRUSH);
+  const [paintCanvas, setPaintCanvas] = createSignal<PaintCanvas>();
 
   let stage: konva.Stage;
   let canvas: HTMLCanvasElement;
-  let paintCanvas: PaintCanvas;
 
   onMount(() => {
     if (!containerRef) {
       return;
     }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent hotkeys from firing if the user is typing in a chat/input field
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
 
-    const rect = containerRef.getBoundingClientRect();
-    setWidth(rect.width);
-    setHeight(rect.height);
+      const player = myPlayer();
+      const key = e.key.toLowerCase();
+
+      // Get dynamic hotkeys from player state, falling back to defaults
+      const eraseKey = player.getState("hotkey-erase") || "e";
+      const undoKey = player.getState("hotkey-undo") || "u";
+      const redoKey = player.getState("hotkey-redo") || "r";
+      const fillKey = player.getState("hotkey-fill") || "f";
+      const drawKey = player.getState("hotkey-draw") || "b";
+
+      const pc = paintCanvas();
+      if (!pc) return;
+
+      if (key === eraseKey) {
+        setPaintMode(PaintMode.ERASE);
+        pc.setPaintMode(PaintMode.ERASE);
+      } else if (key === fillKey) {
+        setPaintMode(PaintMode.FILL);
+        pc.setPaintMode(PaintMode.FILL);
+      } else if (key === undoKey) {
+        pc.undo();
+      } else if (key === redoKey) {
+        pc.redo();
+      } else if (key === drawKey) {
+        setPaintMode(PaintMode.DRAW);
+        pc.setPaintMode(PaintMode.DRAW);
+      }
+    };
 
     stage = new konva.Stage({
       container: containerRef,
-      width: width(),
-      height: height(),
+      width: VIRTUAL_WIDTH,
+      height: VIRTUAL_HEIGHT,
     });
 
     canvas = stage.toCanvas();
 
-    paintCanvas = new PaintCanvas(canvas, { x: 0, y: 0 }, stage, DEFAULT_BRUSH);
+    const pc = new PaintCanvas(
+      canvas,
+      { x: 0, y: 0 },
+      stage,
+      DEFAULT_BRUSH,
+      false,
+      { width: VIRTUAL_WIDTH, height: VIRTUAL_HEIGHT },
+      { width: VIRTUAL_WIDTH, height: VIRTUAL_HEIGHT },
+    );
 
-    paintCanvas.setNetworkCallbacks({
+    pc.setNetworkCallbacks({
       onStrokeBegin: (payload: NetworkStrokePayload) => {
         RPC.call("onStrokeBegin", payload, RPC.Mode.OTHERS);
       },
@@ -90,146 +129,98 @@ function DrawCanvas(props: { prompt: string }) {
       },
     });
 
+    setPaintCanvas(pc);
 
+    window.addEventListener("keydown", handleKeyDown);
 
     onCleanup(() => {
+      window.removeEventListener("keydown", handleKeyDown);
       stage.destroy();
     });
   });
 
   createEffect(() => {
-    paintCanvas.setPaintMode(paintMode());
-    paintCanvas.setBrushColor(brush().color);
-    paintCanvas.setBrushStrokeWidth(brush().strokeWidth);
+    const pc = paintCanvas();
+    if (pc) {
+      pc.setPaintMode(paintMode());
+      pc.setBrushColor(brush().color);
+      pc.setBrushStrokeWidth(brush().strokeWidth);
+    }
   });
-
-  const setModeErase = () => {
-    if (paintMode() == PaintMode.ERASE) {
-      setPaintMode(PaintMode.DRAW);
-      return;
-    }
-    setPaintMode(PaintMode.ERASE);
-  };
-
-  const setModeFill = () => {
-    if (paintMode() == PaintMode.FILL) {
-      setPaintMode(PaintMode.DRAW);
-      return;
-    }
-
-    setPaintMode(PaintMode.FILL);
-  };
-
-  const setBrushStroke = (stroke: number) => {
-    setBrush((prevBrush) => {
-      prevBrush.strokeWidth = stroke;
-      return prevBrush;
-    });
-  };
-
-  const changeColor = (color: string) => {
-    setBrush((prevBrush) => {
-      prevBrush.color = color;
-      return prevBrush;
-    });
-  };
 
   return (
     <>
-      <div
-        style={{
-          position: "fixed", // This is temporary styling, I hope!
-          top: "0%",
-          right: "5%",
-          "z-index": 1,
-          "max-width": "20vw", // ensure it doesn't overflow the viewport
-          width: "max-content", // only as wide as content, but will wrap if too long
-          "word-break": "break-word", // wrap long words
-          "white-space": "normal", // allow wrapping
-        }}
-      >
-        <h1
-          style={{
-            margin: 0,
-            "word-break": "break-word",
-            "white-space": "normal",
-          }}
-        >
-          {props.prompt.toUpperCase()}
-        </h1>
-        <div
-          ref={containerRef}
-          id="container"
-          style={{ width: "400px", height: "400px" }}
-        ></div>
+      <div class="draw-root-container">
+        <h2 class="draw-header">{props.prompt}</h2>
+        <div class="draw-workspace">
+          <ArtistBar
+            brush={brush}
+            setBrush={setBrush}
+            paintMode={paintMode}
+            setPaintMode={setPaintMode}
+            paintCanvas={paintCanvas()}
+          />
+          <div
+            class="canvas-wrapper"
+            style={{
+              position: "relative",
+              width: "700px",
+              height: "700px",
+              margin: "0 auto",
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+            }}
+          >
+            <img
+              src="/drawing/canvas_frame.png"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "700px",
+                height: "700px",
+                "z-index": 0,
+                "pointer-events": "none", // Ensures clicks go through to the canvas
+              }}
+            />
+            <img
+              src="/drawing/canvas_inner_frame.png"
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "660px",
+                height: "680px",
+                "z-index": 1,
+                "pointer-events": "none", // Ensures clicks go through to the canvas
+              }}
+            />
+            <div
+              ref={containerRef}
+              id="container"
+              class="canvas-container"
+              style={{
+                position: "relative",
+                "z-index": 2,
+                "border-radius": "5px",
+              }}
+            ></div>
+          </div>
+        </div>
       </div>
-
-      <div class="sidebar" id="sidebar">
-        <input
-          type="button"
-          value="Small"
-          onClick={() => setBrushStroke(SMALL_BRUSH_SIZE)}
-        />
-        <input
-          type="button"
-          value="Medium"
-          onClick={() => setBrushStroke(MEDIUM_BRUSH_SIZE)}
-        />
-        <input
-          type="button"
-          value="Large"
-          onClick={() => setBrushStroke(LARGE_BRUSH_SIZE)}
-        />
-        <input
-          type="button"
-          value="Extreme"
-          onClick={() => setBrushStroke(EXTREME_BRUSH_SIZE)}
-        />
-        <input type="button" value="Erase" onClick={() => setModeErase()} />
-
-        <input type="button" value="Undo" onClick={() => paintCanvas.undo()} />
-        <input type="button" value="Redo" onClick={() => paintCanvas.redo()} />
-        <input type="button" value="Fill" onClick={() => setModeFill()} />
-
-        <input
-          type="color"
-          onInput={(element) => changeColor(element.target.value)}
-        />
-      </div>
-
-      <style>
-        {`
-          .sidebar {
-            position: fixed;
-            left: 5%;
-            background-color: #666666;
-            padding: 5px;
-            display: grid;
-          }
-
-          .sidebar button {
-            display: block;
-            margin: 3px;
-          }
-
-          #container {
-            border: solid 2px red;
-            position: fixed;
-            left: 25%;
-            right: auto;
-            top: 0;
-          }
-        `}
-      </style>
     </>
   );
 }
 
-export function SpectatorCanvas(props: { artist: PlayerState }) {
+export function SpectatorCanvas(props: {
+  artist: PlayerState;
+  scale?: number;
+  isSecondArtist?: boolean;
+  hiddenPrompt?: string;
+}) {
   let containerRef: HTMLDivElement | undefined;
-
-  let [width] = createSignal(600);
-  let [height] = createSignal(600);
 
   let stage: konva.Stage;
   let canvas: HTMLCanvasElement;
@@ -240,16 +231,16 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
       return;
     }
 
+    const scale = props.scale || 1.0;
+    const displayWidth = VIRTUAL_WIDTH * scale;
+    const displayHeight = VIRTUAL_HEIGHT * scale;
+
     const onStrokeBeginClean = RPC.register(
       "onStrokeBegin",
       async (payload: NetworkStrokePayload, player) => {
         if (player.id !== props.artist.id) return;
         paintCanvas.clientStartRecordStroke();
-        paintCanvas.drawPointsClient(
-          payload.points,
-          payload.currentBrush,
-          payload.paintMode,
-        );
+        paintCanvas.handleRemoteStroke(payload);
       },
     );
 
@@ -257,23 +248,25 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
       "onStrokeMove",
       async (payload: NetworkStrokePayload, player) => {
         if (player.id !== props.artist.id) return;
-        paintCanvas.drawPointsClient(
-          payload.points,
-          payload.currentBrush,
-          payload.paintMode,
-        );
+        paintCanvas.handleRemoteStroke(payload);
       },
     );
 
-    const onStrokeEndClean = RPC.register("onStrokeEnd", async (payload: BoundingBox, player) => {
-      if (player.id !== props.artist.id) return;
-      paintCanvas.registerUndoClient(payload);
-    });
+    const onStrokeEndClean = RPC.register(
+      "onStrokeEnd",
+      async (payload: BoundingBox, player) => {
+        if (player.id !== props.artist.id) return;
+        paintCanvas.registerUndoClient(payload);
+      },
+    );
 
-    const onFillClean = RPC.register("onFill", async (payload: NetworkFillPayload, player) => {
-      if (player.id !== props.artist.id) return;
-      paintCanvas.fill(payload.x, payload.y, payload.color);
-    });
+    const onFillClean = RPC.register(
+      "onFill",
+      async (payload: NetworkFillPayload, player) => {
+        if (player.id !== props.artist.id) return;
+        paintCanvas.handleRemoteFill(payload.x, payload.y, payload.color);
+      },
+    );
 
     const onUndoClean = RPC.register("onUndo", async (_, player) => {
       if (player.id !== props.artist.id) return;
@@ -287,9 +280,14 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
 
     stage = new konva.Stage({
       container: containerRef,
-      width: width(),
-      height: height(),
+      width: displayWidth,
+      height: displayHeight,
     });
+
+    if (containerRef) {
+      containerRef.style.width = `${displayWidth}px`;
+      containerRef.style.height = `${displayHeight}px`;
+    }
 
     canvas = stage.toCanvas();
 
@@ -298,7 +296,9 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
       { x: 0, y: 0 },
       stage,
       DEFAULT_BRUSH,
-      true,
+      true, // isSpectator
+      { width: displayWidth, height: displayHeight }, // baseSize
+      { width: VIRTUAL_WIDTH, height: VIRTUAL_HEIGHT }, // virtualSize
     );
 
     onCleanup(() => {
@@ -312,53 +312,134 @@ export function SpectatorCanvas(props: { artist: PlayerState }) {
     });
   });
 
+  const scale = () => props.scale || 1.0;
+  const wrapperSize = () => 700 * scale();
+  const innerWidth = () => 660 * scale();
+  const innerHeight = () => 680 * scale();
+
   return (
     <>
-      <h1> {props.artist.getState("name")} </h1>
-      <div ref={containerRef} id="container-spectator"></div>
+      <div class="draw-root-container">
+        <div class="spectator-header-container">
+          <PlayerAvatar player={props.artist}></PlayerAvatar>
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              "justify-content": "flex-end",
+            }}
+          >
+            <div class="spectator-name-header">
+              {props.artist.getState("name")}
+            </div>
+            <h1>{props.hiddenPrompt}</h1>
+          </div>
+        </div>
+
+        <div
+          class="canvas-wrapper"
+          style={{
+            position: "relative",
+            width: `${wrapperSize()}px`,
+            height: `${wrapperSize()}px`,
+            margin: "0 auto",
+            display: "flex",
+            "align-items": "center",
+            "justify-content": "center",
+          }}
+        >
+          {/* Outer Frame - Scaled */}
+          <img
+            src="/drawing/canvas_frame.png"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: `${wrapperSize()}px`,
+              height: `${wrapperSize()}px`,
+              "z-index": 0,
+              "pointer-events": "none",
+            }}
+          />
+          {/* Inner Frame - Scaled */}
+          <img
+            src="/drawing/canvas_inner_frame.png"
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: `${innerWidth()}px`,
+              height: `${innerHeight()}px`,
+              "z-index": 1,
+              "pointer-events": "none",
+            }}
+          />
+          {/* Canvas Container */}
+          <div
+            ref={containerRef}
+            id="container"
+            class="canvas-container"
+            style={{
+              position: "relative",
+              "z-index": 2,
+              "border-radius": "5px",
+            }}
+          ></div>
+        </div>
+      </div>
     </>
   );
 }
 
 export function GuessElement(props: { promptLength: number }) {
-    let [text, setText] = createSignal("");
-    let containerRef: HTMLDivElement | undefined;
+  let [text, setText] = createSignal("");
+  let containerRef: HTMLDivElement | undefined;
 
-    const handleContainerClick = () => {
-        const inputs = containerRef?.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
-        let hasInput = Array.from(inputs).find(input => input.value);
-        if (inputs) {
-            if (!hasInput) inputs[0].focus();
-        }
-    };
+  const handleContainerClick = () => {
+    const inputs = containerRef?.querySelectorAll(
+      "input",
+    ) as NodeListOf<HTMLInputElement>;
+    let hasInput = Array.from(inputs).find((input) => input.value);
+    if (inputs) {
+      if (!hasInput) inputs[0].focus();
+    }
+  };
 
-    const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
-        const input = e.currentTarget;
-        if (input.value.length >= 1) {
-            const next = input.parentElement?.nextElementSibling?.querySelector('input');
-            if (next) (next as HTMLInputElement).focus();
-        }
-    };
-    return (
-        <>
-            <div class='guessContainer' ref={containerRef} onClick={handleContainerClick}>
-                {Array.from({ length: props.promptLength }).map(() => (
-                    <>
-                        <div class="input-unit">
-                            <input
-                                class="letter-input"
-                                type="text"
-                                maxlength="1"
-                                onInput={handleInput}
-                                onChange={(c) => setText((text) => (text = c.currentTarget.value))} />
-                            <div class="bold-dash"></div >
-                        </div>
-                    </>
-                ))}
+  const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
+    const input = e.currentTarget;
+    if (input.value.length >= 1) {
+      const next =
+        input.parentElement?.nextElementSibling?.querySelector("input");
+      if (next) (next as HTMLInputElement).focus();
+    }
+  };
+  return (
+    <>
+      <div
+        class="guessContainer"
+        ref={containerRef}
+        onClick={handleContainerClick}
+      >
+        {Array.from({ length: props.promptLength }).map(() => (
+          <>
+            <div class="input-unit">
+              <input
+                class="letter-input"
+                type="text"
+                maxlength="1"
+                onInput={handleInput}
+                onChange={(c) =>
+                  setText((text) => (text = c.currentTarget.value))
+                }
+              />
+              <div class="bold-dash"></div>
             </div>
-            <style>
-                {
-                    `.guessContainer {
+          </>
+        ))}
+      </div>
+      <style>
+        {`.guessContainer {
                 position: relative;
                 display: flex;
                 gap: 15px;
@@ -391,11 +472,10 @@ export function GuessElement(props: { promptLength: number }) {
                 height: 6px;
                 background-color: #2c3e50;
                 border-radius: 10px;
-            }`
-                }
-            </style>
-        </>
-    );
+            }`}
+      </style>
+    </>
+  );
 }
 
 export function ArtistCanvasComponent(props: { prompt: string }) {

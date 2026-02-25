@@ -121,6 +121,14 @@ function Lobby() {
     //   setCurrentTimer(getState("timer-seconds") ?? DEFAULT_TIMER);
     // }, 100);
 
+    // This is very important, don't remove
+    setState("roundsPlayed", 0, true);
+
+    // If number-rounds is undefined set it!
+    if (!getState("number-rounds")) {
+      setState("number-rounds", 1);
+    }
+
     const me = myPlayer();
     const initSequence = async () => {
       // Wait for connection and room code
@@ -276,21 +284,22 @@ function Lobby() {
               routerNavigate("/");
             }}
           />
-          <div style={{
-                  display: "flex",
-                  "align-items": "center",
-                  gap: "10px",
-                }}>
-            
+          <div
+            style={{
+              display: "flex",
+              "align-items": "center",
+              gap: "10px",
+            }}
+          >
             <h1 style={{ margin: 0 }}>
               Code: <span id="code-span">{getRoomCode() ?? "Error"}</span>
             </h1>
             <div class="copy-button-container">
               <button class="copy-btn" onClick={handleCopy}>
                 <img
-                  src="/lobby/copy.png"
+                  src="/lobby/copy_icon.png"
                   alt="Copy"
-                  style={{ width: "24px", height: "24px" }}
+                  style={{ width: "48px", height: "48px" }}
                 />
               </button>
 
@@ -302,7 +311,12 @@ function Lobby() {
           </div>
 
           <div>
-            <MuteButton onClick={() => {}}></MuteButton>
+            <MuteButton
+              onClick={() => {
+                if (!AudioManager.isMuted())
+                  AudioManager.playLoop("/audio/DDsong.mp3");
+              }}
+            ></MuteButton>
             <IconButton
               id="settings-btn"
               defaultImg="/lobby/settings_icon.png"
@@ -328,14 +342,14 @@ function Lobby() {
                   return getState("number-rounds") ?? 1;
                 })()}
               </li>
-              <li>
+              {/* <li>
                 Time Limit:{" "}
                 {(() => {
                   lobbyTicket(); // Listen for changes
                   return getState("timer-seconds") ?? DEFAULT_TIMER;
                 })()}
                 s
-              </li>
+              </li> */}
             </ul>
           </aside>
 
@@ -372,80 +386,91 @@ function Lobby() {
               }}
             </For>
           </div>
-
-          {/********************************************************************************/}
-          {/* Reactions */}
-
-          <div class="reac-container">
-            <button
-              class="reac-button"
-              onClick={() => {
-                setState("reactionPressed", "/reactions/cool.png");
-                RPC.call("new-reaction", {}, RPC.Mode.ALL);
-              }}
-            >
-              <img src="/reactions/cool.png" class="reac-img" alt="Cool" />
-            </button>
-            <button
-              class="reac-button"
-              onClick={() => {
-                setState("reactionPressed", "/reactions/ellipsis.png");
-                RPC.call("new-reaction", {}, RPC.Mode.ALL);
-              }}
-            >
-              <img
-                src="/reactions/ellipsis.png"
-                class="reac-img"
-                alt="Ellipsis"
-              />
-            </button>
-            <button
-              class="reac-button"
-              onClick={() => {
-                setState("reactionPressed", "/reactions/laugh.png");
-                RPC.call("new-reaction", {}, RPC.Mode.ALL);
-              }}
-            >
-              <img src="/reactions/laugh.png" class="reac-img" alt="Laugh" />
-            </button>
-            <button
-              class="reac-button"
-              onClick={() => {
-                setState("reactionPressed", "/reactions/question.png");
-                RPC.call("new-reaction", {}, RPC.Mode.ALL);
-              }}
-            >
-              <img
-                src="/reactions/question.png"
-                class="reac-img"
-                alt="Question"
-              />
-            </button>
-            <button
-              class="reac-button"
-              onClick={() => {
-                setState("reactionPressed", "/reactions/sad.png");
-                RPC.call("new-reaction", {}, RPC.Mode.ALL);
-              }}
-            >
-              <img src="/reactions/sad.png" class="reac-img" alt="Sad" />
-            </button>
-            <button
-              class="reac-button"
-              onClick={() => {
-                setState("reactionPressed", "/reactions/tomato.png");
-                RPC.call("new-reaction", {}, RPC.Mode.ALL);
-              }}
-            >
-              <img src="/reactions/tomato.png" class="reac-img" alt="Tomato" />
-            </button>
-          </div>
-
-          {/********************************************************************************/}
         </main>
 
         {/* Footer */}
         <footer class="lobby-footer">
+          {/********************************************************************************/}
+          {/* Reactions */}
+          <div
+            style={{
+              display: "flex",
+              "justify-content": "center",
+              width: "100%",
+            }}
+          >
+            <div class="reac-container">
+              <button
+                class="reac-button"
+                onClick={() => {
+                  setState("reactionPressed", "/reactions/cool.png");
+                  RPC.call("new-reaction", {}, RPC.Mode.ALL);
+                }}
+              >
+                <img src="/reactions/cool.png" class="reac-img" alt="Cool" />
+              </button>
+              <button
+                class="reac-button"
+                onClick={() => {
+                  setState("reactionPressed", "/reactions/ellipsis.png");
+                  RPC.call("new-reaction", {}, RPC.Mode.ALL);
+                }}
+              >
+                <img
+                  src="/reactions/ellipsis.png"
+                  class="reac-img"
+                  alt="Ellipsis"
+                />
+              </button>
+              <button
+                class="reac-button"
+                onClick={() => {
+                  setState("reactionPressed", "/reactions/laugh.png");
+                  RPC.call("new-reaction", {}, RPC.Mode.ALL);
+                }}
+              >
+                <img src="/reactions/laugh.png" class="reac-img" alt="Laugh" />
+              </button>
+              <button
+                class="reac-button"
+                onClick={() => {
+                  setState("reactionPressed", "/reactions/question.png");
+                  RPC.call("new-reaction", {}, RPC.Mode.ALL);
+                }}
+              >
+                <img
+                  src="/reactions/question.png"
+                  class="reac-img"
+                  alt="Question"
+                />
+              </button>
+              <button
+                class="reac-button"
+                onClick={() => {
+                  setState("reactionPressed", "/reactions/sad.png");
+                  RPC.call("new-reaction", {}, RPC.Mode.ALL);
+                }}
+              >
+                <img src="/reactions/sad.png" class="reac-img" alt="Sad" />
+              </button>
+              <button
+                class="reac-button"
+                onClick={() => {
+                  setState("reactionPressed", "/reactions/tomato.png");
+                  RPC.call("new-reaction", {}, RPC.Mode.ALL);
+                }}
+              >
+                <img
+                  src="/reactions/tomato.png"
+                  class="reac-img"
+                  alt="Tomato"
+                />
+              </button>
+            </div>
+          </div>
+
+          {/********************************************************************************/}
+
           <div class="ready-count">
             {players().filter((p) => p.getState("isReady")).length}/
             {players().length} READY

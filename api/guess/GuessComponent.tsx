@@ -1,39 +1,87 @@
-import { createSignal, onMount, onCleanup, Show } from "solid-js";
-
+import {
+  createSignal,
+  onMount,
+  onCleanup,
+  Show,
+  createEffect,
+  For,
+  Index,
+} from "solid-js";
 import { RPC, getState, setState, myPlayer, PlayerState } from "playroomkit";
+import { IconButton } from "../../src/components/IconButton";
 
-export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[], notArtist: boolean }) => {
+export const ChatGuesser = (props: {
+  promptList: string[];
+  artists: PlayerState[];
+  notArtist: boolean;
+}) => {
+  let chatAreaRef: HTMLDivElement | undefined;
   let [text, setText] = createSignal("");
   let [isDisabled, setIsDisabled] = createSignal(false);
   let [prompts, setPrompts] = createSignal<string[]>(props.promptList);
-  let [globalMessages, setGlobalMessages] = createSignal<string[]>([]);
+  let [globalMessages, setGlobalMessages] = createSignal<{text: string, isCorrect: boolean}[]>([]);
   let [correctGuesses, setCorrectGuesses] = createSignal(0);
 
-  const incrementGuess = () => {
-    setCorrectGuesses(previousGuess => previousGuess + 1);
-  }
-
-  const removePrompt = (word: string) => {
-    let newPrompts = prompts().filter(value => value !== word);
-    setPrompts(newPrompts);
-  }
+  const MAX_MESSAGES = 50;
 
   onMount(() => {
-    let intervalId = setInterval(() => { setGlobalMessages(getState('chats') ?? []); }, 300);
+    // Set initial chat messages
+    setGlobalMessages(getState("chats") ?? []);
+
+    const newChatClean = RPC.register("newChat", async (newMessage) => {
+      setGlobalMessages((prevMessages) => {
+        // Create the new message object
+        const nextMessage = {
+          text: newMessage.message,
+          isCorrect: !!newMessage.isCorrect, // Ensure it's a boolean
+        };
+
+        let updatedMessages = [...prevMessages, nextMessage];
+        if (updatedMessages.length > MAX_MESSAGES) {
+          updatedMessages = updatedMessages.slice(
+            updatedMessages.length - MAX_MESSAGES,
+          );
+        }
+        return updatedMessages;
+      });
+    });
 
     setPrompts(props.promptList);
 
     onCleanup(() => {
-      clearInterval(intervalId);
+      newChatClean();
     });
   });
 
+  createEffect(() => {
+    // Access the dependency to track it
+    const messages = globalMessages();
+
+    if (chatAreaRef) {
+      // A zero-delay timeout pushes the scroll to the end of the event loop
+      // ensuring the new <p> tags are already rendered.
+      setTimeout(() => {
+        chatAreaRef.scrollTop = chatAreaRef.scrollHeight;
+      }, 0);
+    }
+  });
+
+  const incrementGuess = () => {
+    setCorrectGuesses((previousGuess) => previousGuess + 1);
+  };
+
+  const removePrompt = (word: string) => {
+    let newPrompts = prompts();
+    newPrompts.splice(newPrompts.indexOf(word), 1);
+    setPrompts(newPrompts);
+  };
+
   const guessChecker = () => {
-    if (prompts().find(word => word === text().toLowerCase())) {
+    if (prompts().find((word) => word === text().toLowerCase())) {
       removePrompt(text().toLowerCase());
       incrementGuess();
 
-      let artist = props.artists.find(player => {
+      let artist = props.artists.find((player) => {
         return player.getState("prompt") === text().toLowerCase();
       });
 
@@ -43,14 +91,19 @@ export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[
       }
 
       // Update artist right guesses to decide how many points guesser recieves
-      const rGuess: number = artist.getState('rightGuesses');
+      const rGuess: number = artist.getState("rightGuesses");
       let guess = rGuess;
-      artist.setState('rightGuesses', rGuess + 1);
+      artist.setState("rightGuesses", rGuess + 1);
 
       const addArtistScore = (score_increment: number) => {
-        const currentScore = artist.getState('score');
-        console.log(artist.getState('name'), "gets", score_increment, "points!");
-        artist.setState('score', currentScore + score_increment);
+        const currentScore = artist.getState("score");
+        console.log(
+          artist.getState("name"),
+          "gets",
+          score_increment,
+          "points!",
+        );
+        artist.setState("score", currentScore + score_increment);
       };
 
       //add score for first guess
@@ -58,81 +111,187 @@ export const ChatGuesser = (props: { promptList: string[], artists: PlayerState[
       if (guess == 0) {
         addArtistScore(2);
         addition = 5;
-      }
-      else if (guess == 1) {
+      } else if (guess == 1) {
         addition = 3;
         addArtistScore(1);
-      }
-      else {
+      } else {
         addition = 1;
         addArtistScore(1);
       }
 
-      const currentScore = myPlayer().getState('score');
-      myPlayer().setState('score', currentScore + addition);
-      console.log("Right guesses after: " + artist.getState('rightGuesses'));
-      console.log("Player score: " + myPlayer().getState('score'));
-      console.log("Artist score: " + artist.getState('score'));
+      const currentScore = myPlayer().getState("score");
+      myPlayer().setState("score", currentScore + addition);
+      console.log("Right guesses after: " + artist.getState("rightGuesses"));
+      console.log("Player score: " + myPlayer().getState("score"));
+      console.log("Artist score: " + artist.getState("score"));
 
       if (correctGuesses() == 2) {
-        submitMessage("guessed both words!");
+        submitMessage("guessed both words!", true);
         setIsDisabled(true);
-        RPC.call('playerGuessed', {}, RPC.Mode.HOST);
+        RPC.call("playerGuessed", {}, RPC.Mode.HOST);
         return;
       }
-      submitMessage("guessed a word!");
+      submitMessage("guessed a word!", true);
     } else {
-      submitMessage(text());
+      submitMessage(text(), false);
     }
 
     if (correctGuesses() >= 2) {
       setIsDisabled(true);
     }
-  }
+  };
 
   function displayChat() {
-    let globalMessageList = globalMessages();
-    if (!globalMessageList) return;
-    return globalMessageList.map((message) => {
-      return (<p>{message}</p>);
-    }
+    return (
+      <div class="chat-messages-area" ref={chatAreaRef}>
+        <For each={globalMessages()}>
+          {(message) => <p class={`chat-message-container ${message.isCorrect ? 'correct-guess' : 'normal-guess'}`}>
+            {message.text}
+          </p>}
+        </For>
+      </div>
     );
   }
 
-  function appendMessage(newMessage: string) {
-    function newMessages() {
-      if (newMessage.trim().length == 0) return globalMessages;
-      return [...globalMessages(), newMessage];
-    }
-
-    setGlobalMessages(newMessages());
-    setState('chats', globalMessages());
-  }
-
-  function submitMessage(currentMessage: string) {
+  function submitMessage(currentMessage: string, isCorrect : boolean = false) {
     setText("");
     if (currentMessage.trim().length == 0) return;
-    console.log("Submitting message:", currentMessage);
-    appendMessage(`${myPlayer().getState('name')}: ${currentMessage}`); /* { message: `${currentName}: ${currentMessage}`, owner: currentName } */
+    const finalMessage = `${myPlayer().getState("name")}: ${currentMessage}`;
+    RPC.call("newChat", { message: finalMessage, isCorrect }, RPC.Mode.ALL);
   }
 
   return (
     <>
-      <div style={{
-        height: "20vh",
-        "overflow": "auto",
-        border: "solid 4px blue"
-      }}>
-        {displayChat()}
+      <div class="guess-container">
+        <div class="chat-container">{displayChat()}</div>
+        <Show when={props.notArtist}>
+          <div class="chat-input-row">
+            <input
+              class="chat-input-textbox"
+              disabled={isDisabled()}
+              value={text()}
+              type="text"
+              onInput={(e) => setText(e.currentTarget.value)}
+              placeholder="Type in chat here..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); // Prevents line breaks or form reloads
+                  guessChecker();
+                }
+              }}
+            />
+            <IconButton
+              defaultImg="/buttons/submit_icon.png"
+              hoverImg="/buttons/submit_hovered_icon.png"
+              onClick={() => guessChecker()}
+              altText="Submit"
+              text="SUBMIT"
+              width="90px"
+              height="40px"
+            ></IconButton>
+          </div>
+        </Show>
       </div>
-      <Show when={props.notArtist}>
-        <input
-          disabled={isDisabled()}
-          value={text()}
-          type="text"
-          onChange={(c) => setText(prevText => prevText = c.currentTarget.value)}/>
-        <button onClick={guessChecker}>Submit</button>
-      </Show>
+    </>
+  );
+};
+
+export function GuessElement(props: { prompt: string }) {
+  let [text, setText] = createSignal("");
+  let containerRef: HTMLDivElement | undefined;
+
+  const handleClick = () => {
+    const inputs = containerRef?.querySelectorAll(
+      "input",
+    ) as NodeListOf<HTMLInputElement>;
+    let hasInput = Array.from(inputs).find((input) => input.value);
+    if (inputs) {
+      if (!hasInput) inputs[0].focus();
+    }
+  };
+
+  const handleInput = (e: InputEvent & { currentTarget: HTMLInputElement }) => {
+    const input = e.currentTarget;
+    if (input.value.length >= 1) {
+      const next =
+        input.parentElement?.nextElementSibling?.querySelector("input");
+      if (next) (next as HTMLInputElement).focus();
+    }
+  };
+
+  const readingInput = () => {
+    const inputs = containerRef?.querySelectorAll(
+      "input",
+    ) as NodeListOf<HTMLInputElement>;
+
+    let currentInput = "";
+    inputs.forEach((input) => {
+      currentInput += input.value;
+    });
+    setText(currentInput);
+    console.log(currentInput);
+  };
+  return (
+    <>
+      <div class="guessContainer" ref={containerRef} onClick={handleClick}>
+        <Index each={props.prompt.split("")}>
+          {(char, i) => (
+            <div class="input-unit">
+              {char() === " " ? (
+                <div class="space" style={{ width: "20px" }}></div>
+              ) : (
+                <>
+                  <input
+                    class="letter-input"
+                    type="text"
+                    maxlength="1"
+                    onInput={(e) => handleInput(e)}
+                    onChange={readingInput}
+                    autocomplete="off"
+                  />
+                  <div class="bold-dash"></div>
+                </>
+              )}
+            </div>
+          )}
+        </Index>
+      </div>
+      <style>
+        {`.guessContainer {
+                position: relative;
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin-top: 2rem;
+            }
+
+            .input-unit {
+                position: relative;
+                top:100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .letter-input {
+                width: 40px;
+                background: transparent;
+                border: none;
+                text-align: center;
+                font-size: 2.5rem;
+                font-weight: 500;
+                color: #2c3e50;
+                text-transform: uppercase;
+                outline: none;
+            }
+
+            .bold-dash {
+                width: 100%;
+                height: 6px;
+                background-color: #2c3e50;
+                border-radius: 10px;
+            }`}
+      </style>
     </>
   );
 }

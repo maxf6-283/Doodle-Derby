@@ -8,7 +8,6 @@ export interface MuteButtonProps {
 
 export function MuteButton(props :MuteButtonProps) {
   const { isMuted, toggleMute } = AudioManager;
-  const [isMutedSignal, setIsMutedSignal] = createSignal(isMuted());
   const [isHovered, setIsHovered] = createSignal(false);
 
   const mutedSrc = "/audio/Sound_icon_muted.png";
@@ -21,7 +20,6 @@ export function MuteButton(props :MuteButtonProps) {
       class="icon-btn"
       onClick={() => {
         toggleMute();
-        setIsMutedSignal(isMuted());
         props.onClick();
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -29,7 +27,7 @@ export function MuteButton(props :MuteButtonProps) {
     >
       <img
         src={
-          isMutedSignal()
+          isMuted()
             ? isHovered()
               ? mutedHiglightedSrc
               : mutedSrc

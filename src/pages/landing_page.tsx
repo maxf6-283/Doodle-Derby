@@ -11,15 +11,19 @@ import {
   PromptModal,
   AlertModal,
   AlertModalProps,
-  PromptModalState
+  PromptModalState,
 } from "../../api/modals/ModalComponents";
 
 function LandingMain() {
   let logoClickCount = 0;
   const logoClickEvent = 20;
   const eventDuration = 10;
-  const [alertModal, setAlertModal] = createSignal<AlertModalProps | null>(null);
-  const [promptModal, setPromptModal] = createSignal<PromptModalState | null>(null);
+  const [alertModal, setAlertModal] = createSignal<AlertModalProps | null>(
+    null,
+  );
+  const [promptModal, setPromptModal] = createSignal<PromptModalState | null>(
+    null,
+  );
 
   const spawnSheep = () => {
     const doodle = document.createElement("img");
@@ -48,11 +52,19 @@ function LandingMain() {
       logoClickCount = 0;
     }
   };
-  const showAlert = (title: string | null, message: string, imgSrc?: string) => {
+  const showAlert = (
+    title: string | null,
+    message: string,
+    imgSrc?: string,
+  ) => {
     setAlertModal({ title, message, imgSrc });
   };
 
-  const showPrompt = (label: string, placeholder: string, onConfirm: (value: string | null) => void) => {
+  const showPrompt = (
+    label: string,
+    placeholder: string,
+    onConfirm: (value: string | null) => void,
+  ) => {
     setPromptModal({ label, placeholder, onConfirm });
   };
 
@@ -90,35 +102,17 @@ function LandingMain() {
     });
   };
 
-  const [bgMusicLoop, setBgMusicLoop] = createSignal<HTMLAudioElement | null>(
-    null,
-  );
-
-  function playBgMusic() {
-    if (bgMusicLoop() != null) {
-      AudioManager.stopLoop(bgMusicLoop());
-    }
-    setBgMusicLoop(AudioManager.playLoop("/audio/DDPT2.2.mp3"));
-  }
-
   onMount(() => {
-    if (!AudioManager.isMuted()) {
-      setBgMusicLoop(AudioManager.playLoop("/audio/DDPT2.2.mp3"));
-    }
-  });
-  onCleanup(() => {
-    if (bgMusicLoop() != null) {
-      AudioManager.stopLoop(bgMusicLoop());
-    }
+    AudioManager.playLoop("/audio/DDsong.mp3");
   });
 
   const handleCredits = () => {
     showAlert(
       "Credits!!",
       "Artists: Allie, Jay, Marissa, Bella\n" +
-      "Programmers: Neel, Seven, Zidane, Isha, Jack, Adrian\n" +
-      "Audio: Jay\n" +
-      "Designers: Emily",
+        "Programmers: Neel, Seven, Zidane, Isha, Jack, Adrian\n" +
+        "Audio: Jay\n" +
+        "Designers: Emily",
       "/group_photo.png",
     );
   };
@@ -127,10 +121,10 @@ function LandingMain() {
     showAlert(
       "How to Play",
       "Each player submits 5-10 word prompts." +
-      " At the start of each round, two artists are randomly selected and given a prompt to draw." +
-      " The rest of the players have a set time limit to guess both artists' prompts." +
-      " The artist with the most correct guesses wins the round!" +
-      " The player who guesses the fastest gains the most points!! Have fun doodlers!!",
+        " At the start of each round, two artists are randomly selected and given a prompt to draw." +
+        " The rest of the players have a set time limit to guess both artists' prompts." +
+        " The artist with the most correct guesses wins the round!" +
+        " The player who guesses the fastest gains the most points!! Have fun doodlers!!",
     );
   };
   return (
@@ -138,11 +132,8 @@ function LandingMain() {
       <div style={{ position: "absolute", top: "10px", right: "10px" }}>
         <MuteButton
           onClick={() => {
-            if (!AudioManager.isMuted()) playBgMusic();
-            else {
-              AudioManager.stopLoop(bgMusicLoop());
-              setBgMusicLoop(null);
-            }
+            if (!AudioManager.isMuted())
+              AudioManager.playLoop("/audio/DDsong.mp3");
           }}
         />
       </div>
@@ -156,7 +147,6 @@ function LandingMain() {
           />
         </button>
       </div>
-
 
       {/* Center Actions */}
       <div class="button-container">
@@ -186,10 +176,7 @@ function LandingMain() {
       <div class="footer-nav">
         <div>
           <span class="version-text">Version 0.0.1</span>
-          <span
-            class="footer-link"
-            onClick={() => handleCredits()}
-          >
+          <span class="footer-link" onClick={() => handleCredits()}>
             credits
           </span>
           <span class="footer-link" onClick={() => handleHowToPlay()}>
@@ -199,10 +186,7 @@ function LandingMain() {
       </div>
       <Show when={alertModal()}>
         {(alert) => (
-          <AlertModal
-            {...alert()}
-            onClose={() => setAlertModal(null)}
-          />
+          <AlertModal {...alert()} onClose={() => setAlertModal(null)} />
         )}
       </Show>
       <Show when={promptModal()}>
@@ -227,4 +211,3 @@ export const LandingPage: Page = {
     this.onEnd = render(() => <LandingMain />, root);
   },
 };
-

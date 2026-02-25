@@ -54,6 +54,9 @@ export function SettingsModal(props: {
   const [fillKey, setFillKey] = createSignal(
     myPlayer().getState("hotkey-fill") ?? "f",
   );
+  const [drawKey, setDrawKey] = createSignal(
+    myPlayer().getState("hotkey-draw") ?? "b",
+  );
   const [listeningAction, setListeningAction] = createSignal<string | null>(
     null,
   );
@@ -110,7 +113,15 @@ export function SettingsModal(props: {
   };
 
   return (
-    <div id="settingsMenu" class="modal" style={{ display: "flex" }}>
+    <div
+      id="settingsMenu"
+      class="modal"
+      style={{
+        display: "flex",
+        "align-items": "center",
+        "justify-content": "center",
+      }}
+    >
       <div class="modal-content">
         <div class="settings-layout">
           {/* Left Sidebar - Tab Navigation */}
@@ -161,11 +172,11 @@ export function SettingsModal(props: {
                       value={`${localRounds()}`}
                       onUpdate={(dir) => updateLocalRounds(dir)}
                     />
-                    <SettingRow
+                    {/* <SettingRow
                       label="Round Timer"
                       value={`${localTimer()}s`}
                       onUpdate={(dir) => updateLocalTime(dir * TIME_INCREMENT)}
-                    />
+                    /> */}
                     <div
                       class="settings-actions"
                       style={{
@@ -236,6 +247,17 @@ export function SettingsModal(props: {
                       onStart={() => setListeningAction("Fill")}
                       onUpdate={(k) => {
                         if (!isKeyTaken(k, "Fill")) setFillKey(k);
+                        setListeningAction(null); // Stop listening after update
+                      }}
+                      onCancel={() => setListeningAction(null)}
+                    />
+                    <HotkeyRow
+                      label="Draw"
+                      value={drawKey()}
+                      isListening={listeningAction() === "Draw"}
+                      onStart={() => setListeningAction("Draw")}
+                      onUpdate={(k) => {
+                        if (!isKeyTaken(k, "Draw")) setDrawKey(k);
                         setListeningAction(null); // Stop listening after update
                       }}
                       onCancel={() => setListeningAction(null)}
@@ -368,7 +390,7 @@ function SettingsHeader(props: {
           "font-weight": "bold",
           "pointer-events": "none", // Clicks pass through to the button
           "text-shadow": "1px 1px 2px rgba(0,0,0,0.5)", // Better readability
-          "font-family": '"Comic Sans MS", "Comic Sans", cursive',
+          "font-family": '"ComicSansMS", "Comic Sans", cursive',
           width: "100%",
           "text-align": "center",
           "-webkit-mask-image": `url(${isActive() ? props.activeSrc : props.baseSrc})`,
