@@ -227,21 +227,36 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
     <Show when={props.artistList.length >= 2}>
       <>
         {/* <><SpectatorCanvas artist={item}</> */}
+
         <div class="spectator-page-container">
-          <div class="audience-canvas-container">
-            <SpectatorCanvas
-              artist={props.artistList[0]}
-              hiddenPrompt={hiddenPrompts()[0]}
-              scale={0.7}
-            ></SpectatorCanvas>
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              "justify-content": "center",
+              "align-items": "center",
+              "gap": "20px",
+            }}
+          >
+            <div style={{ display: "flex", "flex-direction": "row", "gap": "20px" }}>
+              <div class="audience-canvas-container">
+                <SpectatorCanvas
+                  artist={props.artistList[0]}
+                  hiddenPrompt={hiddenPrompts()[0]}
+                  scale={0.7}
+                ></SpectatorCanvas>
+              </div>
+              <div class="audience-canvas-container">
+                <SpectatorCanvas
+                  artist={props.artistList[1]}
+                  hiddenPrompt={hiddenPrompts()[1]}
+                  scale={0.7}
+                ></SpectatorCanvas>
+              </div>
+            </div>
+            <PlayerList useRowLayout={true}></PlayerList>
           </div>
-          <div class="audience-canvas-container">
-            <SpectatorCanvas
-              artist={props.artistList[1]}
-              hiddenPrompt={hiddenPrompts()[1]}
-              scale={0.7}
-            ></SpectatorCanvas>
-          </div>
+
           <div class="spectator-info-container">
             <div style={{ display: "flex", "justify-content": "flex-end" }}>
               <MuteButton
@@ -260,6 +275,7 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
             <ReactionBar></ReactionBar>
           </div>
         </div>
+
       </>
     </Show>
   );
@@ -310,8 +326,6 @@ function Gameplay() {
 
   return (
     <>
-
-
       <Show when={isArtist()}>
         <ArtistPage otherArtist={artists()[0]} />
       </Show>

@@ -321,18 +321,19 @@ export function SpectatorCanvas(props: {
     <>
       <div class="draw-root-container">
         <div class="spectator-header-container">
-          <PlayerAvatar player={props.artist}></PlayerAvatar>
+          <PlayerAvatar player={props.artist} ></PlayerAvatar>
           <div
             style={{
               display: "flex",
-              "flex-direction": "column",
               "justify-content": "flex-end",
+              "align-items": "flex-end",
+              "gap": "40px",
             }}
           >
             <div class="spectator-name-header">
               {props.artist.getState("name")}
             </div>
-            <h1>{props.hiddenPrompt}</h1>
+            <h1 class="spectator-prompt-header">{props.hiddenPrompt}</h1>
           </div>
         </div>
 

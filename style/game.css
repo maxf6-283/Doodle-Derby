@@ -52,11 +52,17 @@
 .draw-root-container {
   display: flex;
   flex-direction: column;
+  gap: 5px;
 }
 .spectator-header-container {
   display: flex;
   flex-direction: row;
+  align-items: flex-end;
   gap: 10px;
+  background-color: #b3d1ff;
+  border: black 2px solid;
+  border-radius : 12px;
+  padding: 7px 10px;
 }
 
 .round-header {
@@ -73,9 +79,8 @@
 .spectator-name-header {
   margin: 0;
   word-break: break-word;
-  white-space: normal;
-  align-self: flex-start;
-  justify-self: flex-start;
+  white-space: nowrap;
+  align-self: flex-end;
 
   padding: 0px 0px;
 }
@@ -84,11 +89,6 @@
   text-align: center;
   justify-content: end;
   translate: 5% 0px;
-}
-.spectator-name-header {
-  text-align: flex-start;
-  align-self: flex-start;
-  font-size: 16px;
 }
 
 /* The workspace container (Sidebar + Canvas) */
@@ -174,18 +174,18 @@
   display: flex;
   gap: 5px;
   align-items: center;
-  margin : 20px 40px;
+  margin: 20px 40px;
 }
 
 .chat-input-textbox {
   flex-grow: 1; /* Takes up all available space on the left */
   padding: 10px;
-  border: 1px solid black;
+  border: 2px solid black;
   outline: none;
   font-size: 16px;
   /* Ensures text doesn't cause the box to grow weirdly */
   overflow: hidden;
-   background-color: #fff7c2;
+  background-color: #fff7c2;
 }
 .chat-message-container {
   overflow: hidden;
@@ -216,12 +216,50 @@
 .guess-container {
   display: flex;
   flex-direction: column;
-  
 }
 
 .chat-message-container.correct-guess {
   color: #27ae60; /* A nice green color */
   font-weight: bold;
+}
+.spectator-prompt-header {
+  margin : 0px;
+  display: flex;
+  align-self: flex-end;
+  text-align: end;
+  white-space: nowrap;
+  word-break: break-word;
+}
+
+.prompt-container {
+  height: 60px; /* Adjust based on your design needs */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+/* Style the prompt text to handle long words without stretching the container */
+.prompt-text {
+  word-break: break-word; /* Breaks the word at any character to prevent stretching */
+  overflow-wrap: break-word;
+  max-width: 90%; /* Keeps text within bounds */
+  font-size: 1.2rem; /* Ensure consistent sizing */
+}
+
+.canvases-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start; /* Keeps the tops of the canvases aligned */
+  gap: 20px; /* Maintains a consistent gap regardless of prompt width */
+}
+
+/* Ensure individual canvas containers have a fixed or max width */
+.artist-canvas-container,
+.spectator-canvas-container {
+  flex: 0 0 auto; /* Prevents canvases from growing or shrinking */
 }
 
 /* Waiting screen */
