@@ -33,9 +33,7 @@ body {
   bottom: 70px;
   opacity: 0;
   scale: 1.5;
-  transition:
-    opacity 2s ease-out,
-    scale 2s ease-out;
+  transition: opacity 2s ease-out, scale 2s ease-out;
 }
 
 @starting-style {
@@ -81,7 +79,6 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 /* END REACTIONS */

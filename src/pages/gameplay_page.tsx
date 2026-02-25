@@ -69,7 +69,7 @@ function pickPrompts() {
 function pickRandomArtists() {
   let participants = Object.values(getParticipants());
   let currentArtistPool = participants.filter((player) => {
-    player.setState("isArtist", false);
+    player.setState("isArtist", false, true);
     return !player.getState("hasChosen");
   });
 
@@ -90,18 +90,18 @@ function pickRandomArtists() {
     // Reset player pool
 
     participants.forEach((player) => {
-      player.setState("hasChosen", false);
+      player.setState("hasChosen", false, true);
     });
 
     currentArtistPool = participants.filter((player) => {
-      player.setState("isArtist", false);
+      player.setState("isArtist", false, true);
       return !player.getState("hasChosen");
     });
   }
 
   let firstIndex = randInt(currentArtistPool.length);
-  currentArtistPool[firstIndex].setState("isArtist", true);
-  currentArtistPool[firstIndex].setState("hasChosen", true);
+  currentArtistPool[firstIndex].setState("isArtist", true, true);
+  currentArtistPool[firstIndex].setState("hasChosen", true, true);
 
   let secondIndex = firstIndex;
   if (currentArtistPool.length == 1) {
@@ -147,13 +147,13 @@ function SelectPrompts(props: { onPromptsPicked: () => void }) {
   return (
     <>
       <Show when={isArtist()} fallback={
-  <div class="waiting-screen">
-    <img src="/sheep_thinking.gif" alt="thinking sheep" class="waiting-sheep" />
-    <div class="waiting-content">
-      <p class="waiting-label">Waiting for artist to pick prompt...</p>
+        <div class="waiting-screen">
+          <img src="/sheep_thinking.gif" alt="thinking sheep" class="waiting-sheep" />
+          <div class="waiting-content">
+            <p class="waiting-label">Waiting for artist to pick prompt...</p>
+          </div>
         </div>
-        </div>
-  }>
+      }>
         <RandomWordSelection onSelected={() => RPC.call("pickedPrompt", {}, RPC.Mode.ALL)} />
       </Show>
     </>
@@ -227,21 +227,36 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
     <Show when={props.artistList.length >= 2}>
       <>
         {/* <><SpectatorCanvas artist={item}</> */}
+
         <div class="spectator-page-container">
-          <div class="audience-canvas-container">
-            <SpectatorCanvas
-              artist={props.artistList[0]}
-              hiddenPrompt={hiddenPrompts()[0]}
-              scale={0.7}
-            ></SpectatorCanvas>
+          <div
+            style={{
+              display: "flex",
+              "flex-direction": "column",
+              "justify-content": "center",
+              "align-items": "center",
+              "gap": "20px",
+            }}
+          >
+            <div style={{ display: "flex", "flex-direction": "row", "gap": "20px" }}>
+              <div class="audience-canvas-container">
+                <SpectatorCanvas
+                  artist={props.artistList[0]}
+                  hiddenPrompt={hiddenPrompts()[0]}
+                  scale={0.7}
+                ></SpectatorCanvas>
+              </div>
+              <div class="audience-canvas-container">
+                <SpectatorCanvas
+                  artist={props.artistList[1]}
+                  hiddenPrompt={hiddenPrompts()[1]}
+                  scale={0.7}
+                ></SpectatorCanvas>
+              </div>
+            </div>
+            <PlayerList useRowLayout={true}></PlayerList>
           </div>
-          <div class="audience-canvas-container">
-            <SpectatorCanvas
-              artist={props.artistList[1]}
-              hiddenPrompt={hiddenPrompts()[1]}
-              scale={0.7}
-            ></SpectatorCanvas>
-          </div>
+
           <div class="spectator-info-container">
             <div style={{ display: "flex", "justify-content": "flex-end" }}>
               <MuteButton
@@ -260,6 +275,7 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
             <ReactionBar></ReactionBar>
           </div>
         </div>
+
       </>
     </Show>
   );
@@ -295,6 +311,7 @@ function Gameplay() {
       let guesserCount = Object.values(getParticipants()).length - 2;
       setNumPlayersGuessed((previousNum) => {
         let newNum = previousNum + 1;
+        console.log("People guessed:", newNum);
         if (newNum >= guesserCount) {
           RPC.call("nextRound", {}, RPC.Mode.ALL);
         }
@@ -310,8 +327,6 @@ function Gameplay() {
 
   return (
     <>
-      
-
       <Show when={isArtist()}>
         <ArtistPage otherArtist={artists()[0]} />
       </Show>
@@ -350,10 +365,10 @@ function GameplayPageMain() {
         // This determines the player pool of people who
         // haven't drawn yet.
         if (!player.getState("hasChosen")) {
-          player.setState("hasChosen", false);
+          player.setState("hasChosen", false, true);
         }
 
-        player.setState("isArtist", false);
+        player.setState("isArtist", false, true);
       });
 
       console.log("we doin this again");
@@ -401,15 +416,15 @@ export function RandomWordSelection(props: {
 
   return (
     <Show when={!selected()}
-  fallback={
-  <div class="waiting-screen">
-    <img src="/sheep_thinking.gif" alt="thinking sheep" class="waiting-sheep" />
-    <div class="waiting-content">
-      <p class="waiting-label">Waiting for other artist...</p>
+      fallback={
+        <div class="waiting-screen">
+          <img src="/sheep_thinking.gif" alt="thinking sheep" class="waiting-sheep" />
+          <div class="waiting-content">
+            <p class="waiting-label">Waiting for other artist...</p>
+          </div>
         </div>
-        </div>
-  }
->
+      }
+    >
       <div class="selection-overlay">
         <div class="selection-card">
           <h2>CHOOSE YOUR PROMPT</h2>
@@ -471,3 +486,4 @@ export function RandomWordSelection(props: {
     </Show>
   );
 }
+

@@ -1,6 +1,7 @@
 import { Accessor, Setter } from "solid-js";
 import { CanvasButton } from "./CanvasButton";
 import { PaintCanvas, PaintMode } from "../../api/draw/painting";
+import { AudioManager } from "./AudioManager";
 
 export interface ArtistBarProps {
   brush: Accessor<{ color: string; strokeWidth: number }>;
@@ -71,7 +72,10 @@ export function ArtistBar(props: ArtistBarProps) {
           icon="/drawing/paintbrush.png"
           alt="Fill"
           isActive={props.paintMode() === PaintMode.DRAW}
-          onClick={() => props.setPaintMode(PaintMode.DRAW)}
+          onClick={() => {
+            props.setPaintMode(PaintMode.DRAW);
+            AudioManager.playSound("/audio/draw.mp3");
+          }}
           top="50%"
           left="50%"
         />
@@ -79,7 +83,10 @@ export function ArtistBar(props: ArtistBarProps) {
           icon="/drawing/eraser.png"
           alt="Erase"
           isActive={props.paintMode() === PaintMode.ERASE}
-          onClick={() => props.setPaintMode(PaintMode.ERASE)}
+          onClick={() => {
+            props.setPaintMode(PaintMode.ERASE);
+            AudioManager.playSound("/audio/erase.mp3");
+          }}
           top="50%"
           left="50%"
         />
@@ -87,7 +94,10 @@ export function ArtistBar(props: ArtistBarProps) {
           icon="/drawing/bucket.png"
           alt="Fill"
           isActive={props.paintMode() === PaintMode.FILL}
-          onClick={() => props.setPaintMode(PaintMode.FILL)}
+          onClick={() => {
+            props.setPaintMode(PaintMode.FILL);
+            AudioManager.playSound("/audio/fill.mp3");
+          }}
           top="50%"
           left="50%"
           size="40px"
@@ -100,7 +110,10 @@ export function ArtistBar(props: ArtistBarProps) {
           icon="/drawing/undo_icon.png"
           alt="Undo"
           isActive={false}
-          onClick={() => props.paintCanvas?.undo()}
+          onClick={() => {
+            props.paintCanvas?.undo();
+            AudioManager.playSound("/audio/go back.mp3");
+          }}
           size="64px"
           top="50%"
           left="50%"
@@ -110,7 +123,10 @@ export function ArtistBar(props: ArtistBarProps) {
           icon="/drawing/redo_button.png"
           alt="Redo"
           isActive={false}
-          onClick={() => props.paintCanvas?.redo()}
+          onClick={() => {
+            props.paintCanvas?.redo();
+            AudioManager.playSound("/audio/go forward.mp3");
+          }}
           size="64px"
           top="50%"
           left="50%"

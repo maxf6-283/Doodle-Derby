@@ -2,7 +2,7 @@ import { PlayerState } from "playroomkit";
 import { Show, For } from "solid-js";
 
 // Component that takes a specific player state to render their character
-export function PlayerAvatar(props: { player: PlayerState }) {
+export function PlayerAvatar(props: { player: PlayerState}) {
   // Access player state reactively
   const character = () => props.player.getState("character");
   const accessories = () => props.player.getState("accessories") || [];
@@ -15,10 +15,10 @@ export function PlayerAvatar(props: { player: PlayerState }) {
         height: "80px",
         display: "flex",
         "justify-content": "center",
-        "align-items": "center",
+        "align-items": "flex-end",
         background: "rgba(255, 255, 255, 0)",
         "border-radius": "12px",
-        padding: "8px",
+        "flex-shrink": 0,
       }}
     >
       {/* Base Character */}
