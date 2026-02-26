@@ -18,6 +18,12 @@ export function PlayerList(
         background: "#b3d1ff",
         "border-radius": "16px",
         border: "black 2px solid",
+        "max-width": "800px",
+        "max-height": "600px",
+        "overflow-y": props.useRowLayout ? "hidden" : "auto",
+        "overflow-x": props.useRowLayout ? "auto" : "hidden",
+        "scrollbar-width": "thin",
+        "flex-shrink": 0,
       }}
     >
       <For each={players()}>

@@ -228,7 +228,8 @@ function Lobby() {
       <div id="mainLobby-container" class="lobby-container">
         {/* Header */}
         <header class="lobby-header">
-          <IconButton
+          <div style={{"flex-shrink":"0"}}>
+            <IconButton
             id="exit-btn"
             defaultImg="/lobby/back_icon.png"
             hoverImg="/lobby/back_icon_highlighted.png"
@@ -238,6 +239,8 @@ function Lobby() {
               routerNavigate("/");
             }}
           />
+          </div>
+          
           <div
             style={{
               display: "flex",
@@ -264,7 +267,7 @@ function Lobby() {
             </div>
           </div>
 
-          <div>
+          <div class="lobby-options-container">
             <MuteButton
               onClick={() => {
                 if (!AudioManager.isMuted())

@@ -79,6 +79,7 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* END REACTIONS */
@@ -129,6 +130,7 @@ body {
   width: var(--btn-width, 100px);
   height: var(--btn-height, 80px);
   outline: none;
+  
 }
 .icon-btn > * {
   grid-column: 1;
@@ -180,7 +182,7 @@ body {
 /* Rules Note */
 .rules-note {
   position: absolute;
-  top: 50px; /* Increased from 40px to move it below the header buttons */
+  top: 10px; /* Increased from 40px to move it below the header buttons */
   right: 40px; /* Slightly adjusted for better alignment */
   background-color: var(--sticky-pink);
   padding: 15px;
@@ -189,6 +191,10 @@ body {
   transform: rotate(1deg);
   z-index: 5; /* Ensures it stays above the lines but below any popups */
   opacity: 0;
+}
+.lobby-options-container {
+  display: flex;
+  align-items: center;
 }
 
 @media screen and (min-width: 800px) {
@@ -208,13 +214,16 @@ body {
 
 /* Player Layout */
 .player-grid {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(100px, 150px));
+  display: flex;
   gap: 40px 20px; /* Vertical and horizontal spacing */
   margin: 0 auto;
+  flex-wrap: wrap;
   justify-content: center;
-  align-content: center;
-  width: auto; /* Let it shrink-wrap its contents */
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y:auto;
+  align-content: flex-start;
+  
 }
 
 .plus-icon {

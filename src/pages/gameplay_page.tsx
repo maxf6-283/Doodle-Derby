@@ -227,11 +227,13 @@ function ArtistPage(props: { otherArtist: PlayerState }) {
           <ChatGuesser promptList={[]} artists={[]} notArtist={false} />
           <ReactionBar />
         </div>
+        {/* "gap" : "5px", */}
         <div
           style={{
             display: "flex",
             "flex-direction": "column",
             "justify-content": "flex-start",
+            "gap" : "5px",
           }}
         >
           <div style={{ display: "flex", "justify-content": "flex-end" }}>
@@ -301,7 +303,7 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
               "flex-direction": "column",
               "justify-content": "center",
               "align-items": "center",
-              "gap": "20px",
+              "gap": "5px",
             }}
           >
             <div style={{ display: "flex", "flex-direction": "row", "gap": "20px" }}>
@@ -322,9 +324,10 @@ function SpectatorPage(props: { artistList: PlayerState[] }) {
             </div>
             <PlayerList useRowLayout={true}></PlayerList>
           </div>
-
+            {/* ,"align-items":"center" */}
           <div class="spectator-info-container">
-            <div style={{ display: "flex", "justify-content": "flex-end" }}>
+            <div style={{ display: "flex", "justify-content": "space-between","align-items":"flex-start" }}>
+               <h1 class="round-header">Round {getState("roundsPlayed") || 0}</h1>
               <MuteButton
                 onClick={() => {
                   if (!AudioManager.isMuted())

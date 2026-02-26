@@ -25,7 +25,7 @@ export function MuteButton(props :MuteButtonProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <img
+      <img class="icon-btn__img"
         src={
           isMuted()
             ? isHovered()
