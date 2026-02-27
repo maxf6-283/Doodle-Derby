@@ -335,7 +335,7 @@ export function SpectatorCanvas(props: {
             <div class="spectator-name-header">
               {props.artist.getState("name")}
             </div>
-            <h1 class="spectator-prompt-header">{props.hiddenPrompt}</h1>
+            <h1 class="spectator-prompt-header"><pre>{props.hiddenPrompt}</pre></h1>
           </div>
         </div>
 
